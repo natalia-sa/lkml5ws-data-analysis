@@ -1,0 +1,89 @@
+# LKML5Ws: The What, When, Who, Where, and Why in the Linux Kernel Mailing Lists - A Columnar Dataset
+
+The Linux kernel, like other large and long-lived Free Software projects, utilizes mailing lists as the traditional medium for all development, bug reporting, and pivotal discussions on the project's future. However, as a consequence of the decentralized development model used in the Linux kernel, these emails are spread over hundreds of different mailing lists, with different communities and code maintainership models. This paper presents the LKML5Ws dataset. With over 20 million emails from 345 different mailing lists, our massive relational dataset provides a comprehensive overview of the last 20 years of Linux kernel development. Beyond shedding light on the awe-inspiring number of patches, discussions, and contributors involved in the project, our dataset serves as a basis for those interested in studying the intricate and knowledge-dense nature of the Linux kernel development process.
+
+<https://gitlab.com/ccsl-usp/codev/MailingListsHeritage>
+
+## Using this Dataset
+
+The dataset is an Apache Parquet dataset partitioned by each mailing list.
+
+To use this dataset, it must first be uncompressed using the attached [decompression_script.sh](decompression_script.sh).
+
+Open a terminal in the dataset folder (if not already, `cd dataset`).
+
+run `bash ./decompression_script.sh`
+
+After this, a `LKML5Ws` should be present in the current directory with all partitions decompressed.
+
+Analyses can be performed targeting a specific partition, such as `list=dev.linux.lists.virtualization`, or with all partitions.
+
+### Schema
+
+Schema definition of the Columnar dataset:
+
+```
+| Column                   | Type               | Description                                                                                      |
+|--------------------------|--------------------|--------------------------------------------------------------------------------------------------|
+| message-id               | String             | Email Message-ID header                                                                          |
+| from                     | String             | Sender email address                                                                             |
+| to                       | List of Strings    | Recipients (To field)                                                                            |
+| cc                       | List of Strings    | CC recipients                                                                                    |
+| subject                  | String             | Email subject line                                                                               |
+| has_patch_tag            | Boolean            | Presence "patch tag" (convention) in the subject              |
+| has_rfc_tag              | Boolean            | Presence "RFC tag" (convention) in the subject                |
+| has_response_tag         | Boolean            | Presence of "Re/Res tag" in the subject                       |
+| has_forward_tag          | Boolean            | Presence of "Fwd/Fd tag" in the subject                       |
+| patch_version            | UInt16             | Version of patch, if present ([PATCH v3] -> 3 )               |
+| patchset_sequence_number | String             | Sequence string, if present ([PATCH 0/11] -> 0/11)            |
+| subject_tags             | List of Strings    | All tags extracted from the subject                           |
+| untagged_subject         | String             | The subject removed from all tags but "Re/Res/Fd/Fwd"         |
+| date                     | Datetime           | Dataset email date (corrected)                                                                   |
+| client-date              | List of Strings    | Raw date from email client (may be incorrect)                                                    |
+| in-reply-to              | String             | In-Reply-To header                                                                               |
+| references               | List of Strings    | References headers                                                                               |
+| x-mailing-list           | String             | Mailing list name                                                                                |
+| trailers                 | List of Structs    | Signature block attribution and identification                                                   |
+| code                     | List of Strings    | Code snippets extracted from email                                                               |
+| raw_body                 | String             | Complete raw email body                                                                          |
+| body_sha1                | String             | Sha1 hashsum of the raw body (before anonymization)                                               |
+| _source_reference        | String             | Provenance tracking: source back reference (e.g., nntp sequential id, `{epoch}-{commit_hash}` for PI) |
+| list                     | String (partition) | The list from where the message was collected, split into a folder partition (hive style)        |
+```
+
+### Lineage Dataset
+
+Alongside the main email dataset, a `lineage.parquet` file provides a complete audit trail of every email archived. This file is generated by the parser from the `__lineage.yaml` files produced by the archiver.
+
+#### Lineage Schema
+
+```
+| Column              | Type   | Description                                                                 |
+|---------------------|--------|-----------------------------------------------------------------------------|
+| email_index         | String | Email ID or file name (as stored by the archiver)                           |
+| list_name           | String | Mailing list name                                                           |
+| source_type         | String | Source type and configuration (e.g., `NNTP h=localhost`, `PublicInbox`)     |
+| write_mode          | String | Output format used (`raw_email` or `parquet:<buffer_size>`)                 |
+| archiver_timestamp  | String | UTC timestamp when the email was fetched                                    |
+| archiver_build_info | String | Archiver build metadata: version, git commit, build time, target, rustc     |
+| parser_timestamp    | String | UTC timestamp when the emails were parsed                                   |
+| parser_build_info   | String | Parser build metadata: version, git commit, build time, target, rustc       |
+```
+
+#### Example Lineage Entry
+
+```yaml
+email_index: 1
+list_name: dev.linux.lists.gfs2
+source_type: "PublicInbox"
+write_mode: "parquet:10000"
+archiver_timestamp: 2025-01-15T10:30:00Z
+archiver_build_info: "Archiver v='0.1.0' commit='abc123' build_time_utc='2025-01-15T00:00:00Z' target='x86_64-unknown-linux-gnu' rustc='1.80.0'"
+```
+
+
+### Example Analyses
+
+In our repository, which contains the software used to create this dataset, we also provide scripts that we used to develop example analyses.
+
+- Script Example: [analysis/src](https://archive.softwareheritage.org/browse/origin/directory/?branch=refs/heads/fix-attributions-parser&origin_url=https://gitlab.com/ccsl-usp/codev/MailingListsHeritage&path=analysis)
