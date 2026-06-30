@@ -6,6 +6,8 @@ amd/
 __pycache__/
 *.pyc
 
+# Dados de deduplicação gerados em CSV (legado; o fluxo atual usa parquet)
+filter/*-duplicated.csv
 filter/*-duplicated-status.csv
 
 # Dados de deduplicação gerados em parquet (filter_parquet.py / add_accepted_status.py)
