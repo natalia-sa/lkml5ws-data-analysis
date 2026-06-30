@@ -8,5 +8,9 @@ __pycache__/
 
 filter/*-duplicated-status.csv
 
+# Dados de deduplicação gerados em parquet (filter_parquet.py / add_accepted_status.py)
+filter/*-duplicated.parquet
+filter/*-duplicated-status.parquet
+
 # Cache de respostas do Patchwork (add_accepted_status.py)
 filter/.patchwork_cache.json

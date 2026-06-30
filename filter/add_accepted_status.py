@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add an `accepted` column to the *-duplicated CSVs using Patchwork.
+"""Add an `accepted` column to the *-duplicated parquet files using Patchwork.
 
 For each patchset (emails grouped by thread + patch version), the script finds
 the row of the *last* patch and queries Patchwork to learn whether that patch
@@ -22,26 +22,24 @@ Run:
     .venv/bin/python filter/add_accepted_status.py
 """
 
-import csv
 import json
 import os
 import re
-import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
-csv.field_size_limit(sys.maxsize)
+import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# (input csv, output csv, subsystem)
+# (input parquet, output parquet, subsystem)
 CONFIG = [
-    (os.path.join(HERE, "iio-duplicated.csv"),
-     os.path.join(HERE, "iio-duplicated-status.csv"), "iio"),
-    (os.path.join(HERE, "amd-duplicated.csv"),
-     os.path.join(HERE, "amd-duplicated-status.csv"), "amd"),
+    (os.path.join(HERE, "iio-duplicated.parquet"),
+     os.path.join(HERE, "iio-duplicated-status.parquet"), "iio"),
+    (os.path.join(HERE, "amd-duplicated.parquet"),
+     os.path.join(HERE, "amd-duplicated-status.parquet"), "amd"),
 ]
 
 CACHE_PATH = os.path.join(HERE, ".patchwork_cache.json")
@@ -178,7 +176,10 @@ def clean_msgid(raw):
 
 def is_submission(row):
     subject = str(row.get("subject") or "")
-    return row.get("has_patch_tag") == "True" and not subject.lower().startswith("re:")
+    tag = row.get("has_patch_tag")
+    # parquet stores has_patch_tag as a real bool; CSV stored it as the text "True".
+    has_tag = tag is True or str(tag).strip().lower() == "true"
+    return has_tag and not subject.lower().startswith("re:")
 
 
 def seq_num(row):
@@ -198,7 +199,11 @@ def last_patch_indices(rows):
     for i, row in enumerate(rows):
         if not is_submission(row):
             continue
-        key = (row.get("_thread_id"), row.get("patch_version") or "")
+        # patch_version is float/NaN in parquet (NaN == v1). Normalize to a stable
+        # string so all rows of a patchset share one key (NaN != NaN would split them).
+        version = row.get("patch_version")
+        version = "" if pd.isna(version) else str(version)
+        key = (row.get("_thread_id"), version)
         groups.setdefault(key, []).append(i)
 
     targets = set()
@@ -224,39 +229,33 @@ def resolve_state(subsystem, msgid, cache, stats):
 
 
 def process(input_path, output_path, subsystem, cache):
-    with open(input_path, newline="") as f:
-        reader = csv.DictReader(f)
-        fieldnames = list(reader.fieldnames)
-        rows = list(reader)
+    df = pd.read_parquet(input_path)
+    rows = df.to_dict("records")  # row dicts only for last-patch detection
 
     targets = last_patch_indices(rows)
     stats = {"api_calls": 0, "cache_hits": 0, "true": 0, "false": 0, "empty": 0}
 
+    accepted_col = [""] * len(rows)
     for i, row in enumerate(rows):
         if i not in targets:
-            row["accepted"] = ""
             continue
         msgid = clean_msgid(row.get("message_id"))
         state = resolve_state(subsystem, msgid, cache, stats) if msgid else None
         accepted = state_to_accepted(state)
         if accepted is True:
-            row["accepted"] = "True"
+            accepted_col[i] = "True"
             stats["true"] += 1
         elif accepted is False:
-            row["accepted"] = "False"
+            accepted_col[i] = "False"
             stats["false"] += 1
         else:
-            row["accepted"] = ""
+            accepted_col[i] = ""
             stats["empty"] += 1
         save_cache(cache)  # checkpoint so a crash doesn't lose progress
 
-    if "accepted" not in fieldnames:
-        fieldnames.append("accepted")
-
-    with open(output_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
+    # Assign onto the original frame so every other column keeps its parquet dtype.
+    df["accepted"] = accepted_col
+    df.to_parquet(output_path, index=False)
 
     print(f"[{subsystem}] {os.path.basename(input_path)} -> {os.path.basename(output_path)}")
     print(f"    rows={len(rows)} patchsets/targets={len(targets)} "
