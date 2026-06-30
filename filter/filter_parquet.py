@@ -28,6 +28,10 @@ DUPLICATED_CODE_RE = re.compile(
 
 MESSAGE_ID_RE = re.compile(r"<?([^<>\s]+@[^<>\s]+)>?")
 
+EMAIL_RE = re.compile(r"[\w.+-]+@[\w.-]+\.\w+")
+
+VERSION_LINK_COL = "first_version_message_id"
+
 SUBJECT_COLS = [
     "subject",
     "untagged_subject",
@@ -143,6 +147,104 @@ def join_existing_columns(row, cols):
     return "\n".join(parts)
 
 
+def is_truthy(x):
+    if isinstance(x, bool):
+        return x
+
+    if is_missing(x):
+        return False
+
+    return str(x).strip().lower() in {"true", "1", "yes", "y", "t"}
+
+
+def is_submission_row(row):
+    """A real patch submission (not a reply / review)."""
+    subject = str(row.get("subject") or "")
+    return is_truthy(row.get("has_patch_tag")) and not subject.strip().lower().startswith("re:")
+
+
+def parse_patch_version(x):
+    """patch_version -> int. Empty / '1.0' -> 1, '2.0' -> 2, ..."""
+    if is_missing(x):
+        return 1
+
+    match = re.search(r"\d+", str(x))
+    return int(match.group(0)) if match else 1
+
+
+def author_key(x):
+    """Normalized submitter identity: the email address, lowercased."""
+    text = " ".join(str(v) for v in as_list(x) if not is_missing(v))
+    match = EMAIL_RE.search(text)
+    if match:
+        return match.group(0).lower()
+
+    return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def subject_key(untagged, subject=None):
+    """Base subject used to match a patch across versions.
+
+    Prefers `untagged_subject` (already stripped of `[PATCH vN x/y]`); falls
+    back to `subject` only if untagged is empty.
+    """
+    text = untagged
+    if is_missing(text) or not str(text).strip():
+        text = subject
+
+    return re.sub(r"\s+", " ", str(text or "")).strip().lower()
+
+
+def version_sort_key(row):
+    """Order versions so the earliest (v1) sorts first."""
+    date = row.get("date")
+    if is_missing(date):
+        date = pd.Timestamp.max
+
+    return (parse_patch_version(row.get("patch_version")), date, row.get("_row_order"))
+
+
+def add_version_links(df):
+    """Add `first_version_message_id`: group every patch with its other versions.
+
+    Runs on the deduplication-filtered data only. Patch submissions are grouped
+    by (author email, base subject); all rows of a group receive the same value
+    -- the message_id of the earliest (v1) submission in that group -- so every
+    version of the same patch shares it. If the group has no v1 present in the
+    filtered data (lowest version found is v2+), the column is left empty. Reply
+    rows and rows without a usable key are also left empty. No rows are dropped.
+    """
+    df[VERSION_LINK_COL] = ""
+
+    groups = {}
+    for i in df.index:
+        row = df.loc[i]
+        if not is_submission_row(row):
+            continue
+
+        author = author_key(row.get("from"))
+        subject = subject_key(row.get("untagged_subject"), row.get("subject"))
+        if not author or not subject:
+            continue
+
+        groups.setdefault((author, subject), []).append(i)
+
+    for members in groups.values():
+        root = min(members, key=lambda i: version_sort_key(df.loc[i]))
+
+        # Only link when a true v1 is present in the filtered data.
+        if parse_patch_version(df.loc[root].get("patch_version")) != 1:
+            continue
+
+        root_msgid = df.loc[root, "message_id"]
+        if is_missing(root_msgid) or not str(root_msgid).strip():
+            continue
+
+        df.loc[members, VERSION_LINK_COL] = str(root_msgid)
+
+    return df
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("parquet_path")
@@ -237,6 +339,16 @@ def main():
 
     matching_rows = df[df["_thread_id"].isin(good_threads)].copy()
 
+    # Link patch versions (v2 -> v1, v3 -> same v1, ...) on the dedup data only.
+    matching_rows = add_version_links(matching_rows)
+
+    linked_rows = (matching_rows[VERSION_LINK_COL].astype(str).str.len() > 0).sum()
+    version_groups = (
+        matching_rows.loc[matching_rows[VERSION_LINK_COL].astype(str).str.len() > 0,
+                          VERSION_LINK_COL]
+        .nunique()
+    )
+
     first_emails = df.groupby("_thread_id", sort=False).head(1).copy()
     matching_first_emails = first_emails[
         first_emails["_thread_id"].isin(good_threads)
@@ -263,6 +375,10 @@ def main():
     print(f"Duplicated-code threads: {threads_after}")
     print(f"Emails inside duplicated-code threads: {len(matching_rows)}")
     print(f"Threads flagged for manual verification: {len(manual_threads)}")
+
+    print()
+    print(f"Rows linked to a v1 ({VERSION_LINK_COL}): {linked_rows}")
+    print(f"Distinct version groups: {version_groups}")
 
     print()
     print(f"Subject columns checked: {', '.join(subject_cols)}")
