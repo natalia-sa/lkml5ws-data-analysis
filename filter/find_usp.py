@@ -1,31 +1,31 @@
 #!/usr/bin/env python3
 
 import argparse
+import re
 import pandas as pd
 
 
 FILES = [
+    #"amd-duplicated.csv",
     "iio-duplicated.csv",
 ]
 
-DEFAULT_N_THREADS = 5
-
-
-def is_true(x):
-    if pd.isna(x):
-        return False
-
-    if isinstance(x, bool):
-        return x
-
-    return str(x).strip().lower() in {"true", "1", "yes", "y"}
+USP_EMAIL_RE = re.compile(
+    r"[\w.+-]+@(?:[\w.-]+\.)?usp\.br\b",
+    re.IGNORECASE,
+)
 
 
 def clean_text(x):
-    if pd.isna(x):
+    if x is None or pd.isna(x):
         return ""
 
     return str(x).replace("\r\n", "\n").replace("\r", "\n").strip()
+
+
+def is_usp_sender(x):
+    text = clean_text(x)
+    return bool(USP_EMAIL_RE.search(text))
 
 
 def show_thread(df, thread_id):
@@ -58,16 +58,23 @@ def show_thread(df, thread_id):
         if "from" in row:
             print(f"From: {row.get('from')}")
 
+        if "to" in row:
+            print(f"To: {row.get('to')}")
+
+        if "cc" in row:
+            print(f"CC: {row.get('cc')}")
+
         print(f"Subject: {subject}")
 
         if untagged_subject and untagged_subject != subject:
             print(f"Untagged subject: {untagged_subject}")
 
-        print()
-        print("Match flags:")
-        print(f"  subject match: {row.get('_dup_subject_match')}")
-        print(f"  content match: {row.get('_dup_content_match')}")
-        print(f"  any match:     {row.get('_dup_match')}")
+        if "_dup_subject_match" in row or "_dup_content_match" in row or "_dup_match" in row:
+            print()
+            print("Match flags:")
+            print(f"  subject match: {row.get('_dup_subject_match')}")
+            print(f"  content match: {row.get('_dup_content_match')}")
+            print(f"  any match:     {row.get('_dup_match')}")
 
         if raw_body:
             print()
@@ -89,7 +96,6 @@ def show_thread(df, thread_id):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--files", nargs="+", default=FILES)
-    parser.add_argument("--n-threads", type=int, default=DEFAULT_N_THREADS)
     args = parser.parse_args()
 
     for path in args.files:
@@ -100,32 +106,25 @@ def main():
 
         df = pd.read_csv(path)
 
-        if "manual_verification" not in df.columns:
-            print("No manual_verification column found.")
-            continue
-
         if "_thread_id" not in df.columns:
             print("No _thread_id column found.")
             continue
 
-        df["_manual_bool"] = df["manual_verification"].apply(is_true)
-
-        inspect_df = df[df["_manual_bool"]].copy()
-
-        if inspect_df.empty:
-            print("No threads tagged for manual verification.")
+        if "from" not in df.columns:
+            print("No from column found.")
             continue
 
-        thread_ids = (
-            inspect_df["_thread_id"]
+        df["_usp_sender"] = df["from"].apply(is_usp_sender)
+
+        usp_thread_ids = (
+            df.loc[df["_usp_sender"], "_thread_id"]
             .drop_duplicates()
-            .head(args.n_threads)
+            .tolist()
         )
 
-        print(f"Threads tagged for manual verification: {inspect_df['_thread_id'].nunique()}")
-        print(f"Showing {len(thread_ids)} thread(s).")
+        print(f"Threads with at least one USP/IME-USP sender: {len(usp_thread_ids)}")
 
-        for thread_id in thread_ids:
+        for thread_id in usp_thread_ids:
             show_thread(df, thread_id)
 
 

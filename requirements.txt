@@ -1,0 +1,15 @@
+# Dependências do projeto (Python 3).
+#
+# Instalação:
+#   python3 -m venv .venv
+#   .venv/bin/pip install -r requirements.txt
+#
+# Os demais módulos usados pelos scripts (csv, json, os, re, sys, time,
+# urllib, argparse, math) fazem parte da biblioteca padrão e não precisam
+# ser instalados.
+
+# Leitura/escrita dos CSVs e parquets e toda a filtragem em filter/.
+pandas==3.0.3
+
+# Backend de parquet usado pelo pandas e pela leitura direta dos .parquet.
+pyarrow==24.0.0
