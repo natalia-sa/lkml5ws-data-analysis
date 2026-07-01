@@ -6,6 +6,9 @@ amd/
 __pycache__/
 *.pyc
 
+# Variáveis de ambiente / segredos (ex.: OPENAI_API_KEY)
+.env
+
 # Dados de deduplicação gerados em CSV (legado; o fluxo atual usa parquet)
 filter/*-duplicated.csv
 filter/*-duplicated-status.csv

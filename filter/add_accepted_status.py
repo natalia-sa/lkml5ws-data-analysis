@@ -2,14 +2,13 @@
 """Add an `accepted` column to the *-duplicated parquet files using Patchwork.
 
 For each patchset (emails grouped by thread + patch version), the script finds
-the row of the *last* patch and queries Patchwork to learn whether that patch
-was accepted in its subsystem. The `accepted` column is filled only on that
-last-patch row:
+the row of the *last* patch and queries Patchwork to learn its state in the
+subsystem. The `accepted` column is a STRING filled only on that last-patch row
+with the exact state reported by the Patchwork API, e.g.:
 
-    True   -> Patchwork state is "accepted"
-    False  -> found, but some other state (new/superseded/rejected/...)
-    ""     -> msgid not found in Patchwork (anonymized / not indexed), or not a
-              last-patch row
+    "accepted" / "new" / "superseded" / "rejected" / "changes-requested" / ...
+    ""  -> msgid not found in Patchwork (anonymized / not indexed), or not a
+           last-patch row
 
 Two subsystems, two Patchwork instances / methods:
 
@@ -22,6 +21,7 @@ Run:
     .venv/bin/python filter/add_accepted_status.py
 """
 
+import argparse
 import json
 import os
 import re
@@ -29,8 +29,10 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections import Counter
 
 import pandas as pd
+from tqdm import tqdm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -141,13 +143,6 @@ def query_amd(msgid):
 SUBSYSTEM_QUERY = {"iio": query_iio, "amd": query_amd}
 
 
-def state_to_accepted(state):
-    """Map a normalized state string to True / False / None(not found)."""
-    if state is None:
-        return None
-    return state == "accepted"
-
-
 # --------------------------------------------------------------------------- #
 # Cache
 # --------------------------------------------------------------------------- #
@@ -233,24 +228,20 @@ def process(input_path, output_path, subsystem, cache):
     rows = df.to_dict("records")  # row dicts only for last-patch detection
 
     targets = last_patch_indices(rows)
-    stats = {"api_calls": 0, "cache_hits": 0, "true": 0, "false": 0, "empty": 0}
+    stats = {"api_calls": 0, "cache_hits": 0}
+    by_status = Counter()
 
     accepted_col = [""] * len(rows)
-    for i, row in enumerate(rows):
-        if i not in targets:
-            continue
+    target_indices = sorted(targets)
+    for i in tqdm(target_indices, desc=f"[{subsystem}] Patchwork lookups",
+                  unit="patchset"):
+        row = rows[i]
         msgid = clean_msgid(row.get("message_id"))
         state = resolve_state(subsystem, msgid, cache, stats) if msgid else None
-        accepted = state_to_accepted(state)
-        if accepted is True:
-            accepted_col[i] = "True"
-            stats["true"] += 1
-        elif accepted is False:
-            accepted_col[i] = "False"
-            stats["false"] += 1
-        else:
-            accepted_col[i] = ""
-            stats["empty"] += 1
+        # Store the exact API state string; "" when the msgid was not found.
+        value = "" if state is None else str(state)
+        accepted_col[i] = value
+        by_status[value if value else "(not found)"] += 1
         save_cache(cache)  # checkpoint so a crash doesn't lose progress
 
     # Assign onto the original frame so every other column keeps its parquet dtype.
@@ -260,13 +251,32 @@ def process(input_path, output_path, subsystem, cache):
     print(f"[{subsystem}] {os.path.basename(input_path)} -> {os.path.basename(output_path)}")
     print(f"    rows={len(rows)} patchsets/targets={len(targets)} "
           f"api_calls={stats['api_calls']} cache_hits={stats['cache_hits']}")
-    print(f"    accepted: True={stats['true']} False={stats['false']} "
-          f"empty(not found)={stats['empty']}")
+    print(f"    status counts (last-patch rows):")
+    for status, count in by_status.most_common():
+        print(f"        {status}: {count}")
 
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Add an `accepted` column using Patchwork lookups."
+    )
+    parser.add_argument("--input", help="Input parquet file (overrides default CONFIG).")
+    parser.add_argument("--output", help="Output parquet file (required with --input).")
+    parser.add_argument(
+        "--subsystem", choices=sorted(SUBSYSTEM_QUERY), default="iio",
+        help="Patchwork subsystem to query (default: iio).",
+    )
+    args = parser.parse_args()
+
+    if args.input:
+        if not args.output:
+            parser.error("--output is required when --input is given")
+        jobs = [(args.input, args.output, args.subsystem)]
+    else:
+        jobs = CONFIG
+
     cache = load_cache()
-    for input_path, output_path, subsystem in CONFIG:
+    for input_path, output_path, subsystem in jobs:
         if not os.path.exists(input_path):
             print(f"SKIP (missing): {input_path}")
             continue

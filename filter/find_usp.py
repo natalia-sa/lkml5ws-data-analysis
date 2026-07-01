@@ -104,7 +104,10 @@ def main():
         print(f"FILE: {path}")
         print("#" * 120)
 
-        df = pd.read_csv(path)
+        if path.endswith(".parquet"):
+            df = pd.read_parquet(path)
+        else:
+            df = pd.read_csv(path)
 
         if "_thread_id" not in df.columns:
             print("No _thread_id column found.")
