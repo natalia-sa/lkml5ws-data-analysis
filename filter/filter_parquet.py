@@ -7,20 +7,32 @@ import re
 import pandas as pd
 from pandas.api.types import is_scalar
 
-
 DUPLICATED_CODE_RE = re.compile(
     r"""
-    \b(
-        de\s*[-_/]?\s*duplicat\w* |
-        dedup\w* |
-        duplicat\w* |
-        dupe\w* |
-        copy\s*(?:[-_/&]|\s+and\s+)?\s*past\w* |
-        clone\w* |
-        repeated\s+(?:code|check|logic|block|function|implementation) |
-        redundant\s+(?:code|check|logic|block|function|implementation) |
-        identical\s+(?:code|check|logic|block|function|implementation) |
-        same\s+(?:code|check|logic|block|function|implementation)
+    \b(?:
+        # 1. AÇÃO + CONTEXTO DE CÓDIGO
+        # Ex: "duplicate code", "cloned macro", "redundant logic"
+        (?:
+            de[-_]?duplicat\w* |
+            dedup\w* |
+            duplicat\w* |
+            repeated |
+            redundant |
+            identical |
+            same |
+            cloned?
+        )
+        \s+
+        (?:code|check|logic|block|function|routine|macro|implementation|snippet)
+        
+        |
+        
+        (?:code|logic|block|function|routine|macro|snippet)
+        \s+
+        (?:duplication|deduplication|dedup\b)
+        
+        
+        copy\s*[-_]?\s*past(?:e|ed|ing)
     )\b
     """,
     re.IGNORECASE | re.VERBOSE,
@@ -111,12 +123,16 @@ class UnionFind:
         self.parent = {}
 
     def find(self, x):
+        if is_missing(x) or pd.isna(x) or str(x).strip() == "nan":
+            return None
+
         if x not in self.parent:
             self.parent[x] = x
 
-        while self.parent[x] != x:
-            self.parent[x] = self.parent[self.parent[x]]
-            x = self.parent[x]
+        while self.parent.get(x, x) != x:
+            p = self.parent.get(x, x)
+            self.parent[x] = self.parent.get(p, p)
+            x = self.parent.get(x, x)
 
         return x
 
@@ -126,6 +142,9 @@ class UnionFind:
 
         ra = self.find(a)
         rb = self.find(b)
+
+        if ra is None or rb is None:
+            return
 
         if ra != rb:
             self.parent[rb] = ra
