@@ -101,12 +101,18 @@ Detalhes, limitações e o significado exato de cada valor de `accepted` estão 
   verificação manual.
 - **`filter/find_usp.py`** — localiza threads com pelo menos um remetente `@usp.br`.
 
+## Notebook de análise
+
+- **Rodar no Colab:** <https://colab.research.google.com/drive/1POtpQV_GusB20M8zl02bXNxkkAQAuIQZ?usp=sharing>
+- **Versão no repositório:** [`new_lkml5ws_data_analysis.ipynb`](new_lkml5ws_data_analysis.ipynb)
+
 ## Estrutura do repositório
 
 ```
 .
 ├── compression_script.sh / decompression_script.sh   # (des)compactação do dataset LKML5Ws
 ├── requirements.txt                                   # dependências (pandas, pyarrow, ...)
+├── new_lkml5ws_data_analysis.ipynb                    # notebook de análise (também no Colab)
 ├── parquet_viewer/                                    # visualizador + doc do esquema do dataset
 ├── iio/  amd/                                          # parquets de origem de cada subsistema
 └── filter/                                            # o pipeline de análise
