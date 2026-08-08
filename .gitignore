@@ -19,3 +19,6 @@ filter/*-duplicated-status.parquet
 
 # Cache de respostas do Patchwork (add_accepted_status.py)
 filter/.patchwork_cache.json
+
+# Cache de respostas do LLM (classify_duplication.py)
+llm_cache.json
