@@ -1,6 +1,6 @@
 # Visualizador rapido dos arquivos .parquet (LKML5Ws)
 
-Este script (`parquet_viewer/view_parquet.py`) serve para **espiar** o conteudo
+Este script (`parquet_viewer/view_parquet.py`) serve para verificar o conteudo
 dos arquivos `.parquet` do dataset sem precisar abrir tudo. Voce passa o caminho
 de um arquivo e quantas linhas quer ver; ele mostra **o total de linhas do
 arquivo** e imprime so as primeiras N linhas que voce pediu.
@@ -54,12 +54,6 @@ Ver as 10 primeiras linhas (todas as colunas) e o total de linhas do arquivo:
 ./.venv/bin/python parquet_viewer/view_parquet.py "LKML5Ws/list=ath12k/list_data.parquet"
 ```
 
-Ver as 20 primeiras linhas:
-
-```bash
-./.venv/bin/python parquet_viewer/view_parquet.py "LKML5Ws/list=ath12k/list_data.parquet" -n 20
-```
-
 Ver so algumas colunas (mais legivel):
 
 ```bash
@@ -72,12 +66,9 @@ Ver o corpo completo do email sem cortar o texto:
 ./.venv/bin/python parquet_viewer/view_parquet.py "LKML5Ws/list=rcu/list_data.parquet" -n 1 -c subject,raw_body --full
 ```
 
-> Dica: se voce nao lembrar os nomes das colunas, peca uma coluna qualquer
-> errada (ex.: `-c xxx`) que o script lista todas as colunas disponiveis.
-
 ## Colunas principais
 
-Os nomes usam `_` (underscore). As mais uteis no dia a dia:
+Os nomes usam `_` (underscore). As mais uteis:
 `from`, `to`, `cc`, `subject`, `date`, `x_mailing_list`, `raw_body`,
 `message_id`, `in_reply_to`. O esquema completo esta no `README.md` original
 do dataset.

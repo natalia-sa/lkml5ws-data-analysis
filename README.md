@@ -1,13 +1,5 @@
 # Análise de duplicação de código nas Linux Kernel Mailing Lists (LKML5Ws)
 
-Este repositório contém o pipeline de análise que usamos para investigar, sobre o dataset
-**LKML5Ws** (mais de 20 milhões de e-mails de 345 mailing lists do kernel Linux, ao longo de
-~20 anos), quais discussões tratam de fato de **duplicação de código** — e, dentre os patches
-sobre o tema, quais foram **aceitos** no subsistema.
-
-O recorte deste trabalho são dois subsistemas do kernel: **IIO** (*Industrial I/O*) e **AMD**
-(driver gráfico `amd-gfx`).
-
 ## Do que se trata
 
 O ponto de partida é o dataset LKML5Ws, um conjunto **Apache Parquet particionado por mailing
@@ -15,10 +7,8 @@ list** (cada pasta `list=<nome>` guarda um `list_data.parquet` com os e-mails da
 O esquema completo do dataset está documentado em
 [`parquet_viewer/README_dataset.md`](parquet_viewer/README_dataset.md).
 
-A partir desses e-mails, o objetivo é chegar de um volume gigantesco de mensagens até um
-subconjunto pequeno e confiável de threads que realmente discutem duplicação/deduplicação de
-código-fonte, classificá-las e verificar o desfecho de cada patch. Para isso o pipeline
-combina três estratégias, do mais barato ao mais caro:
+A partir desses e-mails, o objetivo é chegar em um subconjunto confiável de threads sobre duplicação/deduplicação de código, classificá-las e verificar o desfecho de cada patch. Para isso o pipeline
+combina três estratégias:
 
 1. **Filtro por regex** (rápido, alto recall, muitos falsos positivos);
 2. **Classificação por LLM** (interpreta o significado técnico da discussão);
@@ -26,14 +16,12 @@ combina três estratégias, do mais barato ao mais caro:
 
 ## Execução
 
-Passo a passo para rodar o pipeline do zero, na ordem correta.
-
 ### 1. Preparar o ambiente
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-cp .env.example .env   # depois preencha OPENAI_API_KEY em .env
+cp .env.example .env  
 ```
 
 Além das dependências do `requirements.txt` (`pandas`, `pyarrow`), a etapa de classificação por
@@ -43,7 +31,7 @@ LLM usa `openai`, `python-dotenv` e `tqdm`, e é a única que precisa da `OPENAI
 ### 2. Criar as pastas de dados
 
 Estas pastas guardam dados de entrada/saída e ficam fora do controle de versão
-(veja o `.gitignore`) — cada pessoa precisa criá-las e populá-las localmente:
+(veja o `.gitignore`) — é preciso criá-las e populá-las localmente:
 
 ```bash
 mkdir -p iio amd
@@ -64,8 +52,7 @@ Isso cria a pasta `LKML5Ws/`, particionada por lista (`LKML5Ws/list=<nome>/list_
 ### 4. Preparar o parquet de entrada de cada subsistema
 
 O pipeline espera um único `.parquet` por subsistema em `iio/list_data_iio.parquet` e
-`amd/list_data_amd.parquet`. Copie (ou, se o subsistema abranger mais de uma mailing list,
-concatene com pandas) as partições relevantes de `LKML5Ws/` para esses caminhos, por exemplo:
+`amd/list_data_amd.parquet`. Copie as partições relevantes de `LKML5Ws/` para esses caminhos, por exemplo:
 
 ```bash
 cp "LKML5Ws/list=<nome-da-lista-iio>/list_data.parquet" iio/list_data_iio.parquet
@@ -79,16 +66,8 @@ cp "LKML5Ws/list=<nome-da-lista-amd>/list_data.parquet" amd/list_data_amd.parque
     --output filter/iio-duplicated.parquet
 ```
 
-Repita trocando `iio` por `amd` para filtrar o outro subsistema:
-
-```bash
-.venv/bin/python filter/filter_parquet.py amd/list_data_amd.parquet \
-    --output filter/amd-duplicated.parquet
-```
-
 Detalhes do que esse script faz estão na seção [Como funciona](#como-funciona-o-pipeline)
-abaixo. As próximas etapas do pipeline (classificação por LLM e status no Patchwork) também
-estão documentadas lá.
+abaixo.
 
 ### 6. Checar o resultado com o visualizador de parquet
 
@@ -97,10 +76,9 @@ estão documentadas lá.
 ```
 
 Isso mostra o total de linhas do arquivo gerado e as 10 primeiras, para conferir rapidamente
-se o filtro funcionou. Mais opções (escolher colunas, não cortar texto longo, etc.) em
-[`parquet_viewer/README_view_parquet.md`](parquet_viewer/README_view_parquet.md).
+se o filtro funcionou. Mais opções em [`parquet_viewer/README_view_parquet.md`](parquet_viewer/README_view_parquet.md).
 
-## Como funciona (o pipeline)
+## Como funciona o pipeline
 
 O fluxo roda sobre os `.parquet` de cada subsistema e passa por estas etapas:
 

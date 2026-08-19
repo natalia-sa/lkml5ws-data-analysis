@@ -60,7 +60,7 @@ funciona"). Nas demais linhas ela fica **vazia**.
 > nova (`superseded`), e os de fato rejeitados (`rejected`). Da mesma forma, `vazio` quando o
 > msgid não é achado significa "não sei", e não "não foi aceito".
 
-### E as várias versões (v1, v2, v3)?
+### As várias versões (v1, v2, v3)?
 
 Não há passo de ligar versões. Cada versão é um patchset separado e é consultada por conta
 própria. O **próprio estado do Patchwork** já resolve isso: versões antigas voltam como
