@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import re
 import pandas as pd
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+FILTER_DIR = os.path.join(HERE, "..", "filter")
 
 FILES = [
-    #"../filter/amd-duplicated.parquet",
-    "../filter/iio-duplicated.parquet",
+    #os.path.join(FILTER_DIR, "amd-duplicated.parquet"),
+    os.path.join(FILTER_DIR, "iio-duplicated.parquet"),
 ]
 
 USP_EMAIL_RE = re.compile(

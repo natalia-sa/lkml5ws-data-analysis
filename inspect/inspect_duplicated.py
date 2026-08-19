@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import pandas as pd
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+FILTER_DIR = os.path.join(HERE, "..", "filter")
 
 FILES = [
-    "../filter/iio-duplicated.parquet",
+    os.path.join(FILTER_DIR, "iio-duplicated.parquet"),
 ]
 
 DEFAULT_N_THREADS = 5
