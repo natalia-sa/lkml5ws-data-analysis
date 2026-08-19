@@ -9,16 +9,16 @@ __pycache__/
 # Variáveis de ambiente / segredos (ex.: OPENAI_API_KEY)
 .env
 
-# Dados de deduplicação gerados em CSV (legado; o fluxo atual usa parquet)
+# Dados gerados pelo filtro por regex (filter_parquet.py)
 filter/*-duplicated.csv
-filter/*-duplicated-status.csv
-
-# Dados de deduplicação gerados em parquet (filter_parquet.py / add_accepted_status.py)
 filter/*-duplicated.parquet
-filter/*-duplicated-status.parquet
+
+# Dados gerados pelo status de aceite no Patchwork (add_accepted_status.py)
+patchwork/*-duplicated-status.csv
+patchwork/*-duplicated-status.parquet
 
 # Cache de respostas do Patchwork (add_accepted_status.py)
-filter/.patchwork_cache.json
+patchwork/.patchwork_cache.json
 
 # Cache de respostas do LLM (classify_duplication.py)
-llm_cache.json
+classify/llm_cache.json

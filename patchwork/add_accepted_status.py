@@ -35,12 +35,13 @@ import pandas as pd
 from tqdm import tqdm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+FILTER_DIR = os.path.join(HERE, "..", "filter")
 
 # (input parquet, output parquet, subsystem)
 CONFIG = [
-    (os.path.join(HERE, "iio-duplicated.parquet"),
+    (os.path.join(FILTER_DIR, "iio-duplicated.parquet"),
      os.path.join(HERE, "iio-duplicated-status.parquet"), "iio"),
-    (os.path.join(HERE, "amd-duplicated.parquet"),
+    (os.path.join(FILTER_DIR, "amd-duplicated.parquet"),
      os.path.join(HERE, "amd-duplicated-status.parquet"), "amd"),
 ]
 

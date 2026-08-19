@@ -8,9 +8,10 @@ Patchwork.
 
 ## Como usar
 
+Rode a partir da raiz do repositório:
+
 ```bash
-cd /home/natalia/Documentos/dataset
-.venv/bin/python filter/add_accepted_status.py
+.venv/bin/python patchwork/add_accepted_status.py
 ```
 
 Precisa de acesso à internet (bate em APIs públicas). Sem dependências externas — só a
@@ -20,21 +21,21 @@ biblioteca padrão do Python (`urllib`).
 
 | Entrada | Saída |
 |---|---|
-| `filter/iio-duplicated.csv` | `filter/iio-duplicated-status.csv` |
-| `filter/amd-duplicated.csv` | `filter/amd-duplicated-status.csv` |
+| `filter/iio-duplicated.parquet` | `patchwork/iio-duplicated-status.parquet` |
+| `filter/amd-duplicated.parquet` | `patchwork/amd-duplicated-status.parquet` |
 
 Os arquivos originais **não** são alterados. A saída é idêntica à entrada, com **todas as
 colunas originais na mesma ordem** + uma coluna nova `accepted` no final.
 
 ### Reexecução / cache
 
-As respostas do Patchwork são gravadas em `filter/.patchwork_cache.json`, com checkpoint a
+As respostas do Patchwork são gravadas em `patchwork/.patchwork_cache.json`, com checkpoint a
 cada consulta. Rodar de novo:
 
 - **não rebate** a API para msgids já consultados (fica instantâneo);
 - é seguro interromper no meio — o progresso já consultado fica salvo.
 
-Para forçar reconsulta do zero, apague `filter/.patchwork_cache.json`.
+Para forçar reconsulta do zero, apague `patchwork/.patchwork_cache.json`.
 
 ### Tempo de execução
 

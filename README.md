@@ -1,8 +1,5 @@
 # Análise de duplicação de código nas Linux Kernel Mailing Lists (LKML5Ws)
 
-Trabalho da **terceira etapa** da disciplina de **Software Livre** da pós-graduação do
-**IME-USP**.
-
 Este repositório contém o pipeline de análise que usamos para investigar, sobre o dataset
 **LKML5Ws** (mais de 20 milhões de e-mails de 345 mailing lists do kernel Linux, ao longo de
 ~20 anos), quais discussões tratam de fato de **duplicação de código** — e, dentre os patches
@@ -27,6 +24,82 @@ combina três estratégias, do mais barato ao mais caro:
 2. **Classificação por LLM** (interpreta o significado técnico da discussão);
 3. **Consulta ao Patchwork** (descobre se o patch foi aceito no subsistema).
 
+## Execução
+
+Passo a passo para rodar o pipeline do zero, na ordem correta.
+
+### 1. Preparar o ambiente
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+cp .env.example .env   # depois preencha OPENAI_API_KEY em .env
+```
+
+Além das dependências do `requirements.txt` (`pandas`, `pyarrow`), a etapa de classificação por
+LLM usa `openai`, `python-dotenv` e `tqdm`, e é a única que precisa da `OPENAI_API_KEY` em
+`.env`.
+
+### 2. Criar as pastas de dados
+
+Estas pastas guardam dados de entrada/saída e ficam fora do controle de versão
+(veja o `.gitignore`) — cada pessoa precisa criá-las e populá-las localmente:
+
+```bash
+mkdir -p iio amd
+```
+
+### 3. Baixar e descompactar o dataset LKML5Ws
+
+Baixe o `.tar.gz` do dataset (links e detalhes em
+[Dataset e referências](#dataset-e-referências-lkml5ws), mais abaixo) e coloque-o na raiz
+do repositório. Depois descompacte com o script incluso:
+
+```bash
+bash decompression_script.sh
+```
+
+Isso cria a pasta `LKML5Ws/`, particionada por lista (`LKML5Ws/list=<nome>/list_data.parquet`).
+
+### 4. Preparar o parquet de entrada de cada subsistema
+
+O pipeline espera um único `.parquet` por subsistema em `iio/list_data_iio.parquet` e
+`amd/list_data_amd.parquet`. Copie (ou, se o subsistema abranger mais de uma mailing list,
+concatene com pandas) as partições relevantes de `LKML5Ws/` para esses caminhos, por exemplo:
+
+```bash
+cp "LKML5Ws/list=<nome-da-lista-iio>/list_data.parquet" iio/list_data_iio.parquet
+cp "LKML5Ws/list=<nome-da-lista-amd>/list_data.parquet" amd/list_data_amd.parquet
+```
+
+### 5. Rodar o filtro por regex
+
+```bash
+.venv/bin/python filter/filter_parquet.py iio/list_data_iio.parquet \
+    --output filter/iio-duplicated.parquet
+```
+
+Repita trocando `iio` por `amd` para filtrar o outro subsistema:
+
+```bash
+.venv/bin/python filter/filter_parquet.py amd/list_data_amd.parquet \
+    --output filter/amd-duplicated.parquet
+```
+
+Detalhes do que esse script faz estão na seção [Como funciona](#como-funciona-o-pipeline)
+abaixo. As próximas etapas do pipeline (classificação por LLM e status no Patchwork) também
+estão documentadas lá.
+
+### 6. Checar o resultado com o visualizador de parquet
+
+```bash
+.venv/bin/python parquet_viewer/view_parquet.py filter/iio-duplicated.parquet -n 10
+```
+
+Isso mostra o total de linhas do arquivo gerado e as 10 primeiras, para conferir rapidamente
+se o filtro funcionou. Mais opções (escolher colunas, não cortar texto longo, etc.) em
+[`parquet_viewer/README_view_parquet.md`](parquet_viewer/README_view_parquet.md).
+
 ## Como funciona (o pipeline)
 
 O fluxo roda sobre os `.parquet` de cada subsistema e passa por estas etapas:
@@ -44,14 +117,10 @@ Além de filtrar, o script:
   `first_version_message_id`, agrupando submissões pelo autor + assunto-base;
 - **sorteia ~10% das threads** para verificação manual (coluna `manual_verification`).
 
-```bash
-.venv/bin/python filter/filter_parquet.py iio/list_data_iio.parquet \
-    --output filter/iio-duplicated.parquet
-```
+Saída: um `.parquet` só com as threads que mencionam duplicação de código. Comando de exemplo
+na seção [Execução](#execução), passo 5.
 
-Saída: um `.parquet` só com as threads que mencionam duplicação de código.
-
-### 2. Classificação por LLM — `filter/classify_duplication.py`
+### 2. Classificação por LLM — `classify/classify_duplication.py`
 
 O regex tem muitos falsos positivos ("duplicate index", "duplicate packet"...). Esta etapa
 envia **cada thread inteira** (uma chamada por thread) para o modelo **GPT-5-mini** da OpenAI,
@@ -65,17 +134,17 @@ que decide, a partir do significado técnico da conversa, um único rótulo:
 | `INSUFFICIENT_INFORMATION` | Não dá para decidir. |
 
 O rótulo é gravado na coluna `duplication_classification`. O script usa cache
-(`llm_cache.json`), checkpoints periódicos e chamadas paralelas, então pode ser interrompido e
-retomado sem perder progresso.
+(`classify/llm_cache.json`), checkpoints periódicos e chamadas paralelas, então pode ser
+interrompido e retomado sem perder progresso.
 
 ```bash
-.venv/bin/python filter/classify_duplication.py \
-    filter/iio-duplicated.parquet filter/iio-regex-classified.parquet
+.venv/bin/python classify/classify_duplication.py \
+    filter/iio-duplicated.parquet classify/iio-regex-classified.parquet
 ```
 
 > Requer uma chave `OPENAI_API_KEY` no arquivo `.env`.
 
-### 3. Status de aceite no Patchwork — `filter/add_accepted_status.py`
+### 3. Status de aceite no Patchwork — `patchwork/add_accepted_status.py`
 
 Para cada *patchset*, o script encontra a linha do **último patch** da série e consulta o
 **Patchwork** para descobrir se ele foi aceito no subsistema, preenchendo a coluna `accepted`
@@ -87,24 +156,24 @@ Cada subsistema vive numa instância diferente do Patchwork:
 - **amd** → `patchwork.freedesktop.org` (fork antigo, API `1.0`, `state` numérico).
 
 Detalhes, limitações e o significado exato de cada valor de `accepted` estão em
-[`filter/README-add-accepted-status.md`](filter/README-add-accepted-status.md).
+[`patchwork/README-add-accepted-status.md`](patchwork/README-add-accepted-status.md).
 
 ```bash
-.venv/bin/python filter/add_accepted_status.py
+.venv/bin/python patchwork/add_accepted_status.py
 ```
 
 ### Scripts auxiliares
 
 - **`parquet_viewer/view_parquet.py`** — espia rapidamente qualquer `.parquet` (total de
   linhas + primeiras N linhas). Ver [`parquet_viewer/README_view_parquet.md`](parquet_viewer/README_view_parquet.md).
-- **`filter/inspect_duplicated.py`** — imprime na íntegra as threads sorteadas para
+- **`inspect/inspect_duplicated.py`** — imprime na íntegra as threads sorteadas para
   verificação manual.
-- **`filter/find_usp.py`** — localiza threads com pelo menos um remetente `@usp.br`.
+- **`inspect/find_usp.py`** — localiza threads com pelo menos um remetente `@usp.br`.
 
 ## Notebook de análise
 
 - **Rodar no Colab:** <https://colab.research.google.com/drive/1POtpQV_GusB20M8zl02bXNxkkAQAuIQZ?usp=sharing>
-- **Versão no repositório:** [`new_lkml5ws_data_analysis.ipynb`](new_lkml5ws_data_analysis.ipynb)
+- **Versão no repositório:** [`notebooks/new_lkml5ws_data_analysis.ipynb`](notebooks/new_lkml5ws_data_analysis.ipynb)
 
 ## Estrutura do repositório
 
@@ -112,30 +181,24 @@ Detalhes, limitações e o significado exato de cada valor de `accepted` estão 
 .
 ├── compression_script.sh / decompression_script.sh   # (des)compactação do dataset LKML5Ws
 ├── requirements.txt                                   # dependências (pandas, pyarrow, ...)
-├── new_lkml5ws_data_analysis.ipynb                    # notebook de análise (também no Colab)
+├── notebooks/
+│   └── new_lkml5ws_data_analysis.ipynb                # notebook de análise (também no Colab)
 ├── parquet_viewer/                                    # visualizador + doc do esquema do dataset
 ├── iio/  amd/                                          # parquets de origem de cada subsistema
-└── filter/                                            # o pipeline de análise
-    ├── filter_parquet.py            # 1. filtro por regex + threads + versões
-    ├── classify_duplication.py      # 2. classificação por LLM (GPT-5-mini)
-    ├── add_accepted_status.py       # 3. status de aceite via Patchwork
-    ├── inspect_duplicated.py        # inspeção das threads de verificação manual
+├── filter/                                            # 1. filtro por regex + threads + versões
+│   └── filter_parquet.py
+├── classify/                                          # 2. classificação por LLM (GPT-5-mini)
+│   └── classify_duplication.py
+├── patchwork/                                         # 3. status de aceite via Patchwork
+│   ├── add_accepted_status.py
+│   └── README-add-accepted-status.md
+└── inspect/                                           # scripts auxiliares de inspeção
+    ├── inspect_duplicated.py        # threads sorteadas para verificação manual
     └── find_usp.py                  # threads com remetentes da USP
 ```
 
 > Os arquivos grandes de dados (`*.tar.gz`, `iio/`, `amd/`, parquets gerados, caches) ficam
 > fora do controle de versão — veja o `.gitignore`.
-
-## Pré-requisitos
-
-```bash
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-```
-
-Além das dependências do `requirements.txt` (`pandas`, `pyarrow`), a etapa de classificação
-usa `openai`, `python-dotenv` e `tqdm`, e precisa da variável `OPENAI_API_KEY` num arquivo
-`.env` na raiz.
 
 ## Dataset e referências (LKML5Ws)
 
@@ -157,9 +220,8 @@ individualmente.
 - **Separado por lista de e-mail:**
   <https://files.rcpassos.me/public/Academic/Datasets/LKML5Ws_uncompressed_lists/>
 
-Para descompactar os `.tar.gz` do dataset completo, use o `decompression_script.sh` (gera a
-pasta `LKML5Ws/` particionada por lista). O esquema completo das colunas está em
-[`parquet_viewer/README_dataset.md`](parquet_viewer/README_dataset.md).
+Para descompactar, ver a seção [Execução](#execução), passo 3. O esquema completo das colunas
+está em [`parquet_viewer/README_dataset.md`](parquet_viewer/README_dataset.md).
 
 ### Editando a ferramenta MailingListsHeritage
 

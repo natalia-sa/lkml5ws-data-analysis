@@ -33,6 +33,8 @@ import os
 import threading
 import time
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pandas as pd
@@ -50,7 +52,7 @@ from openai import OpenAI
 MODEL = "gpt-5-mini"
 SAVE_EVERY = 50
 REQUEST_DELAY = 0.2
-CACHE_FILE = "llm_cache.json"
+CACHE_FILE = os.path.join(HERE, "llm_cache.json")
 
 # Number of threads classified concurrently (parallel OpenAI calls).
 # A handful of concurrent requests is a reasonable default that keeps
