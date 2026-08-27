@@ -1,7 +1,9 @@
 *.tar.gz
+LKML5Ws/
 LKML5Ws_lineage
 iio/
 amd/
+all_lists/
 
 __pycache__/
 *.pyc

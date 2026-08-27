@@ -141,10 +141,19 @@ def build_thread_order(light_df):
     light_df = light_df.copy()
     light_df["_row_order"] = range(len(light_df))
     light_df["_msg_id"] = light_df["message_id"].apply(clean_msg_id)
-    light_df["_msg_id"] = light_df.apply(
-        lambda row: row["_msg_id"] or f"__row_{row['_row_order']}__",
-        axis=1,
+
+    # Rows without a usable message_id get a placeholder so union-find still
+    # treats them as their own thread. NOTE: this must not be a row-wise
+    # (axis=1) apply -- building a Series across this DataFrame's mixed
+    # dtypes (pandas 3's string dtype + datetime/int columns) silently turns
+    # a missing `_msg_id` into a `nan` float, which is truthy in Python, so
+    # an `or` fallback would never trigger for it.
+    missing_mask = light_df["_msg_id"].apply(
+        lambda x: is_missing(x) or not str(x).strip()
     )
+    light_df.loc[missing_mask, "_msg_id"] = light_df.loc[
+        missing_mask, "_row_order"
+    ].apply(lambda i: f"__row_{i}__")
 
     uf = UnionFind()
 
@@ -172,12 +181,76 @@ def build_thread_order(light_df):
     return sorted_positions, thread_ids_sorted
 
 
+def _view_type_replacement(t):
+    """Recursively map `string_view`/`binary_view` to `large_string`/`large_binary`.
+
+    Returns None if `t` contains no view type (nothing to replace).
+    """
+    if pa.types.is_string_view(t):
+        return pa.large_string()
+
+    if pa.types.is_binary_view(t):
+        return pa.large_binary()
+
+    if pa.types.is_list(t) or pa.types.is_large_list(t):
+        new_value_type = _view_type_replacement(t.value_type)
+        if new_value_type is None:
+            return None
+        list_type = pa.large_list if pa.types.is_large_list(t) else pa.list_
+        return list_type(new_value_type)
+
+    if pa.types.is_struct(t):
+        changed = False
+        new_fields = []
+        for field in t:
+            new_type = _view_type_replacement(field.type)
+            if new_type is not None:
+                changed = True
+                new_fields.append(field.with_type(new_type))
+            else:
+                new_fields.append(field)
+
+        return pa.struct(new_fields) if changed else None
+
+    return None
+
+
+def normalize_view_types(table):
+    """Cast away `string_view`/`binary_view` columns.
+
+    Some dataset files use these Arrow types, which several pyarrow compute
+    kernels (e.g. `take`) don't support yet. No-op for files that don't use
+    them (e.g. `iio`/`amd`), so their output schema is unaffected.
+    """
+    changed = False
+    new_fields = []
+    for field in table.schema:
+        new_type = _view_type_replacement(field.type)
+        if new_type is not None:
+            changed = True
+            new_fields.append(field.with_type(new_type))
+        else:
+            new_fields.append(field)
+
+    return table.cast(pa.schema(new_fields)) if changed else table
+
+
 def build_threads_for_file(input_path, output_path):
-    light_df = pd.read_parquet(input_path, columns=THREAD_BUILD_COLUMNS)
+    # Read via pyarrow + to_pylist() instead of pd.read_parquet(): some dataset
+    # files use the `string_view` Arrow type inside list columns (e.g.
+    # `references`), which pandas/pyarrow cannot yet convert directly
+    # (ArrowNotImplementedError), but to_pylist() handles fine.
+    light_table = pq.read_table(input_path, columns=THREAD_BUILD_COLUMNS)
+    light_df = pd.DataFrame({
+        col: light_table.column(col).to_pylist() for col in THREAD_BUILD_COLUMNS
+    })
+    del light_table
+
     sorted_positions, thread_ids_sorted = build_thread_order(light_df)
     del light_df
 
     table = pq.read_table(input_path)
+    table = normalize_view_types(table)
     table = table.take(pa.array(sorted_positions))
     table = table.append_column("_thread_id", pa.array(thread_ids_sorted))
 
