@@ -35,7 +35,7 @@ import pandas as pd
 from tqdm import tqdm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FILTER_DIR = os.path.join(HERE, "..", "filter")
+FILTER_DIR = os.path.join(HERE, "..", "filter_output")
 
 # (input parquet, output parquet, subsystem)
 CONFIG = [

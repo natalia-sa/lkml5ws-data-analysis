@@ -1,7 +1,9 @@
 *.tar.gz
+LKML5Ws/
 LKML5Ws_lineage
 iio/
 amd/
+all_lists/
 
 __pycache__/
 *.pyc
@@ -9,9 +11,11 @@ __pycache__/
 # Variáveis de ambiente / segredos (ex.: OPENAI_API_KEY)
 .env
 
+# Dados gerados pela montagem de threads (build_threads.py)
+build_threads_output/
+
 # Dados gerados pelo filtro por regex (filter_parquet.py)
-filter/*-duplicated.csv
-filter/*-duplicated.parquet
+filter_output/
 
 # Dados gerados pelo status de aceite no Patchwork (add_accepted_status.py)
 patchwork/*-duplicated-status.csv

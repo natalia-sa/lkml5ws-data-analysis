@@ -6,7 +6,7 @@ import re
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FILTER_DIR = os.path.join(HERE, "..", "filter")
+FILTER_DIR = os.path.join(HERE, "..", "filter_output")
 
 FILES = [
     #os.path.join(FILTER_DIR, "amd-duplicated.parquet"),

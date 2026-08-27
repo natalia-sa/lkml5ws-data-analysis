@@ -2,10 +2,15 @@
 
 import argparse
 import math
+import os
 import re
 
 import pandas as pd
 from pandas.api.types import is_scalar
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(HERE)
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, "filter_output")
 
 DUPLICATED_CODE_RE = re.compile(
     r"""
@@ -37,8 +42,6 @@ DUPLICATED_CODE_RE = re.compile(
     """,
     re.IGNORECASE | re.VERBOSE,
 )
-
-MESSAGE_ID_RE = re.compile(r"<?([^<>\s]+@[^<>\s]+)>?")
 
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w.-]+\.\w+")
 
@@ -79,75 +82,6 @@ def as_list(x):
         return list(x)
     except TypeError:
         return [x]
-
-
-def clean_msg_id(x):
-    values = as_list(x)
-    if not values:
-        return None
-
-    x = str(values[0]).strip()
-    if not x:
-        return None
-
-    match = MESSAGE_ID_RE.search(x)
-    if match:
-        return match.group(1)
-
-    return x.strip("<>")
-
-
-def extract_msg_ids(x):
-    ids = []
-
-    for item in as_list(x):
-        if is_missing(item):
-            continue
-
-        item = str(item).strip()
-        if not item:
-            continue
-
-        matches = MESSAGE_ID_RE.findall(item)
-
-        if matches:
-            ids.extend(matches)
-        else:
-            ids.append(item.strip("<>"))
-
-    return ids
-
-
-class UnionFind:
-    def __init__(self):
-        self.parent = {}
-
-    def find(self, x):
-        if is_missing(x) or pd.isna(x) or str(x).strip() == "nan":
-            return None
-
-        if x not in self.parent:
-            self.parent[x] = x
-
-        while self.parent.get(x, x) != x:
-            p = self.parent.get(x, x)
-            self.parent[x] = self.parent.get(p, p)
-            x = self.parent.get(x, x)
-
-        return x
-
-    def union(self, a, b):
-        if a is None or b is None:
-            return
-
-        ra = self.find(a)
-        rb = self.find(b)
-
-        if ra is None or rb is None:
-            return
-
-        if ra != rb:
-            self.parent[rb] = ra
 
 
 def is_duplicated_code_text(text):
@@ -264,10 +198,22 @@ def add_version_links(df):
     return df
 
 
+def output_path_for(input_path):
+    """Derive the output filename from the input filename.
+
+    E.g. `list_data_iio.parquet` -> `iio-duplicated.parquet`, matching the
+    naming convention already expected by patchwork/ and inspect/.
+    """
+    stem = os.path.splitext(os.path.basename(input_path))[0]
+    if stem.startswith("list_data_"):
+        stem = stem[len("list_data_"):]
+
+    return os.path.join(OUTPUT_DIR, f"{stem}-duplicated.parquet")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("parquet_path")
-    parser.add_argument("--output", default=None)
     parser.add_argument("--show", type=int, default=20)
     parser.add_argument("--manual-frac", type=float, default=0.10)
     parser.add_argument("--seed", type=int, default=0)
@@ -275,7 +221,7 @@ def main():
 
     df = pd.read_parquet(args.parquet_path).copy()
 
-    required_cols = ["message_id", "subject", "date", "in_reply_to", "references"]
+    required_cols = ["message_id", "subject", "date", "_thread_id"]
     for col in required_cols:
         if col not in df.columns:
             raise ValueError(f"Missing column: {col}")
@@ -283,35 +229,10 @@ def main():
     subject_cols = [col for col in SUBJECT_COLS if col in df.columns]
     content_cols = [col for col in CONTENT_COLS if col in df.columns]
 
+    # Threads are already built (see build_threads/build_threads.py); rows
+    # arrive pre-sorted by (_thread_id, date, original row order).
     df["_row_order"] = range(len(df))
-    df["_msg_id"] = df["message_id"].apply(clean_msg_id)
-
-    # Fallback for rows without message_id.
-    df["_msg_id"] = df.apply(
-        lambda row: row["_msg_id"] or f"__row_{row['_row_order']}__",
-        axis=1,
-    )
-
-    uf = UnionFind()
-
-    for msg_id in df["_msg_id"]:
-        uf.find(msg_id)
-
-    for _, row in df.iterrows():
-        msg_id = row["_msg_id"]
-
-        # Link to direct parent.
-        parent_id = clean_msg_id(row["in_reply_to"])
-        uf.union(msg_id, parent_id)
-
-        # Link to all previous messages in the References header.
-        for ref_id in extract_msg_ids(row["references"]):
-            uf.union(msg_id, ref_id)
-
-    df["_thread_id"] = df["_msg_id"].apply(uf.find)
-
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    df = df.sort_values(["_thread_id", "date", "_row_order"], kind="stable")
 
     # Check subject + untagged_subject.
     df["_subject_text"] = df.apply(
@@ -407,21 +328,19 @@ def main():
     print("Example first subjects from matching threads:")
     print(matching_first_emails["subject"].head(args.show).to_string(index=False))
 
-    if args.output:
-        output_df = matching_rows.drop(
-            columns=[
-                col for col in ["_subject_text", "_content_text"]
-                if col in matching_rows.columns
-            ]
-        )
+    output_df = matching_rows.drop(
+        columns=[
+            col for col in ["_subject_text", "_content_text"]
+            if col in matching_rows.columns
+        ]
+    )
 
-        if args.output.endswith(".csv"):
-            output_df.to_csv(args.output, index=False)
-        else:
-            output_df.to_parquet(args.output, index=False)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    output_path = output_path_for(args.parquet_path)
+    output_df.to_parquet(output_path, index=False)
 
-        print()
-        print(f"Saved filtered emails to: {args.output}")
+    print()
+    print(f"Saved filtered emails to: {output_path}")
 
 
 if __name__ == "__main__":

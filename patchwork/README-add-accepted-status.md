@@ -21,8 +21,8 @@ biblioteca padrão do Python (`urllib`).
 
 | Entrada | Saída |
 |---|---|
-| `filter/iio-duplicated.parquet` | `patchwork/iio-duplicated-status.parquet` |
-| `filter/amd-duplicated.parquet` | `patchwork/amd-duplicated-status.parquet` |
+| `filter_output/iio-duplicated.parquet` | `patchwork/iio-duplicated-status.parquet` |
+| `filter_output/amd-duplicated.parquet` | `patchwork/amd-duplicated-status.parquet` |
 
 Os arquivos originais **não** são alterados. A saída é idêntica à entrada, com **todas as
 colunas originais na mesma ordem** + uma coluna nova `accepted` no final.
