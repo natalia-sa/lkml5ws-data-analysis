@@ -59,20 +59,30 @@ cp "LKML5Ws/list=<nome-da-lista-iio>/list_data.parquet" iio/list_data_iio.parque
 cp "LKML5Ws/list=<nome-da-lista-amd>/list_data.parquet" amd/list_data_amd.parquet
 ```
 
-### 5. Rodar o filtro por regex
+### 5. Montar as threads
 
 ```bash
-.venv/bin/python filter/filter_parquet.py iio/list_data_iio.parquet \
-    --output filter/iio-duplicated.parquet
+.venv/bin/python build_threads/build_threads.py iio
 ```
 
-Detalhes do que esse script faz estão na seção [Como funciona](#como-funciona-o-pipeline)
-abaixo.
+Isso lê cada `.parquet` da pasta `iio/` e gera o correspondente em `build_threads_output/`
+(ex.: `build_threads_output/list_data_iio.parquet`), já com a coluna `_thread_id`. Repita
+para `amd` (`.venv/bin/python build_threads/build_threads.py amd`).
 
-### 6. Checar o resultado com o visualizador de parquet
+### 6. Rodar o filtro por regex
 
 ```bash
-.venv/bin/python parquet_viewer/view_parquet.py filter/iio-duplicated.parquet -n 10
+.venv/bin/python filter/filter_parquet.py build_threads_output/list_data_iio.parquet
+```
+
+Isso lê `build_threads_output/list_data_iio.parquet` e grava automaticamente o resultado em
+`filter_output/iio-duplicated.parquet` (nome derivado do arquivo de entrada). Detalhes do que
+esses scripts fazem estão na seção [Como funciona](#como-funciona-o-pipeline) abaixo.
+
+### 7. Checar o resultado com o visualizador de parquet
+
+```bash
+.venv/bin/python parquet_viewer/view_parquet.py filter_output/iio-duplicated.parquet -n 10
 ```
 
 Isso mostra o total de linhas do arquivo gerado e as 10 primeiras, para conferir rapidamente
@@ -82,12 +92,20 @@ se o filtro funcionou. Mais opções em [`parquet_viewer/README_view_parquet.md`
 
 O fluxo roda sobre os `.parquet` de cada subsistema e passa por estas etapas:
 
-### 1. Filtragem por regex — `filter/filter_parquet.py`
+### 1. Montagem de threads — `build_threads/build_threads.py`
 
 Reconstrói as **threads** de discussão a partir dos cabeçalhos `In-Reply-To`/`References`
-(usando *union-find*) e marca a thread inteira quando **qualquer** e-mail dela casa com uma
-expressão regular de duplicação de código (`dedup`, `duplicate`, `copy-paste`, `clone`,
-`redundant/identical/same code`, etc.), buscando tanto no assunto quanto no corpo/código.
+(usando *union-find*) e grava a coluna `_thread_id` (idêntica para todos os e-mails de uma
+mesma thread). Roda sobre todos os `.parquet` de uma pasta de entrada (ex.: `iio/`, `amd/`) e
+grava um arquivo correspondente por entrada em `build_threads_output/`, mostrando uma barra de
+progresso por arquivo processado.
+
+### 2. Filtragem por regex — `filter/filter_parquet.py`
+
+Lê os `.parquet` já com threads montadas em `build_threads_output/` e marca a thread inteira quando
+**qualquer** e-mail dela casa com uma expressão regular de duplicação de código (`dedup`,
+`duplicate`, `copy-paste`, `clone`, `redundant/identical/same code`, etc.), buscando tanto no
+assunto quanto no corpo/código.
 
 Além de filtrar, o script:
 
@@ -95,10 +113,11 @@ Além de filtrar, o script:
   `first_version_message_id`, agrupando submissões pelo autor + assunto-base;
 - **sorteia ~10% das threads** para verificação manual (coluna `manual_verification`).
 
-Saída: um `.parquet` só com as threads que mencionam duplicação de código. Comando de exemplo
-na seção [Execução](#execução), passo 5.
+Saída: um `.parquet` só com as threads que mencionam duplicação de código, gravado
+automaticamente em `filter_output/<subsistema>-duplicated.parquet`. Comando de exemplo na
+seção [Execução](#execução), passo 6.
 
-### 2. Classificação por LLM — `classify/classify_duplication.py`
+### 3. Classificação por LLM — `classify/classify_duplication.py`
 
 O regex tem muitos falsos positivos ("duplicate index", "duplicate packet"...). Esta etapa
 envia **cada thread inteira** (uma chamada por thread) para o modelo **GPT-5-mini** da OpenAI,
@@ -117,12 +136,12 @@ interrompido e retomado sem perder progresso.
 
 ```bash
 .venv/bin/python classify/classify_duplication.py \
-    filter/iio-duplicated.parquet classify/iio-regex-classified.parquet
+    filter_output/iio-duplicated.parquet classify/iio-regex-classified.parquet
 ```
 
 > Requer uma chave `OPENAI_API_KEY` no arquivo `.env`.
 
-### 3. Status de aceite no Patchwork — `patchwork/add_accepted_status.py`
+### 4. Status de aceite no Patchwork — `patchwork/add_accepted_status.py`
 
 Para cada *patchset*, o script encontra a linha do **último patch** da série e consulta o
 **Patchwork** para descobrir se ele foi aceito no subsistema, preenchendo a coluna `accepted`
@@ -163,11 +182,15 @@ Detalhes, limitações e o significado exato de cada valor de `accepted` estão 
 │   └── new_lkml5ws_data_analysis.ipynb                # notebook de análise (também no Colab)
 ├── parquet_viewer/                                    # visualizador + doc do esquema do dataset
 ├── iio/  amd/                                          # parquets de origem de cada subsistema
-├── filter/                                            # 1. filtro por regex + threads + versões
+├── build_threads/                                     # 1. montagem de threads (_thread_id)
+│   └── build_threads.py
+├── build_threads_output/                                     # saída da montagem de threads
+├── filter/                                            # 2. filtro por regex + versões
 │   └── filter_parquet.py
-├── classify/                                          # 2. classificação por LLM (GPT-5-mini)
+├── filter_output/                                     # saída do filtro por regex
+├── classify/                                          # 3. classificação por LLM (GPT-5-mini)
 │   └── classify_duplication.py
-├── patchwork/                                         # 3. status de aceite via Patchwork
+├── patchwork/                                         # 4. status de aceite via Patchwork
 │   ├── add_accepted_status.py
 │   └── README-add-accepted-status.md
 └── inspect/                                           # scripts auxiliares de inspeção

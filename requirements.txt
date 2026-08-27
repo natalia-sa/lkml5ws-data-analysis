@@ -13,3 +13,6 @@ pandas==3.0.3
 
 # Backend de parquet usado pelo pandas e pela leitura direta dos .parquet.
 pyarrow==24.0.0
+
+# Barra de progresso usada em build_threads/build_threads.py.
+tqdm==4.68.3
