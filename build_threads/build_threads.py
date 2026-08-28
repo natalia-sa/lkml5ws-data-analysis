@@ -77,7 +77,9 @@ def clean_msg_id(x):
     if match:
         return match.group(1)
 
-    return x.strip("<>")
+    # No `@` -> not a real id (e.g. placeholder "Empty"); treat as missing
+    # instead of merging every message that shares it into one thread.
+    return None
 
 
 def extract_msg_ids(x):
@@ -91,12 +93,8 @@ def extract_msg_ids(x):
         if not item:
             continue
 
-        matches = MESSAGE_ID_RE.findall(item)
-
-        if matches:
-            ids.extend(matches)
-        else:
-            ids.append(item.strip("<>"))
+        # Drop items without `@` -- not real ids, see `clean_msg_id`.
+        ids.extend(MESSAGE_ID_RE.findall(item))
 
     return ids
 
@@ -142,12 +140,8 @@ def build_thread_order(light_df):
     light_df["_row_order"] = range(len(light_df))
     light_df["_msg_id"] = light_df["message_id"].apply(clean_msg_id)
 
-    # Rows without a usable message_id get a placeholder so union-find still
-    # treats them as their own thread. NOTE: this must not be a row-wise
-    # (axis=1) apply -- building a Series across this DataFrame's mixed
-    # dtypes (pandas 3's string dtype + datetime/int columns) silently turns
-    # a missing `_msg_id` into a `nan` float, which is truthy in Python, so
-    # an `or` fallback would never trigger for it.
+    # NOTE: not a row-wise (axis=1) apply -- this df's mixed dtypes turn a
+    # missing `_msg_id` into a truthy `nan` float, breaking an `or` fallback.
     missing_mask = light_df["_msg_id"].apply(
         lambda x: is_missing(x) or not str(x).strip()
     )
@@ -163,11 +157,15 @@ def build_thread_order(light_df):
     for _, row in light_df.iterrows():
         msg_id = row["_msg_id"]
 
+        # in_reply_to is primary; fall back to the last id in references
+        # (immediate parent, RFC 5322) only when in_reply_to is missing.
         parent_id = clean_msg_id(row["in_reply_to"])
-        uf.union(msg_id, parent_id)
+        if parent_id is None:
+            ref_ids = extract_msg_ids(row["references"])
+            if ref_ids:
+                parent_id = ref_ids[-1]
 
-        for ref_id in extract_msg_ids(row["references"]):
-            uf.union(msg_id, ref_id)
+        uf.union(msg_id, parent_id)
 
     light_df["_thread_id"] = light_df["_msg_id"].apply(uf.find)
     light_df["_sort_date"] = pd.to_datetime(light_df["date"], errors="coerce")
@@ -236,10 +234,8 @@ def normalize_view_types(table):
 
 
 def build_threads_for_file(input_path, output_path):
-    # Read via pyarrow + to_pylist() instead of pd.read_parquet(): some dataset
-    # files use the `string_view` Arrow type inside list columns (e.g.
-    # `references`), which pandas/pyarrow cannot yet convert directly
-    # (ArrowNotImplementedError), but to_pylist() handles fine.
+    # pyarrow + to_pylist() instead of pd.read_parquet(): handles `string_view`
+    # list columns (e.g. references) that pandas/pyarrow can't convert directly.
     light_table = pq.read_table(input_path, columns=THREAD_BUILD_COLUMNS)
     light_df = pd.DataFrame({
         col: light_table.column(col).to_pylist() for col in THREAD_BUILD_COLUMNS
