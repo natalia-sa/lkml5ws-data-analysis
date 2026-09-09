@@ -16,3 +16,6 @@ pyarrow==24.0.0
 
 # Barra de progresso usada em build_threads/build_threads.py.
 tqdm==4.68.3
+
+# Testes unitarios
+pytest==9.1.1
