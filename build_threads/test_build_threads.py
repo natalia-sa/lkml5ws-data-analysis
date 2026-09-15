@@ -1,27 +1,28 @@
-"""Unit tests for `build_thread_order` in build_threads.py.
+"""Unit tests for `build_thread_order` and the `--collapse` flag
+(`build_threads_for_file`) in build_threads.py.
 """
 
 import pandas as pd
 
-from build_threads import build_thread_order
+from build_threads import build_threads_for_file
 
 
-def thread_id_by_message_id(df):
-    """Map each row's `message_id` to the `_thread_id` build_thread_order()
-    assigned it, keyed by position so the mapping survives sort reordering.
-    """
-    sorted_positions, thread_ids_sorted = build_thread_order(df)
+def thread_id_by_message_id(df, tmp_path):
+    input_path = tmp_path / "list_data_testlist.parquet"
+    output_path = tmp_path / "output.parquet"
+    df.to_parquet(input_path, index=False)
 
-    thread_id_by_position = dict(zip(sorted_positions, thread_ids_sorted))
+    build_threads_for_file(str(input_path), str(output_path), collapse=False)
 
-    return {
-        df.iloc[position]["message_id"]: thread_id
-        for position, thread_id in thread_id_by_position.items()
-    }
+    result = pd.read_parquet(output_path)
+
+    thread_ids = dict(zip(result["message_id"], result["_thread_id"]))
+
+    return thread_ids, result
 
 
 # A standalone message (no `in_reply_to`, no `references`) must form a thread of its own.
-def test_message_with_no_reply_and_no_references_gets_its_own_thread():
+def test_message_with_no_reply_and_no_references_gets_its_own_thread(tmp_path):
     df = pd.DataFrame([
         {
             "message_id": "20260528135123.103745-1-clamor95@gmail.com",
@@ -31,13 +32,14 @@ def test_message_with_no_reply_and_no_references_gets_its_own_thread():
         },
     ])
 
-    thread_ids = thread_id_by_message_id(df)
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
 
     assert len(set(thread_ids.values())) == 1
+    assert (result["list"] == "testlist").all()
 
 
 # Two replies linked only through `in_reply_to` to the same parent must share its thread, and an unrelated standalone message must not be pulled into it.
-def test_two_replies_to_the_same_message_share_its_thread():
+def test_two_replies_to_the_same_message_share_its_thread(tmp_path):
     parent_id = "20260525014654.2399354-1-dlechner@baylibre.com"
     unrelated_id = (
         "1a45a4aade700448d7b1c702210ff147aaf21f90"
@@ -71,15 +73,16 @@ def test_two_replies_to_the_same_message_share_its_thread():
         },
     ])
 
-    thread_ids = thread_id_by_message_id(df)
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
 
     assert thread_ids[parent_id] == thread_ids["202605281432.a64fe4iY-lkp@intel.com"]
     assert thread_ids[parent_id] == thread_ids["3c12da03-6c62-4045-b831-e7b07c0ecb5d@baylibre.com"]
     assert thread_ids[unrelated_id] != thread_ids[parent_id]
+    assert (result["list"] == "testlist").all()
 
 
 # When `references` is empty, the reply must still be linked to its parent using `in_reply_to` alone.
-def test_reply_with_no_references_links_via_in_reply_to():
+def test_reply_with_no_references_links_via_in_reply_to(tmp_path):
     parent_id = "cover.1751636734.git.waqar.hameed@axis.com"
 
     df = pd.DataFrame([
@@ -100,13 +103,14 @@ def test_reply_with_no_references_links_via_in_reply_to():
         },
     ])
 
-    thread_ids = thread_id_by_message_id(df)
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
 
     assert len(set(thread_ids.values())) == 1
+    assert (result["list"] == "testlist").all()
 
 
 # When `in_reply_to` is missing, the reply must still be linked to its parent by falling back to the last id in `references`.
-def test_reply_with_no_in_reply_to_links_via_references():
+def test_reply_with_no_in_reply_to_links_via_references(tmp_path):
     parent_id = "cover.1672062380.git.ang.iglesiasg@gmail.com"
 
     df = pd.DataFrame([
@@ -124,13 +128,82 @@ def test_reply_with_no_in_reply_to_links_via_references():
         },
     ])
 
-    thread_ids = thread_id_by_message_id(df)
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
 
     assert len(set(thread_ids.values())) == 1
+    assert (result["list"] == "testlist").all()
+
+
+# With `--collapse`, a 3-message thread (cover letter + two replies chained
+# via `in_reply_to`) must collapse into a single row whose `thread_content`
+# holds all three messages, in chronological order.
+def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
+    parent_id = "20260601120000.1-cover@example.com"
+    reply_id = "20260601120500.2-reply@example.com"
+    grandchild_id = "20260601121000.3-grandchild@example.com"
+
+    df = pd.DataFrame([
+        {
+            "message_id": parent_id,
+            "in_reply_to": None,
+            "references": None,
+            "date": "2026-06-01 12:00:00",
+            "subject": "[PATCH] fix thing",
+            "raw_body": "Here is the patch.",
+            "from": "author@example.com",
+            "cc": ["reviewer@example.com"],
+        },
+        {
+            "message_id": reply_id,
+            "in_reply_to": parent_id,
+            "references": [parent_id],
+            "date": "2026-06-01 12:05:00",
+            "subject": "Re: [PATCH] fix thing",
+            "raw_body": "Looks good to me.",
+            "from": "reviewer@example.com",
+            "cc": [],
+        },
+        {
+            "message_id": grandchild_id,
+            "in_reply_to": reply_id,
+            "references": [parent_id, reply_id],
+            "date": "2026-06-01 12:10:00",
+            "subject": "Re: [PATCH] fix thing",
+            "raw_body": "Applied, thanks!",
+            "from": "author@example.com",
+            "cc": None,
+        },
+    ])
+
+    input_path = tmp_path / "list_data_testlist.parquet"
+    output_path = tmp_path / "output.parquet"
+    df.to_parquet(input_path, index=False)
+
+    build_threads_for_file(str(input_path), str(output_path), collapse=True)
+
+    collapsed = pd.read_parquet(output_path)
+
+    assert len(collapsed) == 1
+
+    row = collapsed.iloc[0]
+
+    assert row["_thread_id"] in {parent_id, reply_id, grandchild_id}
+    assert row["list"] == "testlist"
+    assert row["n_messages"] == 3
+    assert list(row["message_ids"]) == [parent_id, reply_id, grandchild_id]
+    assert row["date"] == "2026-06-01 12:00:00"
+    assert row["subject"] == "[PATCH] fix thing"
+    assert row["from"] == "author@example.com"
+    assert list(row["cc"]) == ["reviewer@example.com"]
+
+    content = row["thread_content"]
+    assert content.count("MESSAGE") == 3
+    assert content.index("Here is the patch.") < content.index("Looks good to me.")
+    assert content.index("Looks good to me.") < content.index("Applied, thanks!")
 
 
 # When both `in_reply_to` and `references` are filled, `in_reply_to` must take priority even when the last id in `references` points somewhere else.
-def test_reply_with_in_reply_to_and_references_prefers_in_reply_to():
+def test_reply_with_in_reply_to_and_references_prefers_in_reply_to(tmp_path):
     parent_id = (
         "cfa05b01fcdcdc7ec5d3e5a7bb937122162d1176"
         ".1466161813.git.leonard.crestez@intel.com"
@@ -151,6 +224,7 @@ def test_reply_with_in_reply_to_and_references_prefers_in_reply_to():
         },
     ])
 
-    thread_ids = thread_id_by_message_id(df)
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
 
     assert len(set(thread_ids.values())) == 1
+    assert (result["list"] == "testlist").all()
