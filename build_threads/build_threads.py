@@ -9,14 +9,34 @@ Input:
 
 Output:
     For each input parquet file, a parquet file with the same name and the
-    same columns as the input, plus one extra column:
+    same columns as the input, plus two extra columns:
 
-        _thread_id
+        _thread_id, list
 
     All rows belonging to the same discussion thread (linked through the
     `In-Reply-To`/`References` headers, via union-find) share the same
-    `_thread_id`. Output files are written to `build_threads_output/` at the
-    project root.
+    `_thread_id`. `list` is the mailing list the file belongs to, taken from
+    the input filename (`list_data_<name>.parquet`, the same convention
+    `select_sample/select_sample.py` relies on) -- not from message headers
+    like `to`/`x_mailing_list`, which are noisy (often just a generic
+    address) or sparse and can point to a different, cross-posted list.
+    Output files are written to `build_threads_output/` at the project root.
+
+    With `--collapse`, the output has one row per thread instead of one row
+    per message. Each row aggregates every message of the thread (sorted
+    chronologically) into:
+
+        _thread_id, list, n_messages, message_ids, date, subject, from, cc,
+        thread_content
+
+    `list` is the same file-derived mailing list as above. `date`, `subject`,
+    `from` and `cc` are taken from the thread's first (earliest) message --
+    `from` identifies who started the thread; `to` is left out for the same
+    reason described above.
+
+    `thread_content` concatenates the subject and body of every message in
+    the thread, in order, using the same per-message block format as
+    `classify/classify_duplication.py`'s LLM prompt.
 """
 
 import argparse
@@ -35,7 +55,25 @@ OUTPUT_DIR = os.path.join(PROJECT_ROOT, "build_threads_output")
 
 THREAD_BUILD_COLUMNS = ["message_id", "in_reply_to", "references", "date"]
 
+COLLAPSE_COLUMNS = ["message_id", "subject", "raw_body", "date", "from", "cc"]
+
 MESSAGE_ID_RE = re.compile(r"<?([^<>\s]+@[^<>\s]+)>?")
+
+LIST_DATA_PREFIX = "list_data_"
+
+
+def list_name_from_path(input_path):
+    """Derive the mailing list name from an input filename, following the
+    `list_data_<name>.parquet` convention (see `select_sample/select_sample.py`).
+
+    Falls back to the filename stem for files that don't follow it.
+    """
+    stem = os.path.splitext(os.path.basename(input_path))[0]
+
+    if stem.startswith(LIST_DATA_PREFIX):
+        return stem[len(LIST_DATA_PREFIX):]
+
+    return stem
 
 
 def is_missing(x):
@@ -233,7 +271,70 @@ def normalize_view_types(table):
     return table.cast(pa.schema(new_fields)) if changed else table
 
 
-def build_threads_for_file(input_path, output_path):
+def _text(x):
+    return "" if is_missing(x) else str(x)
+
+
+def build_thread_content(thread_df):
+    """Concatenate the subject and body of every message in a thread, in
+    order, into a single block of text.
+
+    Same per-message block format as
+    `classify/classify_duplication.py`'s `build_thread_prompt`, minus the
+    per-field truncation (this is a dataset column, not an LLM prompt).
+    """
+    total = len(thread_df)
+    parts = []
+
+    for position, row in enumerate(thread_df.itertuples(index=False), start=1):
+        parts.append(
+            "\n"
+            "================================================\n"
+            f"MESSAGE {position} of {total}\n"
+            "================================================\n"
+            f"\nSubject:\n{_text(row.subject)}\n"
+            f"\nEmail body:\n{_text(row.raw_body)}\n"
+        )
+
+    return "".join(parts).strip()
+
+
+def build_collapsed_frame(input_path, sorted_positions, thread_ids_sorted, list_name):
+    """One row per thread: `thread_content` plus a few summary columns.
+
+    Rows are grouped in the same (_thread_id, date, original order) sort
+    produced by `build_thread_order`, so `thread_content` lists messages
+    chronologically and each thread's `date` is its earliest message.
+    """
+    content_table = pq.read_table(input_path, columns=COLLAPSE_COLUMNS)
+    content_df = pd.DataFrame({
+        col: content_table.column(col).to_pylist() for col in COLLAPSE_COLUMNS
+    })
+    del content_table
+
+    content_df = content_df.iloc[sorted_positions].reset_index(drop=True)
+    content_df["_thread_id"] = thread_ids_sorted
+
+    rows = []
+    for thread_id, group in content_df.groupby("_thread_id", sort=False):
+        rows.append({
+            "_thread_id": thread_id,
+            "list": list_name,
+            "n_messages": len(group),
+            "message_ids": group["message_id"].tolist(),
+            "date": group["date"].iloc[0],
+            "subject": group["subject"].iloc[0],
+            "from": group["from"].iloc[0],
+            "cc": group["cc"].iloc[0],
+            "thread_content": build_thread_content(group),
+        })
+
+    return pd.DataFrame(rows)
+
+
+def build_threads_for_file(input_path, output_path, collapse=False):
+    list_name = list_name_from_path(input_path)
+
     # pyarrow + to_pylist() instead of pd.read_parquet(): handles `string_view`
     # list columns (e.g. references) that pandas/pyarrow can't convert directly.
     light_table = pq.read_table(input_path, columns=THREAD_BUILD_COLUMNS)
@@ -245,10 +346,18 @@ def build_threads_for_file(input_path, output_path):
     sorted_positions, thread_ids_sorted = build_thread_order(light_df)
     del light_df
 
+    if collapse:
+        collapsed_df = build_collapsed_frame(
+            input_path, sorted_positions, thread_ids_sorted, list_name
+        )
+        collapsed_df.to_parquet(output_path, index=False)
+        return
+
     table = pq.read_table(input_path)
     table = normalize_view_types(table)
     table = table.take(pa.array(sorted_positions))
     table = table.append_column("_thread_id", pa.array(thread_ids_sorted))
+    table = table.append_column("list", pa.array([list_name] * table.num_rows))
 
     pq.write_table(table, output_path)
 
@@ -256,6 +365,15 @@ def build_threads_for_file(input_path, output_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("path", help="Folder containing input parquet files")
+    parser.add_argument(
+        "--collapse",
+        action="store_true",
+        help=(
+            "Write one row per thread instead of one row per message: each "
+            "row's `thread_content` concatenates the subject and body of "
+            "every message in the thread, in chronological order."
+        ),
+    )
     args = parser.parse_args()
 
     input_files = sorted(glob.glob(os.path.join(args.path, "*.parquet")))
@@ -271,7 +389,7 @@ def main():
             pbar.set_description(filename)
 
             output_path = os.path.join(OUTPUT_DIR, filename)
-            build_threads_for_file(input_path, output_path)
+            build_threads_for_file(input_path, output_path, collapse=args.collapse)
 
 
 if __name__ == "__main__":
