@@ -17,6 +17,9 @@ build_threads_output/
 # Dados gerados pelo filtro por regex (filter_parquet.py)
 filter_output/
 
+# Dados gerados pelo pre-filtro por regex (pre_filter_threads.py)
+pre_filter/pre_filter_output/
+
 # Dados gerados pelo status de aceite no Patchwork (add_accepted_status.py)
 patchwork/*-duplicated-status.csv
 patchwork/*-duplicated-status.parquet
