@@ -14,8 +14,14 @@ pandas==3.0.3
 # Backend de parquet usado pelo pandas e pela leitura direta dos .parquet.
 pyarrow==24.0.0
 
-# Barra de progresso usada em build_threads/build_threads.py.
+# Barra de progresso usada em build_threads/build_threads.py e classify/classify_threads.py.
 tqdm==4.68.3
+
+# Cliente da API da OpenAI usado por classify/classify_threads.py.
+openai==2.44.0
+
+# Leitura do .env (OPENAI_API_KEY) usada por classify/classify_threads.py.
+python-dotenv==1.2.2
 
 # Testes unitarios
 pytest==9.1.1

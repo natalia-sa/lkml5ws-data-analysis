@@ -201,6 +201,12 @@ def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
     assert content.index("Here is the patch.") < content.index("Looks good to me.")
     assert content.index("Looks good to me.") < content.index("Applied, thanks!")
 
+    # The sender of each message must appear right below its Subject line.
+    first_block = content[: content.index("Here is the patch.")]
+    assert "Subject:\n[PATCH] fix thing" in first_block
+    assert "From:\nauthor@example.com" in first_block
+    assert first_block.index("Subject:") < first_block.index("From:") < first_block.index("Email body:")
+
 
 # When both `in_reply_to` and `references` are filled, `in_reply_to` must take priority even when the last id in `references` points somewhere else.
 def test_reply_with_in_reply_to_and_references_prefers_in_reply_to(tmp_path):

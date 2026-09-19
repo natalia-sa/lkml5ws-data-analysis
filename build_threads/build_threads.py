@@ -17,9 +17,7 @@ Output:
     `In-Reply-To`/`References` headers, via union-find) share the same
     `_thread_id`. `list` is the mailing list the file belongs to, taken from
     the input filename (`list_data_<name>.parquet`, the same convention
-    `select_sample/select_sample.py` relies on) -- not from message headers
-    like `to`/`x_mailing_list`, which are noisy (often just a generic
-    address) or sparse and can point to a different, cross-posted list.
+    `select_sample/v1/select_sample_v1.py` relies on).
     Output files are written to `build_threads_output/` at the project root.
 
     With `--collapse`, the output has one row per thread instead of one row
@@ -29,14 +27,9 @@ Output:
         _thread_id, list, n_messages, message_ids, date, subject, from, cc,
         thread_content
 
-    `list` is the same file-derived mailing list as above. `date`, `subject`,
-    `from` and `cc` are taken from the thread's first (earliest) message --
-    `from` identifies who started the thread; `to` is left out for the same
-    reason described above.
-
-    `thread_content` concatenates the subject and body of every message in
-    the thread, in order, using the same per-message block format as
-    `classify/classify_duplication.py`'s LLM prompt.
+    `thread_content` concatenates the subject, sender and body of every
+    message in the thread, in order, using the same per-message block
+    format as `classify/classify_threads.py`'s LLM prompt.
 """
 
 import argparse
@@ -64,7 +57,7 @@ LIST_DATA_PREFIX = "list_data_"
 
 def list_name_from_path(input_path):
     """Derive the mailing list name from an input filename, following the
-    `list_data_<name>.parquet` convention (see `select_sample/select_sample.py`).
+    `list_data_<name>.parquet` convention (see `select_sample/v1/select_sample_v1.py`).
 
     Falls back to the filename stem for files that don't follow it.
     """
@@ -276,24 +269,22 @@ def _text(x):
 
 
 def build_thread_content(thread_df):
-    """Concatenate the subject and body of every message in a thread, in
-    order, into a single block of text.
-
-    Same per-message block format as
-    `classify/classify_duplication.py`'s `build_thread_prompt`, minus the
-    per-field truncation (this is a dataset column, not an LLM prompt).
+    """Concatenate the subject, sender and body of every message in a
+    thread, in order, into a single block of text.
     """
     total = len(thread_df)
     parts = []
 
-    for position, row in enumerate(thread_df.itertuples(index=False), start=1):
+    rows = thread_df[["subject", "from", "raw_body"]].to_dict("records")
+    for position, row in enumerate(rows, start=1):
         parts.append(
             "\n"
             "================================================\n"
             f"MESSAGE {position} of {total}\n"
             "================================================\n"
-            f"\nSubject:\n{_text(row.subject)}\n"
-            f"\nEmail body:\n{_text(row.raw_body)}\n"
+            f"\nSubject:\n{_text(row['subject'])}\n"
+            f"\nFrom:\n{_text(row['from'])}\n"
+            f"\nEmail body:\n{_text(row['raw_body'])}\n"
         )
 
     return "".join(parts).strip()
