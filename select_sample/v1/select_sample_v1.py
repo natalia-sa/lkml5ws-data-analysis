@@ -7,16 +7,11 @@ import re
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(HERE)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(HERE))
 BUILD_THREADS_DIR = os.path.join(PROJECT_ROOT, "build_threads_output")
 OUTPUT_FILE = os.path.join(HERE, "sample_review.csv")
-USP_OUTPUT_FILE = os.path.join(HERE, "sample_review_usp.csv")
 
 LISTS = ["iio", "amd", "linux-iommu", "linux-i2c"]
-
-USP_LISTS = ["amd", "iio"]
-USP_YEAR_MIN = 2023
-USP_YEAR_MAX = 2026
 
 MAX_EMAILS = 200
 
@@ -24,8 +19,6 @@ CANDIDATE_RE = re.compile(
     r"\b(?:duplicat\w*|dedup\w*|redundant\w*|repeated|clon(?:e|ed|ing|es)?|copy[-_\s]?past(?:e|ed|ing))\b",
     re.IGNORECASE,
 )
-
-USP_EMAIL_RE = re.compile(r"@[\w.-]*\busp\.br\b", re.IGNORECASE)
 
 COLUMNS = [
     "_thread_id", "list", "n_messages", "message_ids", "date", "subject",
@@ -35,10 +28,6 @@ COLUMNS = [
 
 def matches_regex(row):
     return bool(CANDIDATE_RE.search(row["thread_content"] or ""))
-
-
-def matches_usp(row):
-    return bool(USP_EMAIL_RE.search(row["from"] or ""))
 
 
 def load_matching_threads():
@@ -52,27 +41,6 @@ def load_matching_threads():
 
     all_matches = pd.concat(frames, ignore_index=True)
     return all_matches.drop(columns=["_match"])
-
-
-def load_usp_threads():
-    """Threads started by a usp.br address, no duplication regex applied,
-    restricted to the amd/iio lists and to threads started between
-    USP_YEAR_MIN and USP_YEAR_MAX.
-    """
-    frames = []
-
-    for list_name in USP_LISTS:
-        path = os.path.join(BUILD_THREADS_DIR, f"list_data_{list_name}.parquet")
-        df = pd.read_parquet(path, columns=COLUMNS)
-        df["_match"] = df.apply(matches_usp, axis=1)
-        frames.append(df[df["_match"]])
-
-    all_matches = pd.concat(frames, ignore_index=True).drop(columns=["_match"])
-
-    years = pd.to_datetime(all_matches["date"], errors="coerce").dt.year
-    in_range = years.between(USP_YEAR_MIN, USP_YEAR_MAX)
-
-    return all_matches[in_range].reset_index(drop=True)
 
 
 def pick_thread_keys(matches, seed, max_emails=MAX_EMAILS):
@@ -100,17 +68,14 @@ def pick_thread_keys(matches, seed, max_emails=MAX_EMAILS):
     return pd.DataFrame(picked, columns=["list", "_thread_id"]), total_emails
 
 
-def build_sample(seed, usp=False):
-    matches = load_usp_threads() if usp else load_matching_threads()
-    output_file = USP_OUTPUT_FILE if usp else OUTPUT_FILE
-    max_emails = None if usp else MAX_EMAILS
+def build_sample(seed):
+    matches = load_matching_threads()
 
     total_threads = matches.shape[0]
-    picked_keys, total_emails = pick_thread_keys(matches, seed, max_emails=max_emails)
+    picked_keys, total_emails = pick_thread_keys(matches, seed)
 
-    cap_label = "no limit" if max_emails is None else f"max {max_emails}"
     print(f"Total candidate threads (all lists): {total_threads}")
-    print(f"Sampling {len(picked_keys)} thread(s) ({total_emails} email(s), {cap_label})")
+    print(f"Sampling {len(picked_keys)} thread(s) ({total_emails} email(s), max {MAX_EMAILS})")
 
     sample = matches.merge(picked_keys, on=["list", "_thread_id"])
     sample = sample.sort_values(["list", "_thread_id"])
@@ -118,8 +83,8 @@ def build_sample(seed, usp=False):
     sample["is_clone_refactoring"] = ""
     sample["justification"] = ""
 
-    sample.to_csv(output_file, index=False)
-    print(f"Saved sample to: {output_file}")
+    sample.to_csv(OUTPUT_FILE, index=False)
+    print(f"Saved sample to: {OUTPUT_FILE}")
 
 
 def review(output_file):
@@ -163,24 +128,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--rebuild", action="store_true")
-    parser.add_argument(
-        "--usp",
-        action="store_true",
-        help=(
-            "Sample from threads started by a usp.br address instead of "
-            "matching the duplication regex. Restricted to the amd/iio "
-            f"lists and to threads started between {USP_YEAR_MIN} and "
-            f"{USP_YEAR_MAX}."
-        ),
-    )
     args = parser.parse_args()
 
-    output_file = USP_OUTPUT_FILE if args.usp else OUTPUT_FILE
-
     if args.rebuild:
-        build_sample(args.seed, usp=args.usp)
-    elif not os.path.exists(output_file):
-        build_sample(args.seed, usp=args.usp)
+        build_sample(args.seed)
+    elif not os.path.exists(OUTPUT_FILE):
+        build_sample(args.seed)
     else:
         choice = ""
         while choice not in ("n", "c"):
@@ -190,9 +143,9 @@ def main():
             ).strip().lower()
 
         if choice == "n":
-            build_sample(args.seed, usp=args.usp)
+            build_sample(args.seed)
 
-    review(output_file)
+    review(OUTPUT_FILE)
 
 
 if __name__ == "__main__":
