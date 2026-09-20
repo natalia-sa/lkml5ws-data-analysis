@@ -7324,7 +7324,7 @@ Oded
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx","duplicates,duplication,redundant",
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx","duplicates,duplication,redundant",yes
 1513425292-6510-1-git-send-email-pravin.shedge4linux@gmail.com,amd,1,['1513425292-6510-1-git-send-email-pravin.shedge4linux@gmail.com'],2017-12-16 11:54:52,[PATCH 04/45] gpu: drm: remove duplicate includes,Pravin Shedge <pravin.shedge4linux@gmail.com>,['pravin.shedge4linux@gmail.com'],"================================================
 MESSAGE 1 of 1
 ================================================
@@ -7536,7 +7536,7 @@ index 890fd6f..b9afb13 100644
  #define RPI_DSI_DRIVER_NAME ""rpi-ts-dsi""
  
 -- 
-2.7.4",duplicate,
+2.7.4",duplicate,no
 1550088351-19449-4-git-send-email-sunpeng.li@amd.com,amd,35,"['1550088351-19449-2-git-send-email-sunpeng.li@amd.com'
  '1550088351-19449-3-git-send-email-sunpeng.li@amd.com'
  '1550088351-19449-4-git-send-email-sunpeng.li@amd.com'
@@ -11775,7 +11775,7 @@ index 7f5a947..66b862b 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,no
 1557376305-24294-1-git-send-email-Monk.Liu@amd.com,amd,1,['1557376305-24294-1-git-send-email-Monk.Liu@amd.com'],2019-05-09 04:31:45,[PATCH] drm/sched: fix the duplicated TMO message for one IB,Monk Liu <Monk.Liu-5C7GfCeVMHo@public.gmane.org>,['Monk Liu <Monk.Liu-5C7GfCeVMHo@public.gmane.org>'],"================================================
 MESSAGE 1 of 1
 ================================================
@@ -11824,7 +11824,7 @@ index c1aaf85..d6c17f1 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicated,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicated,no
 1574851987-18828-1-git-send-email-le.ma@amd.com,amd,1,['1574851987-18828-1-git-send-email-le.ma@amd.com'],2019-11-27 10:53:07,[PATCH 10/10 v3] drm/amdgpu: reduce redundant uvd context lost warning message,Le Ma <le.ma-5C7GfCeVMHo@public.gmane.org>,"['guchun.chen-5C7GfCeVMHo@public.gmane.org'
  'tao.zhou1-5C7GfCeVMHo@public.gmane.org'
  'Le Ma <le.ma-5C7GfCeVMHo@public.gmane.org>'
@@ -11891,7 +11891,7 @@ index e324bfe..d587ffe 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,no
 1905af18-697d-edb6-584c-412d8be963e8@gmail.com,amd,1,['1905af18-697d-edb6-584c-412d8be963e8@gmail.com'],2018-08-29 15:15:49,Re: [PATCH] drm/amdgpu: remove redundant memset,Christian König <ckoenig.leichtzumerken-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,,"================================================
 MESSAGE 1 of 1
 ================================================
@@ -11935,7 +11935,7 @@ Reviewed-by: Christian König <christian.koenig@amd.com>
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,no
 20171026183525.7532-2-harry.wentland@amd.com,amd,30,"['20171026183525.7532-2-harry.wentland@amd.com'
  '20171026183525.7532-3-harry.wentland@amd.com'
  '20171026183525.7532-4-harry.wentland@amd.com'
@@ -17317,7 +17317,7 @@ On 2017-10-26 02:34 PM, Harry Wentland wrote:
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,yes
 20180508171041.15890-2-harry.wentland@amd.com,amd,25,"['20180508171041.15890-2-harry.wentland@amd.com'
  '20180508171041.15890-3-harry.wentland@amd.com'
  '20180508171041.15890-4-harry.wentland@amd.com'
@@ -27008,7 +27008,7 @@ index 1a63c04b2016..b80d2134b9ea 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,no
 20180904010033.67611-1-bas@basnieuwenhuizen.nl,amd,1,['20180904010033.67611-1-bas@basnieuwenhuizen.nl'],2018-09-04 01:00:33,[RFC] drm/amdgpu: Add macros and documentation for format modifiers.,Bas Nieuwenhuizen <bas-dldO88ZXqoXqqjsSq9zF6IRWq/SkRNHw@public.gmane.org>,"['Nicolai Hähnle <nicolai.haehnle-5C7GfCeVMHo@public.gmane.org>'
  'Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>'
  'Chad Versace <chadversary-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>'
@@ -27221,7 +27221,7 @@ index 94444eeba55b..4e1452161dbf 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicated,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicated,no
 20190617191700.17899-1-alexander.deucher@amd.com,amd,1,['20190617191700.17899-1-alexander.deucher@amd.com'],2019-06-17 19:09:33,[PATCH 000/459] amdgpu support for Navi10,Alex Deucher <alexdeucher-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,['Alex Deucher <alexander.deucher-5C7GfCeVMHo@public.gmane.org>'],"================================================
 MESSAGE 1 of 1
 ================================================
@@ -28296,7 +28296,7 @@ tiancyin (7):
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx","duplicate,redundant",
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx","duplicate,redundant",no
 20190621162753.GI12905@phenom.ffwll.local,amd,1,['20190621162753.GI12905@phenom.ffwll.local'],2019-06-21 16:27:53,Re: [Intel-gfx] [PATCH 1/6] dma-buf: add dynamic DMA-buf handling v10,Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>,"['dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>'
  'intel-gfx <intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>'
  'amd-gfx list <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>'
@@ -28579,7 +28579,7 @@ http://blog.ffwll.ch
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx","duplicate,duplicating",
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx","duplicate,duplicating",yes
 20190704190519.29525-2-sunpeng.li@amd.com,amd,16,"['20190704190519.29525-2-sunpeng.li@amd.com'
  '20190704190519.29525-3-sunpeng.li@amd.com'
  '20190704190519.29525-5-sunpeng.li@amd.com'
@@ -30562,7 +30562,7 @@ Intel
 _______________________________________________
 dri-devel mailing list
 dri-devel@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/dri-devel",duplicates,
+https://lists.freedesktop.org/mailman/listinfo/dri-devel",duplicates,no
 20190819143515.21653-3-Bhawanpreet.Lakha@amd.com,amd,36,"['20190819143515.21653-2-Bhawanpreet.Lakha@amd.com'
  '20190819143515.21653-3-Bhawanpreet.Lakha@amd.com'
  '20190819143515.21653-4-Bhawanpreet.Lakha@amd.com'
@@ -35665,7 +35665,7 @@ index 239cb0952c61..8ff595e66a6c 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,no
 20190911222829.28874-3-rcampbell@nvidia.com,amd,7,"['20190911222829.28874-1-rcampbell@nvidia.com'
  '20190911222829.28874-2-rcampbell@nvidia.com'
  '20190911222829.28874-3-rcampbell@nvidia.com'
@@ -39258,7 +39258,7 @@ On 9/12/19 1:26 AM, Christoph Hellwig wrote:
 > 
 
 OK. I'll post a v2 with the these changes.
-Thanks for the reviews.",duplication,
+Thanks for the reviews.",duplication,yes
 20190917062458.29589-1-tao.zhou1@amd.com,amd,1,['20190917062458.29589-1-tao.zhou1@amd.com'],2019-09-17 06:25:13,[PATCH] drm/amdgpu: replace DRM_ERROR with DRM_WARN in ras_reserve_bad_pages,Zhou1 Tao <Tao.Zhou1-5C7GfCeVMHo@public.gmane.org>,['Zhou1 Tao <Tao.Zhou1-5C7GfCeVMHo@public.gmane.org>'],"================================================
 MESSAGE 1 of 1
 ================================================
@@ -39308,7 +39308,7 @@ index 79e5e5be8b34..5f623daf5078 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,no
 20201214235024.GB14575@willie-the-truck,amd,11,"['20201214175225.38975-1-ardb@kernel.org'
  '20201214235024.GB14575@willie-the-truck'
  'CADnq5_M-U5QO_tmQQ8Q+v+kZXvUc7vjXnmKWYFjX1FmOJYk1OQ@mail.gmail.com'
@@ -41196,7 +41196,7 @@ Alex
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",copy pasted,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",copy pasted,yes
 20210507145822.248029-2-stylon.wang@amd.com,amd,16,"['20210507145822.248029-1-stylon.wang@amd.com'
  '20210507145822.248029-2-stylon.wang@amd.com'
  '20210507145822.248029-3-stylon.wang@amd.com'
@@ -43726,7 +43726,7 @@ https://nam11.safelinks.protection.outlook.com/?url=https%3A%2F%2Flists.freedesk
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,no
 20210607164714.311325-2-stylon.wang@amd.com,amd,32,"['20210607164714.311325-1-stylon.wang@amd.com'
  '20210607164714.311325-2-stylon.wang@amd.com'
  '20210607164714.311325-3-stylon.wang@amd.com'
@@ -48067,7 +48067,7 @@ https://nam11.safelinks.protection.outlook.com/?url=https%3A%2F%2Flists.freedesk
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,no
 20210812063100.31997-2-alex.sierra@amd.com,amd,16,"['20210812063100.31997-1-alex.sierra@amd.com'
  '20210812063100.31997-2-alex.sierra@amd.com'
  '20210812063100.31997-3-alex.sierra@amd.com'
@@ -50537,7 +50537,7 @@ Alejandro S.
 >>
 >> -- 
 >> 2.32.0
-> ---end quoted text---",duplicated,
+> ---end quoted text---",duplicated,yes
 20220317002006.342457-3-Felix.Kuehling@amd.com,amd,9,"['20220317002006.342457-1-Felix.Kuehling@amd.com'
  '20220317002006.342457-2-Felix.Kuehling@amd.com'
  '20220317002006.342457-3-Felix.Kuehling@amd.com'
@@ -51676,7 +51676,7 @@ Regards,
 >>>>                   struct amdgpu_device *bo_adev,
 >>>>                   struct amdgpu_vm *vm, bool immediate,
 >>>
->",duplicates,
+>",duplicates,no
 20220630191322.909650-2-Rodrigo.Siqueira@amd.com,amd,45,"['20220630191322.909650-1-Rodrigo.Siqueira@amd.com'
  '20220630191322.909650-2-Rodrigo.Siqueira@amd.com'
  '20220630191322.909650-3-Rodrigo.Siqueira@amd.com'
@@ -61067,7 +61067,7 @@ Tested-by: Nathan Chancellor <nathan@kernel.org>
 >  ifdef CONFIG_X86
 > -- 
 > 2.35.3
->","duplicate,duplicates,redundant",
+>","duplicate,duplicates,redundant",no
 20230705081845.12621-1-duminjie@vivo.com,amd,1,['20230705081845.12621-1-duminjie@vivo.com'],2023-07-05 08:18:44,[PATCH v1] drivers: dcn315: remove duplicate assignments,Minjie Du <duminjie@vivo.com>,['opensource.kernel@vivo.com'],"================================================
 MESSAGE 1 of 1
 ================================================
@@ -61102,7 +61102,7 @@ index b2c4f97af..45b811610 100644
  		/* check that we're not already in lower */
  		if (clk_mgr_base->clks.pwr_state != DCN_PWR_STATE_LOW_POWER) {
 -- 
-2.39.0","duplicate,repeated",
+2.39.0","duplicate,repeated",no
 20230908192848.3462476-10-sashal@kernel.org,amd,9,"['20230908192848.3462476-10-sashal@kernel.org'
  '20230908192848.3462476-11-sashal@kernel.org'
  '20230908192848.3462476-13-sashal@kernel.org'
@@ -61896,7 +61896,7 @@ index cb992aca760dc..5fc78bf927bbc 100644
  		dcn32_smu_set_hard_min_by_freq(clk_mgr, PPCLK_UCLK,
  				clk_mgr_base->bw_params->clk_table.entries[0].memclk_mhz);
 -- 
-2.40.1",duplicate,
+2.40.1",duplicate,yes
 20231101200832.995436-4-hersenxs.wu@amd.com,amd,14,"['20231101200832.995436-1-hersenxs.wu@amd.com'
  '20231101200832.995436-2-hersenxs.wu@amd.com'
  '20231101200832.995436-3-hersenxs.wu@amd.com'
@@ -64390,7 +64390,7 @@ Wenjing Liu (1):
  21 files changed, 380 insertions(+), 329 deletions(-)  create mode 100644 drivers/gpu/drm/amd/display/dc/inc/hw/optc.h
 
 --
-2.25.1","duplicate,duplicates",
+2.25.1","duplicate,duplicates",no
 20240327214953.367126-2-mwen@igalia.com,amd,11,"['20240327214953.367126-1-mwen@igalia.com'
  '20240327214953.367126-2-mwen@igalia.com'
  '20240327214953.367126-3-mwen@igalia.com'
@@ -66309,7 +66309,7 @@ Melissa
 > 
 > 
 > -- 
-> Jani Nikula, Intel","duplicated,redundant",
+> Jani Nikula, Intel","duplicated,redundant",yes
 20240717193901.8821-2-aurabindo.pillai@amd.com,amd,24,"['20240717193901.8821-1-aurabindo.pillai@amd.com'
  '20240717193901.8821-2-aurabindo.pillai@amd.com'
  '20240717193901.8821-3-aurabindo.pillai@amd.com'
@@ -71240,7 +71240,7 @@ Sung Joon Kim (2):
  rename drivers/gpu/drm/amd/display/dc/{ => hpo}/dcn31/dcn31_hpo_dp_link_encoder.c (100%)  rename drivers/gpu/drm/amd/display/dc/{ => hpo}/dcn31/dcn31_hpo_dp_link_encoder.h (100%)  rename drivers/gpu/drm/amd/display/dc/{ => hpo}/dcn31/dcn31_hpo_dp_stream_encoder.c (100%)  rename drivers/gpu/drm/amd/display/dc/{ => hpo}/dcn31/dcn31_hpo_dp_stream_encoder.h (100%)
 
 --
-2.39.2","duplicate,duplicates",
+2.39.2","duplicate,duplicates",yes
 20241010012931.548798-1-jiadong.zhu@amd.com,amd,1,['20241010012931.548798-1-jiadong.zhu@amd.com'],2024-10-10 01:29:32,[PATCH v4 3/3] drm/amdgpu/sdma4.4.2: implement ring reset callback for sdma4.4.2,Jiadong Zhu <Jiadong.Zhu@amd.com>,"['alexander.deucher@amd.com' 'lijo.lazar@amd.com'
  'Jiadong Zhu <Jiadong.Zhu@amd.com>']","================================================
 MESSAGE 1 of 1
@@ -71462,7 +71462,7 @@ index c77889040760..92c643299ac4 100644
  	return r;
  }
 -- 
-2.25.1",redundant,
+2.25.1",redundant,no
 20250528025204.79578-3-Wayne.Lin@amd.com,amd,26,"['20250528025204.79578-1-Wayne.Lin@amd.com'
  '20250528025204.79578-2-Wayne.Lin@amd.com'
  '20250528025204.79578-3-Wayne.Lin@amd.com'
@@ -76507,7 +76507,7 @@ Zhongwei Zhang (2):
  80 files changed, 771 insertions(+), 577 deletions(-)
 
 --
-2.43.0",redundant,
+2.43.0",redundant,no
 20260108044839.4084279-2-lijo.lazar@amd.com,amd,26,"['20260108044839.4084279-1-lijo.lazar@amd.com'
  '20260108044839.4084279-2-lijo.lazar@amd.com'
  '20260108044839.4084279-3-lijo.lazar@amd.com'
@@ -80155,7 +80155,7 @@ index f639d3636d30..5b1f059105d6 100644
 
  static int smu_msg_v1_decode_response(u32 resp)
 --
-2.49.0",redundant,
+2.49.0",redundant,yes
 4383de75-d74c-08f1-ccd5-eab112b57a47@vodafone.de,amd,1,['4383de75-d74c-08f1-ccd5-eab112b57a47@vodafone.de'],2017-06-26 09:55:01,Re: [PATCH 1/2] drm/amdgpu: vm_update_ptes remove code duplication,Christian König <deathsimple-ANTagKRnAhcb1SvskN2V4Q@public.gmane.org>,,"================================================
 MESSAGE 1 of 1
 ================================================
@@ -80345,7 +80345,7 @@ Am 23.06.2017 um 19:54 schrieb Felix Kuehling:
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplication,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplication,yes
 4ba7ad6f-c1dd-40e3-abcd-547635ff43da@bootlin.com,amd,104,"['20250125064619.8305-1-jim.cromie@gmail.com'
  '20250125064619.8305-2-jim.cromie@gmail.com'
  '20250125064619.8305-3-jim.cromie@gmail.com'
@@ -96063,7 +96063,7 @@ IIRC, that was me trying to get a merge-message or something like it.
 
 > thanks,
 >
-> greg k-h","copy-paste,redundantly,repeated",
+> greg k-h","copy-paste,redundantly,repeated",yes
 5B602ED8.7010601@amd.com,amd,2,['20180731092648.GA23757@hr-amur2' '5B602ED8.7010601@amd.com'],2018-07-31 09:26:49,Re: [PATCH 9/9] drm/amdgpu: create an empty bo_list if no handle is provided,Huang Rui <ray.huang-5C7GfCeVMHo@public.gmane.org>,['amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>'],"================================================
 MESSAGE 1 of 2
 ================================================
@@ -96563,7 +96563,7 @@ Jerry
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicates,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicates,no
 7fdac4e4-0d99-049e-6eda-58b766448e55@amd.com,amd,1,['7fdac4e4-0d99-049e-6eda-58b766448e55@amd.com'],2018-07-04 09:30:53,Re: [PATCH] dma-buf: Move BUG_ON from _add_shared_fence to _add_shared_inplace,Christian König <christian.koenig-5C7GfCeVMHo@public.gmane.org>,"['linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org'
  'amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org'
  'linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'
@@ -96655,7 +96655,7 @@ Christian.
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicates,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicates,no
 929bad72-fb12-661e-d7e3-ac837d32c01c@amd.com,amd,2,"['CAEsyxyhFfkZ-bB1hUW659By4Jc3oUomFY30pjpehq=4F3Uum5w@mail.gmail.com'
  '929bad72-fb12-661e-d7e3-ac837d32c01c@amd.com']",2019-03-21 09:39:13,"Re: [PATCH 3/4] drm/amd/display: In VRR mode, do DRM core vblank handling at end of vblank.",Mario Kleiner <mario.kleiner.de-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,"['Wentland Harry <Harry.Wentland-5C7GfCeVMHo@public.gmane.org>'
  'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>'
@@ -97463,7 +97463,7 @@ Harry
 _______________________________________________
 dri-devel mailing list
 dri-devel@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/dri-devel",redundant,
+https://lists.freedesktop.org/mailman/listinfo/dri-devel",redundant,no
 93a868ae-9734-478d-86b7-dd17cd67fecb@amd.com,amd,76,"['20230810160314.48225-1-mwen@igalia.com'
  '20230810160314.48225-2-mwen@igalia.com'
  '20230810160314.48225-3-mwen@igalia.com'
@@ -109130,7 +109130,7 @@ Melissa
 > >  include/uapi/drm/drm_mode.h                   |   8 +
 > >  20 files changed, 1446 insertions(+), 127 deletions(-)
 > > 
->","copy-paste,duplicate,redundant",
+>","copy-paste,duplicate,redundant",yes
 CADnq5_O3s4FgVDNz=5O4mKOuVeCJUSEfDUri=bQOQHUBv+zU2Q@mail.gmail.com,amd,2,"['20181221141150.GA2872@hp-pavilion-15-notebook-pc-brajeswar'
  'CADnq5_O3s4FgVDNz=5O4mKOuVeCJUSEfDUri=bQOQHUBv+zU2Q@mail.gmail.com']",2018-12-21 14:11:50,[PATCH] drm/amd/powerplay/polaris10_smumgr: Remove duplicate,Brajeswar Ghosh <brajeswar.linux@gmail.com>,"['jrdr.linux@gmail.com' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org' 'linux-kernel@vger.kernel.org'
@@ -109214,7 +109214,7 @@ On Fri, Dec 21, 2018 at 9:59 AM Brajeswar Ghosh
 > _______________________________________________
 > amd-gfx mailing list
 > amd-gfx@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,
+> https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,no
 CADnq5_Pbv+QHmFEeqV7HT1NY2zFnHAiZ4feb+=HSxoV5Rd=bSA@mail.gmail.com,amd,2,"['20250902124050.2628822-1-colin.i.king@gmail.com'
  'CADnq5_Pbv+QHmFEeqV7HT1NY2zFnHAiZ4feb+=HSxoV5Rd=bSA@mail.gmail.com']",2025-09-02 12:40:50,[PATCH][next] drm/amd/amdgpu: Fix missing error return on kzalloc failure,Colin Ian King <colin.i.king@gmail.com>,['kernel-janitors@vger.kernel.org' 'linux-kernel@vger.kernel.org'],"================================================
 MESSAGE 1 of 2
@@ -109299,7 +109299,7 @@ On Tue, Sep 2, 2025 at 8:49 AM Colin Ian King <colin.i.king@gmail.com> wrote:
 >         adev->psp.xgmi_context.supports_extended_data =
 > --
 > 2.51.0
->",redundant,
+>",redundant,no
 CAE4jU7jfKWtvvgRiY2fTM466en3JgRNg58DW4D1aWwCtXGm-WQ@mail.gmail.com,amd,9,"['CADnq5_MTX8CifP25UvE5kdMbCYxgK+A+KGdd-_Ef1m4VYv+WRQ@mail.gmail.com'
  'CAE4jU7jfKWtvvgRiY2fTM466en3JgRNg58DW4D1aWwCtXGm-WQ@mail.gmail.com'
  '4c5c0981-fa21-4d8c-b5ed-45ebaf4d713f@gmx.de'
@@ -109752,7 +109752,7 @@ Umio Yasuno
 > > >
 > > > Thanks,
 > > >
-> > > Alex",duplicate,
+> > > Alex",duplicate,no
 CAPM=9txYNvVxJGxDo3122msDe=OXHKW0r7M92DkVgaSxjz68mg@mail.gmail.com,amd,1,['CAPM=9txYNvVxJGxDo3122msDe=OXHKW0r7M92DkVgaSxjz68mg@mail.gmail.com'],2018-06-29 19:40:21,Re: [PATCH 5/5] drm: drop drm_pcie_get_speed_cap_mask and drm_pcie_get_max_link_width,Dave Airlie <airlied-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,"['Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>'
  'Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>'
  'Alex Deucher <alexander.deucher-5C7GfCeVMHo@public.gmane.org>'
@@ -109784,7 +109784,7 @@ Dave.
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicated,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicated,yes
 CAPj87rOwKMorAw_roNuBG63oRO-pMZZNHkYJ3Bo9OL6=o5xMrA@mail.gmail.com,amd,61,"['CAKMK7uHHK2SsCfpmZwEUyTJJHsoccKoadoko3cEBOoYDFkmeAw@mail.gmail.com'
  'CAEdQ38Hr-L6rg80Gf18QNM7eK-QDK0BBU-9tChT6VxrP+T4qCw@mail.gmail.com'
  '20200228002122.GB24271@skynet.be'
@@ -114826,7 +114826,7 @@ BR,
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplication,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplication,no
 DM5PR12MB2469282511E0F2AD53B0257CF1809@DM5PR12MB2469.namprd12.prod.outlook.com,amd,3,"['20211022042046.959686-1-alexander.deucher@amd.com'
  'CADnq5_O8Ds1j8aOSQJJEUd=fNPez-djXmi2f4yrST=Ot=-wMhg@mail.gmail.com'
  'DM5PR12MB2469282511E0F2AD53B0257CF1809@DM5PR12MB2469.namprd12.prod.outlook.com']",2021-10-22 04:20:46,[PATCH] drm/amdgpu/nbio7.4: use original HDP_FLUSH bits for navi1x,Alex Deucher <alexander.deucher@amd.com>,['Alex Deucher <alexander.deucher@amd.com>'],"================================================
@@ -115105,7 +115105,7 @@ Copy paste typo in the patch title fixed locally.
 >
 > --
 > 2.31.1
->",copy paste,
+>",copy paste,no
 DM5PR12MB25358B6465DBA39388482A1995A30@DM5PR12MB2535.namprd12.prod.outlook.com,amd,1,['DM5PR12MB25358B6465DBA39388482A1995A30@DM5PR12MB2535.namprd12.prod.outlook.com'],2019-08-28 11:44:08,Re: [PATCH] drm/amdgpu/psp: keep TMR in visible vram region for SRIOV,Yin Tianci (Rico) <Tianci.Yin-5C7GfCeVMHo@public.gmane.org>,"['Xu Feifei <Feifei.Xu-5C7GfCeVMHo@public.gmane.org>'
  'Xiao Jack <Jack.Xiao-5C7GfCeVMHo@public.gmane.org>'
  'ZhangHawking <Hawking.Zhang-5C7GfCeVMHo@public.gmane.org>'
@@ -115222,7 +115222,7 @@ Christian.
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicating,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicating,yes
 DM6PR12MB2619C943A0AB43FFC53BCECBE4760@DM6PR12MB2619.namprd12.prod.outlook.com,amd,3,"['MN2PR12MB417536617C127BDA31E875398E790@MN2PR12MB4175.namprd12.prod.outlook.com'
  '20200722084537.GB1032920@hr-amd'
  'DM6PR12MB2619C943A0AB43FFC53BCECBE4760@DM6PR12MB2619.namprd12.prod.outlook.com']",2020-07-22 08:11:49,"RE: [PATCH] Revert ""drm/amd/powerplay: drop unnecessary message support check""",Feng Kenneth <Kenneth.Feng@amd.com>,,"================================================
@@ -115504,7 +115504,7 @@ https://nam11.safelinks.protection.outlook.com/?url=https%3A%2F%2Flists.freedesk
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,no
 DM6PR12MB33054A483A593F3C044499BC840C0@DM6PR12MB3305.namprd12.prod.outlook.com,amd,1,['DM6PR12MB33054A483A593F3C044499BC840C0@DM6PR12MB3305.namprd12.prod.outlook.com'],2019-05-10 04:08:28,RE: [PATCH] drm/sched: fix the duplicated TMO message for one IB,Liu Monk <Monk.Liu-5C7GfCeVMHo@public.gmane.org>,,"================================================
 MESSAGE 1 of 1
 ================================================
@@ -115631,7 +115631,7 @@ Christian.
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx","duplicated,duplication,repeated",
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx","duplicated,duplication,repeated",no
 a27997fc-e635-299a-417b-eb70c2bde408@gmail.com,amd,4,"['20210412121505.23787-1-Roy.Sun@amd.com'
  'CY4PR12MB16062ED181829A47D1B4EC1DFF4F9@CY4PR12MB1606.namprd12.prod.outlook.com'
  'a27997fc-e635-299a-417b-eb70c2bde408@gmail.com'
@@ -116134,7 +116134,7 @@ Alex
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",redundant,yes
 ddf8f71a-40d1-e932-e42f-debd76c89e96@amd.com,amd,2,"['20200813042519.4793-1-alexander.deucher@amd.com'
  'ddf8f71a-40d1-e932-e42f-debd76c89e96@amd.com']",2020-08-13 04:25:19,[PATCH] drm/amdgpu: drop log message in amdgpu_dpm_baco_reset(),Alex Deucher <alexdeucher@gmail.com>,['Alex Deucher <alexander.deucher@amd.com>'],"================================================
 MESSAGE 1 of 2
@@ -116218,7 +116218,7 @@ On 8/13/20 12:25 PM, Alex Deucher wrote:
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",duplicate,no
 deba6c9f-989b-4bd6-96fa-872ea229af97@amd.com,amd,25,"['20240706034004.801329-1-mwen@igalia.com'
  '20240706034004.801329-2-mwen@igalia.com'
  '20240706034004.801329-3-mwen@igalia.com'
@@ -119302,7 +119302,7 @@ A soft reminder - a few other patches need improved commit messages too.
 >>>    		edid_caps->speaker_flags = DEFAULT_SPEAKER_LOCATION;
 >>> -	kfree(sads);
 >>>    	kfree(sadb);
->>>    	return result;",redundant,
+>>>    	return result;",redundant,yes
 fe9a43cc-91b1-3557-f38e-fa92685a9847@amd.com,amd,5,"['20240719221738.26840-1-xiaogang.chen@amd.com'
  '6b475d85-12ee-3732-4d96-05647374d773@amd.com'
  '054a813f-8310-466a-9fdc-a3be0cdc4ee8@amd.com'
@@ -120540,7 +120540,7 @@ Regards,
 > +			    uint32_t vmid, uint32_t node_id, uint64_t addr, uint64_t ts,
 >   			    bool write_fault);
 >   int svm_range_schedule_evict_svm_bo(struct amdgpu_amdkfd_fence *fence);
->   void svm_range_add_list_work(struct svm_range_list *svms,",redundant,
+>   void svm_range_add_list_work(struct svm_range_list *svms,",redundant,no
 1310646827-25690-8-git-send-email-jic23@cam.ac.uk,iio,8,"['1310646827-25690-1-git-send-email-jic23@cam.ac.uk'
  '1310646827-25690-2-git-send-email-jic23@cam.ac.uk'
  '1310646827-25690-3-git-send-email-jic23@cam.ac.uk'
@@ -121849,7 +121849,7 @@ index fed7b11..8277950 100644
  
  /* Event code number extraction depends on which type of event we have.
 -- 
-1.7.3.4",duplicated,
+1.7.3.4",duplicated,yes
 1431115203-14511-6-git-send-email-festevam@gmail.com,iio,7,"['1431115203-14511-1-git-send-email-festevam@gmail.com'
  '1431115203-14511-2-git-send-email-festevam@gmail.com'
  '1431115203-14511-3-git-send-email-festevam@gmail.com'
@@ -122338,7 +122338,7 @@ unlikely. So change the commit message.
 > -	indio_dev->channels = channels;
 >  	indio_dev->num_channels = ARRAY_SIZE(accel_3d_channels);
 >  	indio_dev->dev.parent = &pdev->dev;
->  	indio_dev->info = &accel_3d_info;",duplicate,
+>  	indio_dev->info = &accel_3d_info;",duplicate,no
 1490624525-15865-2-git-send-email-peda@axentia.se,iio,13,"['1490624525-15865-4-git-send-email-peda@axentia.se'
  '1490624525-15865-1-git-send-email-peda@axentia.se'
  '1490624525-15865-2-git-send-email-peda@axentia.se'
@@ -125519,7 +125519,7 @@ On Thu, Mar 30, 2017 at 09:34:52AM +0200, Peter Rosin wrote:
 Give me a chance to catch up on reviews, your patch series is behind
 400+ other emails...
 
-greg k-h","copy-paste,redundant",
+greg k-h","copy-paste,redundant",no
 16aaae04-4fe8-4227-9374-0919960a4ca2@quicinc.com,iio,26,"['20241030185854.4015348-1-quic_jprakash@quicinc.com'
  '20241030185854.4015348-2-quic_jprakash@quicinc.com'
  '20241030185854.4015348-3-quic_jprakash@quicinc.com'
@@ -131686,7 +131686,7 @@ Jishnu
 > 
 > Best regards,
 > Krzysztof
->","duplicated,redundant",
+>","duplicated,redundant",yes
 175348527925.2011912.6805260803610107718.robh@kernel.org,iio,16,"['20250724111345.47889-5-krzysztof.kozlowski@linaro.org'
  '20250724111345.47889-6-krzysztof.kozlowski@linaro.org'
  '20250724111345.47889-7-krzysztof.kozlowski@linaro.org'
@@ -133258,7 +133258,7 @@ Matti Vaittinen <mazziesaccount@gmail.com> wrote:
 
 Updated and fresh testing tree pushed out.  Thanks
 
-J",copy-paste,
+J",copy-paste,no
 177041870628.250069.891260159674830369.robh@kernel.org,iio,40,"['20260206172845.145407-1-clamor95@gmail.com'
  '20260206172845.145407-2-clamor95@gmail.com'
  '20260206172845.145407-3-clamor95@gmail.com'
@@ -136745,7 +136745,7 @@ Jonathan Cameron <jic23@kernel.org> wrote:
 > > 
 > > Signed-off-by: Svyatoslav Ryhel <clamor95@gmail.com>  
 > Applied to the testing branch of iio.git.
-FWIW I messed up my trees, and lost this for a bit, it's there now though!",duplicate,
+FWIW I messed up my trees, and lost this for a bit, it's there now though!",duplicate,no
 20121020171118.GA14951@kroah.com,iio,2,['508270F1.6080202@kernel.org' '20121020171118.GA14951@kroah.com'],2012-10-20 09:37:53,[PULL] IIO fixes for v3.7-rc1 set 1,Jonathan Cameron <jic23@kernel.org>,,"================================================
 MESSAGE 1 of 2
 ================================================
@@ -136831,7 +136831,7 @@ On Sat, Oct 20, 2012 at 10:37:53AM +0100, Jonathan Cameron wrote:
 
 Pulled and pushed out, thanks.
 
-greg k-h","duplicate,duplicates",
+greg k-h","duplicate,duplicates",no
 20130109024226.GD304@yliu-dev.sh.intel.com,iio,4,"['1357657073-27352-6-git-send-email-yuanhan.liu@linux.intel.com'
  '20130108181645.GA7972@core.coreip.homeip.net'
  'f1be90be-ad99-4dff-8332-804383adc5c8@email.android.com'
@@ -138340,7 +138340,7 @@ root fix this kind of issues. And here it is.
 
 Thanks.
 
-	--yliu",copy-pasting,
+	--yliu",copy-pasting,no
 20161116162208.GA17075@kroah.com,iio,2,"['f02cb1e1-dc13-8bcc-f12e-1ef10a1ddc82@kernel.org'
  '20161116162208.GA17075@kroah.com']",2016-11-13 20:04:51,"[PULL] 3rd set of new drivers, features and cleanups for IIO in the 4.10 cycle",Jonathan Cameron <jic23@kernel.org>,,"================================================
 MESSAGE 1 of 2
@@ -138575,7 +138575,7 @@ On Sun, Nov 13, 2016 at 08:04:51PM +0000, Jonathan Cameron wrote:
 
 Pulled and pushed out, thanks.
 
-greg k-h","duplicate,redundant,repeated",
+greg k-h","duplicate,redundant,repeated",no
 20170701102321.618a6057@kernel.org,iio,6,"['1498491895-19393-1-git-send-email-akinobu.mita@gmail.com'
  '1498491895-19393-2-git-send-email-akinobu.mita@gmail.com'
  '1498491895-19393-3-git-send-email-akinobu.mita@gmail.com'
@@ -139992,7 +139992,7 @@ Jonathan
 > --
 > To unsubscribe from this list: send the line ""unsubscribe linux-iio"" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html",redundant,
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html",redundant,no
 20190119190303.65434e58@archlinux,iio,7,"['20190119183932.14321-1-shreeya.patel23498@gmail.com'
  '20190119183932.14321-2-shreeya.patel23498@gmail.com'
  '20190119183932.14321-3-shreeya.patel23498@gmail.com'
@@ -141328,7 +141328,7 @@ Thanks
 
 > Thanks,
 > 
-> Jonathan",redundant,
+> Jonathan",redundant,yes
 20190125114052.GA2982@bharath12345-Inspiron-5559,iio,5,"['20190124142755.GA31059@bhar.linux'
  'CA+U=Dsrefk01AbyKmkhLrwQyq8mkBKoO6kv_zXYEFSSCCqDObw@mail.gmail.com'
  '20190125105313.GA16451@himanshu-Vostro-3559'
@@ -141557,7 +141557,7 @@ On Thu, 24 Jan 2019 19:58:00 +0530, Bharath Vedartham said:
 >  
 >  	return dev;
 
-Not needed, as the 'if (dev)' statement fails, dev is already null.",redundant,
+Not needed, as the 'if (dev)' statement fails, dev is already null.",redundant,no
 20200801190321.3a61e22b@archlinux,iio,1,['20200801190321.3a61e22b@archlinux'],2020-08-01 18:03:21,Re: [PATCH] platform_data: ad7793.h: drop a duplicated word,Jonathan Cameron <jic23@kernel.org>,"['linux-kernel@vger.kernel.org' 'Lars-Peter Clausen <lars@metafoo.de>'
  'linux-iio@vger.kernel.org']","================================================
 MESSAGE 1 of 1
@@ -141598,7 +141598,7 @@ Jonathan
 > + * @AD7793_REFSEL_REFIN2: External reference applied between REFIN2(+)
 >   *	and REFIN1(-). Only valid for AD7795/AD7796.
 >   * @AD7793_REFSEL_INTERNAL: Internal 1.17 V reference.
->   */",duplicated,
+>   */",duplicated,no
 20201028165420.1c229ea2@archlinux,iio,1,['20201028165420.1c229ea2@archlinux'],2020-10-28 16:54:20,iio: dt-schema addtiions. Pull request on github.,Jonathan Cameron <jic23@kernel.org>,,"================================================
 MESSAGE 1 of 1
 ================================================
@@ -141646,7 +141646,7 @@ One fun bit is we are likely to find warnings on the dts/dtsi files in mainline
 as a result of doing this. I will need some help cleaning those out as often
 it is a question of filling a missing value for some ancient board.  What fun :)
 
-Jonathan",duplicate,
+Jonathan",duplicate,no
 20201205160046.357244a2@archlinux,iio,13,"['20201203035352.13918-1-xiang.ye@intel.com'
  '20201203035352.13918-2-xiang.ye@intel.com'
  '20201203035352.13918-3-xiang.ye@intel.com'
@@ -143942,7 +143942,7 @@ got it.
 > 
 
 Thanks
-Ye, Xiang",duplicating,
+Ye, Xiang",duplicating,no
 20210306032058.GB192807@roeck-us.net,iio,7,"['2775419.haJ69vZeI0@kreacher' '3231858.06thYagCLy@kreacher'
  '3660317.i3jicEtL8u@kreacher' '6250192.e2TqKytQZN@kreacher'
  '1890478.AxU35vj7Mz@kreacher' '20210306032058.GB192807@roeck-us.net'
@@ -144605,7 +144605,7 @@ Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 >  
 > 
 > 
->",redundant,
+>",redundant,no
 20210724171951.18b349b1@jic23-huawei,iio,27,"['20210719112156.27087-2-stephan@gerhold.net'
  '20210719112156.27087-4-stephan@gerhold.net'
  '20210719112156.27087-1-stephan@gerhold.net'
@@ -147268,7 +147268,7 @@ Jonathan
 > Stephan
 > 
 > [1]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=0ad4bf37017621e25fe157fa095fd8849779a873
-> [2]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c06a6aba6835946bcccb9909c98ec110949ea630",duplicate,
+> [2]: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c06a6aba6835946bcccb9909c98ec110949ea630",duplicate,no
 20210920190419.04291227@jic23-huawei,iio,17,"['20210916182914.1810-1-mihail.chindris@analog.com'
  '20210916182914.1810-2-mihail.chindris@analog.com'
  '20210916182914.1810-3-mihail.chindris@analog.com'
@@ -149549,7 +149549,7 @@ Jonathan
 > If going with this, we should add an extra patch to do a similar thing on the read side...
 > 
 > - Nuno Sá
->",duplicate,
+>",duplicate,no
 20220603161914.2191e4f1@jic23-huawei,iio,5,"['20220514130432.304674-1-u.kleine-koenig@pengutronix.de'
  '20220514143812.1d2325e6@jic23-huawei'
  '20220522195842.edba7snapyefug76@pengutronix.de'
@@ -149834,7 +149834,7 @@ Jonathan
 > > Best regards
 > > Uwe
 > >   
->",duplicated,
+>",duplicated,no
 20231110-veml6075-v3-1-6ee46775b422@gmail.com,iio,5,"['20231110-veml6075-v3-0-6ee46775b422@gmail.com'
  '20231110-veml6075-v3-1-6ee46775b422@gmail.com'
  '20231110-veml6075-v3-2-6ee46775b422@gmail.com'
@@ -150687,7 +150687,7 @@ to see if it can find anything we missed.
 
 Thanks,
 
-Jonathan",redundant,
+Jonathan",redundant,no
 20240223174551.00007411@Huawei.com,iio,4,"['20240222222335.work.759-kees@kernel.org'
  '20240223170918.00006b16@Huawei.com' '202402230912.50332AF1@keescook'
  '20240223174551.00007411@Huawei.com']",2024-02-22 22:23:39,[PATCH] [RFC] iio: pressure: dlhl60d: Check mask_width for IRQs,Kees Cook <keescook@chromium.org>,"['Kees Cook <keescook@chromium.org>'
@@ -151175,7 +151175,7 @@ I might have a play and see how useful this would be.
 > Thanks for looking at this!
 > 
 > -Kees
->",repeated,
+>",repeated,yes
 20241028142000.1058149-2-aren@peacevolution.org,iio,16,"['20241028142000.1058149-1-aren@peacevolution.org'
  '20241028142000.1058149-2-aren@peacevolution.org'
  '20241028142000.1058149-3-aren@peacevolution.org'
@@ -152297,7 +152297,7 @@ On 2024-10-28 15:38, Andy Shevchenko wrote:
 Perhaps the best and also easiest solution would be to provide an
 Originally-by tag for Ondrej, because that's what it is.  The patch
 was written originally by Ondrej, but you've changed many parts of
-the patch while upstreaming it.",duplicate,
+the patch while upstreaming it.",duplicate,yes
 2025071918-depth-delighted-ff0d@gregkh,iio,2,"['20250718075616.5c79192f@jic23-huawei'
  '2025071918-depth-delighted-ff0d@gregkh']",2025-07-18 06:56:16,"[PULL] IIO: New driver support, features etc for 6.17",Jonathan Cameron <jic23@kernel.org>,,"================================================
 MESSAGE 1 of 2
@@ -152978,7 +152978,7 @@ On Fri, Jul 18, 2025 at 07:56:16AM +0100, Jonathan Cameron wrote:
 
 Pulled and pushed out, thanks.
 
-greg k-h","duplicate,duplication",
+greg k-h","duplicate,duplication",no
 20260215162351.79f40b32@jic23-huawei,iio,10,"['bug-221077-217253@https.bugzilla.kernel.org/'
  '20260214192404.1240b351@jic23-huawei'
  'bug-221077-217253-qbnh7eccIv@https.bugzilla.kernel.org/'
@@ -154210,7 +154210,7 @@ Lixu
 You may reply to this email to add a comment.
 
 You are receiving this mail because:
-You are watching the assignee of the bug.",repeated,
+You are watching the assignee of the bug.",repeated,no
 20260325150159.00004c3e@huawei.com,iio,19,"['20260325063254.18062-1-email@sirat.me'
  '20260325063254.18062-2-email@sirat.me'
  '20260325063254.18062-3-email@sirat.me'
@@ -156788,7 +156788,7 @@ Jonathan
 > > > +						      NULL);
 > > > +		if (ret)
 > > > +			return ret;  
->","duplicate,redundant",
+>","duplicate,redundant",no
 20260511-trifocals-embezzle-f30d5c740088@spud,iio,25,"['20260510194947.31997-1-piyushpatle228@gmail.com'
  '20260510194947.31997-2-piyushpatle228@gmail.com'
  '20260510194947.31997-3-piyushpatle228@gmail.com'
@@ -158785,7 +158785,7 @@ On Mon, May 11, 2026 at 01:19:26AM +0530, Piyush Patle wrote:
 > Reviewed-by: Andy Shevchenko <andriy.shevchenko@intel.com>
 
 Acked-by: Conor Dooley <conor.dooley@microchip.com>
-pw-bot: not-applicable",duplicating,
+pw-bot: not-applicable",duplicating,yes
 20260512033317.1602537-2-eleanor.lin@realtek.com,iio,15,"['20260512033317.1602537-1-eleanor.lin@realtek.com'
  '20260512033317.1602537-2-eleanor.lin@realtek.com'
  '20260512033317.1602537-3-eleanor.lin@realtek.com'
@@ -161641,7 +161641,7 @@ hardware, and we should just implement a standard GPIO driver directly using gpi
 Which approach would you prefer upstream?
 
 Best regards,
-Yu-Chun","duplicates,duplication,redundant",
+Yu-Chun","duplicates,duplication,redundant",no
 20260524192812.1196549-2-sanjayembedded@gmail.com,iio,10,"['20260524192812.1196549-1-sanjayembedded@gmail.com'
  '20260524192812.1196549-2-sanjayembedded@gmail.com'
  '20260524192812.1196549-3-sanjayembedded@gmail.com'
@@ -162853,7 +162853,7 @@ index eff206d7b812..85b06af67611 100644
  
  static const struct platform_device_id hid_prox_ids[] = {
 -- 
-2.34.1","duplicate,repeated",
+2.34.1","duplicate,repeated",yes
 24bdf87c-1246-46a3-a84a-c1392a82a6bd@kernel.org,iio,21,"['20260319190738.151614-1-email@sirat.me'
  '20260319190738.151614-2-email@sirat.me'
  '20260319190738.151614-3-email@sirat.me'
@@ -165966,7 +165966,7 @@ I was thinking about the drain logic. But looks like it is not needed.
 Dropping predisable too.
 Thanks for the insight!
 
-Sirat",duplicate,
+Sirat",duplicate,no
 407eba73a9776c902e69347d65711a144014c723.1679605919.git.william.gray@linaro.org,iio,13,"['cover.1679605919.git.william.gray@linaro.org'
  '407eba73a9776c902e69347d65711a144014c723.1679605919.git.william.gray@linaro.org'
  'c5adb13b4b0887beb1df40b34d2ef03d63a2860d.1679605919.git.william.gray@linaro.org'
@@ -168073,7 +168073,7 @@ appear?
 
 William Breathitt Gray
 
-[0] https://lore.kernel.org/all/202303241128.WBKc4LIy-lkp@intel.com/",duplicates,
+[0] https://lore.kernel.org/all/202303241128.WBKc4LIy-lkp@intel.com/",duplicates,no
 40a21519-0755-74f6-da11-da9d0af4aab6@geanix.com,iio,2,"['0aa5599d-cd74-ea39-8acd-202582e76e15@infradead.org'
  '40a21519-0755-74f6-da11-da9d0af4aab6@geanix.com']",2021-05-20 22:53:07,Re: mmotm 2021-05-19-23-58 uploaded (drivers/iio/accel/fxls8962af-core.o),Randy Dunlap <rdunlap@infradead.org>,,"================================================
 MESSAGE 1 of 2
@@ -168189,7 +168189,7 @@ Thanks :)
 It's fixed in:
 https://lore.kernel.org/linux-iio/a3329058-2b2d-415a-5d2a-0bdf2f97d23d@geanix.com/T/#t
 
-/Sean",duplicated,
+/Sean",duplicated,no
 4FD38E46.8020205@kernel.org,iio,11,"['1338406594-14550-1-git-send-email-jic23@kernel.org'
  '1338406594-14550-2-git-send-email-jic23@kernel.org'
  '1338406594-14550-3-git-send-email-jic23@kernel.org'
@@ -170879,7 +170879,7 @@ Indeed.  I'm clearly going mad ;)
 > --
 > To unsubscribe from this list: send the line ""unsubscribe linux-iio"" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html",duplicated,
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html",duplicated,yes
 53BACFB7.8040300@linux.intel.com,iio,11,"['1404097119-19922-1-git-send-email-reyad.attiyat@gmail.com'
  '1404097119-19922-2-git-send-email-reyad.attiyat@gmail.com'
  '1404097119-19922-3-git-send-email-reyad.attiyat@gmail.com'
@@ -173306,7 +173306,7 @@ On Mon, Jul 7, 2014 at 2:58 PM, Srinivas Pandruvada
 >>>
 >>
 >>
->",duplicate,
+>",duplicate,no
 5442190.6fTUFtlzNn@diego,iio,4,"['20210806105524.231838-1-xxm@rock-chips.com' '5442190.6fTUFtlzNn@diego'
  'CAHp75VcSMx3CPt9cgzdZ63xRrowm1H+Jpbhd5W74oeVBUY34WQ@mail.gmail.com'
  '20210808174826.7b82b7bf@jic23-huawei']",2021-08-06 10:55:24,[PATCH v2] iio: adc: rockchip_saradc: add voltage notifier so get referenced voltage once at probe,Simon Xue <xxm@rock-chips.com>,"['linux-rockchip@lists.infradead.org' 'devicetree@vger.kernel.org'
@@ -173725,7 +173725,7 @@ Andy suggested a cleaner form of this (which I also prefer) is
 > +
 >  	return devm_iio_device_register(&pdev->dev, indio_dev);
 >  }
->",repeated,
+>",repeated,no
 662bly5emi76xwhlcetznipwsa3a5ncyne6zvpffqyxp5pvczq@23udi3emw6sp,iio,26,"['20260417-ad9910-iio-driver-v3-0-29b93712a228@analog.com'
  '20260417-ad9910-iio-driver-v3-1-29b93712a228@analog.com'
  '20260417-ad9910-iio-driver-v3-2-29b93712a228@analog.com'
@@ -183216,7 +183216,7 @@ that aren't intuitive such as scaling anything by 0.
 > > > > may not be applicable between discrete values that may be taken away from that
 > > > > minimum granularity base value.  If that occurs the driver will round to the
 > > > > nearest possible value.    
->",repeated,
+>",repeated,no
 7b66fe34c8d04b61d9ac3db38e3573fbfbdaf71e.1601170670.git.vilhelm.gray@gmail.com,iio,29,"['cover.1601170670.git.vilhelm.gray@gmail.com'
  '7b66fe34c8d04b61d9ac3db38e3573fbfbdaf71e.1601170670.git.vilhelm.gray@gmail.com'
  '00be1fccc672c5207f3b04fe4cc09c29e22641f4.1601170670.git.vilhelm.gray@gmail.com'
@@ -189139,7 +189139,7 @@ On Sun, Oct 25, 2020 at 11:34:43AM -0500, David Lechner wrote:
 All right, I'll keep the locks in the code for now to keep it safe in
 case we have multiple threads reading.
 
-William Breathitt Gray","duplicate,redundant",
+William Breathitt Gray","duplicate,redundant",no
 CABf4As9qx8QyRQoPiBoXnT1tXMgU6Cf==raPksQYm3xU1J1RNw@mail.gmail.com,iio,5,"['20180611233814.18597-1-karim.eshapa@gmail.com'
  '48143872d69d231273bd2c8ed835cbf0046a263d.camel@perches.com'
  'CABf4As9qx8QyRQoPiBoXnT1tXMgU6Cf==raPksQYm3xU1J1RNw@mail.gmail.com'
@@ -189463,7 +189463,7 @@ Jonathan
 > +		*val = sign_extend32(val16, 9);
 >  		return IIO_VAL_INT;
 >  	}
->  	return -EINVAL;",duplication,
+>  	return -EINVAL;",duplication,yes
 CACRpkdYMNGijuCYGuQGJXX09cv3VxnjGMtohw-r_zEyyUh8Zog@mail.gmail.com,iio,4,"['1472198348-31201-1-git-send-email-linus.walleij@linaro.org'
  '1472198348-31201-2-git-send-email-linus.walleij@linaro.org'
  'alpine.DEB.2.02.1608261007030.3645@pmeerw.net'
@@ -193269,7 +193269,7 @@ OK
 OK fixed everywhere.
 
 Yours,
-Linus Walleij",duplicate,
+Linus Walleij",duplicate,no
 CAFBinCBwbcYRVfhyPN=2ZcNhteLu9Eu43MxhTFgS3dsmrtqEVA@mail.gmail.com,iio,4,"['2c7996a6-9c55-4cee-75a1-01be8732c42a@gmail.com'
  'CAFBinCC_AYS0ogzdpGVRoeS2ETjcD6fdmzq3kmX_u=9heBu6oA@mail.gmail.com'
  '85c07462-c175-faf8-8dae-403a6291331e@gmail.com'
@@ -193549,7 +193549,7 @@ On Fri, Jan 13, 2017 at 9:14 PM, Heiner Kallweit <hkallweit1@gmail.com> wrote:
 > I have some features like interrupt mode and calibration which are not
 > yet supported in your driver but they can be easily migrated and added
 > later.
-indeed, that'll leave some fun for you as well :-)",duplicating,
+indeed, that'll leave some fun for you as well :-)",duplicating,yes
 CAHp75Vd+D1RQC-pVQjsgkSMdmV=GXcRGkbD5hHgo-9+Tyy9Uzw@mail.gmail.com,iio,22,"['20250802-tlv493d-sensor-v6_16-rc5-v2-0-e867df86ad93@gmail.com'
  '20250802-tlv493d-sensor-v6_16-rc5-v2-1-e867df86ad93@gmail.com'
  '20250802-tlv493d-sensor-v6_16-rc5-v2-2-e867df86ad93@gmail.com'
@@ -196479,7 +196479,7 @@ therefore default is covering nothing and can be dropped.
 That then defends against later adding a new enum value and failing
 to cover it as the compiler then complains a case is not handled.
 
-Jonathan","duplicated,repeated",
+Jonathan","duplicated,repeated",no
 CAKqfh0E8rSUGx1d3WEKhTLCteoQ9Bdctc+R8yVaw6_t_156zhA@mail.gmail.com,iio,3,"['20260505124706.9862-1-m32285159@gmail.com'
  'afnr4TjC3DVxkVJt@ashevche-desk.local'
  'CAKqfh0E8rSUGx1d3WEKhTLCteoQ9Bdctc+R8yVaw6_t_156zhA@mail.gmail.com']",2026-05-05 12:47:06,[PATCH v3] iio: imu: kmx61: Use guard(mutex)() family over manual locking,Maxwell Doose <m32285159@gmail.com>,"['David Lechner <dlechner@baylibre.com>' 'Nuno Sá <nuno.sa@analog.com>'
@@ -196983,7 +196983,7 @@ of getting it out this morning. I can make a v4 but I currently don't
 have time unfortunately, so it'll have to wait.
 
 best regards,
-max",redundant,
+max",redundant,no
 CALHCpMhhUnkko7COzg6W9AqLUfwzKA+EAmcZ+Vwmy_7KB=UdWg@mail.gmail.com,iio,17,"['20230524082744.3215427-1-bigunclemax@gmail.com'
  '20230524082744.3215427-2-bigunclemax@gmail.com'
  '20230524082744.3215427-3-bigunclemax@gmail.com'
@@ -198982,7 +198982,7 @@ Jonathan
 >  6 files changed, 360 insertions(+)
 >  create mode 100644 Documentation/devicetree/bindings/iio/adc/allwinner,sun20i-d1-gpadc.yaml
 >  create mode 100644 drivers/iio/adc/sun20i-gpadc-iio.c
->",duplicating,
+>",duplicating,yes
 CAPb7_ms36YnT2VVkhngCEonwihtgHSMWO0uQQxsr58rUCgRPLA@mail.gmail.com,iio,9,"['1374059564-6872-1-git-send-email-oleksandr.kozaruk@ti.com'
  '1374059564-6872-2-git-send-email-oleksandr.kozaruk@ti.com'
  '1374059564-6872-3-git-send-email-oleksandr.kozaruk@ti.com'
@@ -201237,7 +201237,7 @@ Though it is not without special case for channels 7, 18:
 
 -- 
 Regards,
-Oleksandr Kozaruk",copy paste,
+Oleksandr Kozaruk",copy paste,yes
 Y4D9Dr7DF1zPfRWF@kroah.com,iio,2,['20221123200802.2ef37104@jic23-huawei' 'Y4D9Dr7DF1zPfRWF@kroah.com'],2022-11-23 19:55:28,"[PULL V2] IIO: First set of new device support, features and cleanup  for 6.2",Jonathan Cameron <jic23@kernel.org>,,"================================================
 MESSAGE 1 of 2
 ================================================
@@ -201791,7 +201791,7 @@ On Wed, Nov 23, 2022 at 08:08:02PM +0000, Jonathan Cameron wrote:
 
 That worked, thanks for fixing it up.  pulled and pushed out now.
 
-greg k-h",duplicates,
+greg k-h",duplicates,no
 YnFbZaARRe13BqEU@sirena.org.uk,iio,7,"['20220503162738.3827041-1-robh@kernel.org'
  'YnFbZaARRe13BqEU@sirena.org.uk'
  '20220503181723.wczerdgfrfoxj5xf@pengutronix.de'
@@ -203750,7 +203750,7 @@ On Tue, 03 May 2022 11:27:38 -0500, Rob Herring wrote:
 >  13 files changed, 5 insertions(+), 68 deletions(-)
 > 
 
-Applied, thanks!",redundant,
+Applied, thanks!",redundant,no
 ZO3wMlze3HRkkoMY@smile.fi.intel.com,iio,9,"['20230815154027.12468-1-andriy.shevchenko@linux.intel.com'
  '20230815154027.12468-2-andriy.shevchenko@linux.intel.com'
  '20230815154027.12468-3-andriy.shevchenko@linux.intel.com'
@@ -204350,7 +204350,7 @@ I'll cook a new series sooner than later. Thank you for the review!
 
 -- 
 With Best Regards,
-Andy Shevchenko",redundant,
+Andy Shevchenko",redundant,no
 aLbqJfGiHWNhXfgx@smile.fi.intel.com,iio,6,"['20250901184238.34335-1-akshayaj.lkd@gmail.com'
  'aLbptFRh9ZvAVfLn@smile.fi.intel.com'
  'aLbqJfGiHWNhXfgx@smile.fi.intel.com'
@@ -205179,7 +205179,7 @@ Ok, made the changes.
 Sent a v5. Kindly review.
 
 Thanks,
-Akshay","redundant,repeated",
+Akshay","redundant,repeated",no
 ca0f85f9-3908-4c7d-add3-905e9e6f634c@kernel.org,iio,13,"['20250620045456.1151-1-liquancin.mereenamathai@in.bosch.com'
  '20250620045456.1151-2-liquancin.mereenamathai@in.bosch.com'
  '20250620045456.1151-3-liquancin.mereenamathai@in.bosch.com'
@@ -214804,7 +214804,7 @@ Vasilis
 > With Best Regards,
 > Andy Shevchenko
 > 
->","duplicate,redundant",
+>","duplicate,redundant",yes
 e9a9902f75d4232cbe4930b49d732fb6@mail.gmail.com,iio,3,"['1359401903-15664-1-git-send-email-ggao@invensense.com'
  '510BA44F.5040803@metafoo.de'
  'e9a9902f75d4232cbe4930b49d732fb6@mail.gmail.com']",2013-01-28 19:38:23,[PATCH] [V8] Invensense MPU6050 Device Driver.,Ge GAO <ggao@invensense.com>,['Ge Gao <ggao@invensense.com>'],"================================================
@@ -217431,7 +217431,7 @@ The 'return 0' makes no sense.
 What about the IRQ, I think it needs to be freed here.
 
 > +	iio_trigger_free(st->trig);
-> +}",redundant,
+> +}",redundant,no
 f9211cc1-7392-4b5e-83fe-e971b274f348@gmail.com,iio,8,"['20240625220328.558809-1-muditsharma.info@gmail.com'
  '20240625220328.558809-2-muditsharma.info@gmail.com'
  '20240628203701.507c477c@jic23-huawei'
@@ -219966,7 +219966,7 @@ I will look through the regmap API once again and update similar cases.
 > 
 
 Best regards,
-Mudit Sharma",redundant,
+Mudit Sharma",redundant,no
 001c01cb74f2$d3dd8990$66f8800a@maildom.okisemi.com,linux-i2c,2,"['20101026111322.738b0b14@endymion.delvare'
  '001c01cb74f2$d3dd8990$66f8800a@maildom.okisemi.com']",2010-10-26 09:13:22,Re: [PATCH v3] Topcliff: Update PCH_I2C driver to 2.6.36,05bfce51753042cecf3342f5bbef7527650d243e <f282be6b084cb722011a0fe4ab8074889b2c3538>,"['4db3ed753051efe400b66f8f2e79a00e2b599784 <3ba670a9247c7b00bc233bfe688a3995b7e5c119>'
  'd8d41664c872f27b6677e1699b7f9cf2a556f74e <84e001bd349441ccae3d318fae9422f9a77e72ca>'
@@ -220072,7 +220072,7 @@ We have already got the following. Isn't  this enough ?
 Though I haven't heard like the requirement,
 if Intel's signature is mandatory, I will request to Intel.
 
-Thanks, Tomoya(OKI SEMICONDUCTOR CO., LTD.)",redundant,
+Thanks, Tomoya(OKI SEMICONDUCTOR CO., LTD.)",redundant,no
 0605496b-d4f1-c87c-5b45-699c8c3dcaec@redhat.com,linux-i2c,2,"['20200503132339.17718-1-aishwaryarj100@gmail.com'
  '0605496b-d4f1-c87c-5b45-699c8c3dcaec@redhat.com']",2020-05-03 13:23:38,[PATCH] i2c: cht-wc: Remove superfluous error message in cht_wc_i2c_adap_i2c_probe(),9b0e011a5e53374db86d87739b8912b201a63d63 <39dd6f032a281657eec19e3a01ce230fc29324d1>,['39dd6f032a281657eec19e3a01ce230fc29324d1'],"================================================
 MESSAGE 1 of 2
@@ -220169,7 +220169,7 @@ Hans
 >   
 >   	adap = devm_kzalloc(&pdev->dev, sizeof(*adap), GFP_KERNEL);
 >   	if (!adap)
->",redundant,
+>",redundant,no
 1418172891-19441-4-git-send-email-rjui@broadcom.com,linux-i2c,33,"['1418172891-19441-1-git-send-email-rjui@broadcom.com'
  '1418172891-19441-2-git-send-email-rjui@broadcom.com'
  '1418172891-19441-3-git-send-email-rjui@broadcom.com'
@@ -226427,7 +226427,7 @@ index 0000000..81f982c
 +		};
 +	};
 -- 
-1.7.9.5",redundant,
+1.7.9.5",redundant,no
 1422029798.2908.1.camel@spandruv-hsb-test,linux-i2c,2,['1422029798.2908.1.camel@spandruv-hsb-test' '54C7FA98.9060700@kernel.org'],2015-01-23 16:16:38,Re: [PATCH v2] iio: imu: inv_mpu6050: Create mux clients for ACPI,b481e4f49bc501289f73b5349ef924cc83638175 <dcdea0f144dc0c8a90559944ca8103deb4c53679>,"['17d3502ac4e4a0acb03836093e666f39f5281152 <48b12b144441c449725854547ccdf63176007229>'
  'd280ddea89cb83e1ab8db7f9b1c0815d14452654 <0cd19760b851dddeef210fa70d03b938a88bbac7>'
  'd4d57bb22f0ca65f040836967058636f5f93ee2a'
@@ -227093,7 +227093,7 @@ Bonus blank line to use here.
 >  int inv_mpu6050_set_power_itg(struct inv_mpu6050_state *st, bool power_on);
 > +int inv_mpu_acpi_create_mux_client(struct inv_mpu6050_state *st);
 > +void inv_mpu_acpi_delete_mux_client(struct inv_mpu6050_state *st);
->",duplicate,
+>",duplicate,no
 1437985615-30791-1-git-send-email-b38611@freescale.com,linux-i2c,1,['1437985615-30791-1-git-send-email-b38611@freescale.com'],2015-07-27 08:26:55,[PATCH] i2c: imx: change dev_info to dev_dbg to reduce dummy log,d553e74714e79b4e82645998eec0b36c8e20d02c <58d5a69d9f096f786a9f3e350163a7155fc5908c>,"['98eecb5d004b8cf1e5e2c0b61735e11b900139fb'
  '62e218c767ff4f36351d5eb5c2eceb6c41e1d415'
  '58d5a69d9f096f786a9f3e350163a7155fc5908c']","================================================
@@ -227146,7 +227146,7 @@ index 785aa67..28fba91 100644
  
  static void i2c_imx_dma_callback(void *arg)
 -- 
-1.9.1",redundant,
+1.9.1",redundant,no
 1463039586-8134-4-git-send-email-david.wu@rock-chips.com,linux-i2c,6,"['1463039586-8134-1-git-send-email-david.wu@rock-chips.com'
  '1463039586-8134-4-git-send-email-david.wu@rock-chips.com'
  '1463039586-8134-5-git-send-email-david.wu@rock-chips.com'
@@ -227505,7 +227505,7 @@ to make sure nothing currently working broke - and everything is running
 still fine.
 
 
-Heiko",redundant,
+Heiko",redundant,no
 1502140260-13789-2-git-send-email-stephend@adiengineering.com,linux-i2c,11,"['1502140260-13789-1-git-send-email-stephend@adiengineering.com'
  '1502140260-13789-2-git-send-email-stephend@adiengineering.com'
  '1502140260-13789-3-git-send-email-stephend@adiengineering.com'
@@ -227942,7 +227942,7 @@ Subject: Re: [PATCH 0/2] i2c: ismt: Fix length handling for SMBus block reads
 > merged in, can they be tagged for other Linux stable kernel releases 
 > to pick up these changes?
 
-Okay, since I haven't pushed out yet, I can re-apply the bugfix to for-current and add the stable tag to it.",duplicate,
+Okay, since I haven't pushed out yet, I can re-apply the bugfix to for-current and add the stable tag to it.",duplicate,no
 1511237098-33250-3-git-send-email-preid@electromag.com.au,linux-i2c,4,"['1511237098-33250-1-git-send-email-preid@electromag.com.au'
  '1511237098-33250-2-git-send-email-preid@electromag.com.au'
  '1511237098-33250-3-git-send-email-preid@electromag.com.au'
@@ -228872,7 +228872,7 @@ index c11a50e..0000000
 -MODULE_DESCRIPTION(""SMBus protocol extensions support"");
 -MODULE_LICENSE(""GPL"");
 -- 
-1.8.3.1",duplicate,
+1.8.3.1",duplicate,no
 1560143324-21754-2-git-send-email-bbiswas@nvidia.com,linux-i2c,8,"['1560143324-21754-1-git-send-email-bbiswas@nvidia.com'
  '1560143324-21754-2-git-send-email-bbiswas@nvidia.com'
  '1560143324-21754-3-git-send-email-bbiswas@nvidia.com'
@@ -229535,7 +229535,7 @@ On 6/10/19 3:30 AM, Dmitry Osipenko wrote:
 Agree. I shall share the updated patch.
 
 -Thanks,
-  Bitan",redundant,
+  Bitan",redundant,no
 1663836294-5698-2-git-send-email-manikanta.guntupalli@xilinx.com,linux-i2c,11,"['1663836294-5698-1-git-send-email-manikanta.guntupalli@xilinx.com'
  '1663836294-5698-2-git-send-email-manikanta.guntupalli@xilinx.com'
  '1663836294-5698-3-git-send-email-manikanta.guntupalli@xilinx.com'
@@ -231033,7 +231033,7 @@ I was reviewing this code internally that's why
 Acked-by: eee28295b525b106894b8de8c4b97328b092fb3b <146d0e17c752ce2a899b7cda0456dc360248463b>
 
 Thanks,
-Michal",duplicate,
+Michal",duplicate,yes
 200801041548.54825.david-b@pacbell.net,linux-i2c,1,['200801041548.54825.david-b@pacbell.net'],2008-01-04 23:48:54,Re: [patch 2.6.24-rc5-git] add i2c_new_dummy() utility,b0b6cb291be0130c9cb9cbf4380008288b65a1a8 <6257f58cd5051bcedc5addf59b366f3ac4a92f7f>,['df45e49463a8b7594ea1a95bbc7fad13270d9769'],"================================================
 MESSAGE 1 of 1
 ================================================
@@ -231095,7 +231095,7 @@ before removing that list (and its lock, ignored by most of
 those drivers if not all of them).  Which should simplify testing
 such changes by a bit.
 
-- Dave","duplicate,duplication,redundant",
+- Dave","duplicate,duplication,redundant",yes
 20080409232834.GG1197@trinity.fluff.org,linux-i2c,3,"['ftf8ud$pl6$1@ger.gmane.org' '20080409232834.GG1197@trinity.fluff.org'
  'fu228f$9uk$1@ger.gmane.org']",2008-04-08 08:01:25,[PATCH V3] I2C driver for IMX,54eeb937cc6293e04b590d65f846db4ea97457e3 <a4563aa2af8fecbb6991c35bc4ee8435ae2c3a11>,['57c6052d88958b44012c5638f43672a26f52da5c'],"================================================
 MESSAGE 1 of 3
@@ -231902,7 +231902,7 @@ Darius.
 -------------------------------------------------------------------
 List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
 FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php",duplicated,
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php",duplicated,no
 20080516123549.34b10a15@hyperion.delvare,linux-i2c,1,['20080516123549.34b10a15@hyperion.delvare'],2008-05-16 10:35:49,[PATCH] i2c-piix4: Various cleanups and minor fixes,05bfce51753042cecf3342f5bbef7527650d243e <f282be6b084cb722011a0fe4ab8074889b2c3538>,,"================================================
 MESSAGE 1 of 1
 ================================================
@@ -232077,7 +232077,7 @@ Jean Delvare
 _______________________________________________
 i2c mailing list
 i2c-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org
-http://lists.lm-sensors.org/mailman/listinfo/i2c",duplicated,
+http://lists.lm-sensors.org/mailman/listinfo/i2c",duplicated,yes
 20110324164137.GA22838@kroah.com,linux-i2c,1,['20110324164137.GA22838@kroah.com'],2011-03-24 16:41:37,Re: [PATCH] i2c/busses: Driver for Devantech USB-ISS I2C adapter,493591c7db335387ce9b13713c793824a7324650 <64140c65eb335ceea4e8d42ca32d42628e7cdebb>,"['93305e073e68c5d3de806acf37608adf606f7c3a <98bedb4f05625e16c136d7baee072e1d79fbb9fd>'
  '45825ffb07d36b0045c15dbcc48d176d1b8cfdbb <c99b03eb0536b0796eff84f5b797a4ed61aa90de>'
  '05bfce51753042cecf3342f5bbef7527650d243e <f282be6b084cb722011a0fe4ab8074889b2c3538>'
@@ -232128,7 +232128,7 @@ problems with that.
 
 thanks,
 
-greg k-h",duplicates,
+greg k-h",duplicates,yes
 20130619085127.GB3405@S2101-09.ap.freescale.net,linux-i2c,3,"['20130619085127.GB3405@S2101-09.ap.freescale.net'
  '20130620080406.GD14308@pengutronix.de'
  '20130801203301.GB5117@pengutronix.de']",2013-06-19 08:51:30,Re: [PATCH v2 2/2] i2c: imx: Add Vybrid VF610 I2C controller support,75686d7555ac4d20deabb5e35e19973a28b223e2 <902722a2d811842737c207cffb8d1ef9269e0445>,"['17d3502ac4e4a0acb03836093e666f39f5281152 <48b12b144441c449725854547ccdf63176007229>'
@@ -232365,7 +232365,7 @@ Sascha
 Pengutronix e.K.                           |                             |
 Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |",duplicated,
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |",duplicated,no
 20130704203209.GA4196@katana,linux-i2c,1,['20130704203209.GA4196@katana'],2013-07-04 20:32:40,[PULL REQUEST] i2c for 3.11,d8d41664c872f27b6677e1699b7f9cf2a556f74e <7022f6c6a7407e1679e05e65972b7a82f2cd9e41>,"['05bfce51753042cecf3342f5bbef7527650d243e <f282be6b084cb722011a0fe4ab8074889b2c3538>'
  '98eecb5d004b8cf1e5e2c0b61735e11b900139fb'
  '9bf6a5bf17701eef98badd6bb3beab6096fe830f']","================================================
@@ -232524,7 +232524,7 @@ Wolfram Sang (2):
  create mode 100644 Documentation/devicetree/bindings/i2c/i2c-vt8500.txt
  delete mode 100644 drivers/i2c/busses/i2c-intel-mid.c
  create mode 100644 drivers/i2c/busses/i2c-kempld.c
- create mode 100644 drivers/i2c/busses/i2c-wmt.c",duplicate,
+ create mode 100644 drivers/i2c/busses/i2c-wmt.c",duplicate,no
 20130918104335.GA8256@ulmo,linux-i2c,2,"['902E09E6452B0E43903E4F2D568737AB363BD3@DNCE04.ent.ti.com'
  '20130918104335.GA8256@ulmo']",2013-09-17 13:04:06,RE: [PATCH 7/9] of/platform: Resolve interrupt references at probe time,e5a97f4521a35068a469c98e07ea2f6a29a4dfb2 <24d4f943c9064398d0f2cca77d0385a63c5b5fce>,"['9bf6a5bf17701eef98badd6bb3beab6096fe830f <9bf6a5bf17701eef98badd6bb3beab6096fe830f>'
  'd2ca93095bfedf25578ff27dd838403be30ffa75 <d2ca93095bfedf25578ff27dd838403be30ffa75>'
@@ -232802,7 +232802,7 @@ corresponds to num_reg + num_irq and skip in that case. That and...
 ... updating pdev->num_resources after this point should cover all
 cases. Do you see any other potential problems?
 
-Thierry",duplicate,
+Thierry",duplicate,yes
 20130927165633.GE3094@katana,linux-i2c,1,['20130927165633.GE3094@katana'],2013-09-27 16:56:33,Re: [PATCH 2/2] i2c: bfin-twi: Remove casting the return value which is a void pointer,d8d41664c872f27b6677e1699b7f9cf2a556f74e <7022f6c6a7407e1679e05e65972b7a82f2cd9e41>,"['6ad5c42e79924aabd5fd49a6e9d7dd1d3caffae3 <9d7ffb18453f4d59109fa7c513a20dae86e2a9f6>'
  '98eecb5d004b8cf1e5e2c0b61735e11b900139fb']","================================================
 MESSAGE 1 of 1
@@ -232822,7 +232822,7 @@ On Mon, Sep 09, 2013 at 02:32:25PM +0900, Jingoo Han wrote:
 > 
 > Signed-off-by: f1d65ae76c4b0cbdea918bd8cfc89bb84ce606d6 <6db0719f01f5283c49a7106cfbee6bd59d885856>
 
-Applied to for-next, thanks!",redundant,
+Applied to for-next, thanks!",redundant,no
 20131126124803.GE7427@katana,linux-i2c,1,['20131126124803.GE7427@katana'],2013-11-26 12:48:03,Re: [PATCH -next] i2c: bcm-kona: remove duplicated include from i2c-bcm-kona.c,d8d41664c872f27b6677e1699b7f9cf2a556f74e <7022f6c6a7407e1679e05e65972b7a82f2cd9e41>,"['d6423c8bd5aafcddb3eb64c62bba1029bf3b5925 <9d921c80a407e83c341803293cf653bbc0df7c24>'
  '0b4027355ab3b836a6f0c71e946fc2404d2c288c'
  'e276a6e67762a9cf9b07891dafeb1932a294cacb <600639db4692fb1518060a5502597747cf3c0740>'
@@ -232858,7 +232858,7 @@ Email body:
 > Reviewed-by: 2bac136697d136fe604a1a88aba25a751c390c37 <a231184a61c7ee2ddbbe72ca6f29e85e86ec62ab>
 
 IMO such trivial patches are rather acks than reviews. Mileages do vary,
-I know.",duplicated,
+I know.",duplicated,no
 20150512211301.GF20725@dtor-ws,linux-i2c,12,"['1430178954-11138-4-git-send-email-dbaryshkov@gmail.com'
  '1430178954-11138-5-git-send-email-dbaryshkov@gmail.com'
  '1430178954-11138-7-git-send-email-dbaryshkov@gmail.com'
@@ -235070,7 +235070,7 @@ It is up to subsystems, __maybe_unused provides better compile coverage.
 Thanks.
 
 -- 
-Dmitry",duplicates,
+Dmitry",duplicates,no
 20160212214436.GC1529@katana,linux-i2c,8,"['1455311443-30590-1-git-send-email-ray.jui@broadcom.com'
  '1455311443-30590-2-git-send-email-ray.jui@broadcom.com'
  '1455311443-30590-3-git-send-email-ray.jui@broadcom.com'
@@ -235634,7 +235634,7 @@ My bad, I usually do but forgot to run it this time!
 
 Thanks!
 
-Ray",redundant,
+Ray",redundant,no
 20171005112337.ucu6x2y5a4gjntds@ninjato,linux-i2c,5,"['20170921073743.3052-1-ricardo.ribalda@gmail.com'
  '20171005112337.ucu6x2y5a4gjntds@ninjato'
  '20171005162217.025f9339@endymion'
@@ -236893,7 +236893,7 @@ implement the one you prefer.
 Thanks,
 -- 
 Jean Delvare
-SUSE L3 Support",duplicating,
+SUSE L3 Support",duplicating,yes
 20180324121718.thd5zwc5kafy3d2j@ninjato,linux-i2c,28,"['1520860502-14886-1-git-send-email-absahu@codeaurora.org'
  '1520860502-14886-2-git-send-email-absahu@codeaurora.org'
  '1520860502-14886-3-git-send-email-absahu@codeaurora.org'
@@ -242438,7 +242438,7 @@ On 2018-03-24 17:52, Wolfram Sang wrote:
   reviewing/testing the patches.
 
   Regards,
-  Abhishek",redundant,
+  Abhishek",redundant,no
 20190505125440.GA25640@kroah.com,linux-i2c,3,"['7f989564-e994-5be6-02da-2838639efe59@linux.intel.com'
  '20190502153251.GG81578@ediswmail.ad.cirrus.com'
  '20190505125440.GA25640@kroah.com']",2019-05-02 12:32:24,Re: [PATCH] i2c: Prevent runtime suspend of adapter when Host Notify is required,eaaff0258d1955a526d6a0c42dd00593f62b129e <2938f3b49d4d6efc7c4d838c89c72cefaee8309a>,"['d8d41664c872f27b6677e1699b7f9cf2a556f74e <fb171261fd059efa9b0e80c5d408cece4f0e29a0>'
@@ -242624,7 +242624,7 @@ I've queued all of these up now, as they make sense to have for 4.19.y.
 
 thanks,
 
-greg k-h",redundant,
+greg k-h",redundant,no
 20200414165625.GB3708@kunai,linux-i2c,7,"['20200414142650.29359-1-zhengdejin5@gmail.com'
  '20200414143837.GV34613@smile.fi.intel.com'
  '20200414155047.GA10848@nuc8i5'
@@ -242924,7 +242924,7 @@ Email body:
 Kind of. Those are set to ""odd fixes"" in MAINTAINERS.
 
 Having per-driver maintainers worked quite good so far, so I keep asking
-whenever I see potential candidates.",duplicate,
+whenever I see potential candidates.",duplicate,no
 20200702102237.GS3703480@smile.fi.intel.com,linux-i2c,2,"['20200702101028.2088666-1-ribalda@kernel.org'
  '20200702102237.GS3703480@smile.fi.intel.com']",2020-07-02 10:10:28,[PATCH v4] i2c: designware: platdrv: Set class based on DMI,9b77c15628520187af8263254c25301c0b218b55 <bebb84a311676de7204f53f5fc74bb8b4bed1778>,['9b77c15628520187af8263254c25301c0b218b55 <bebb84a311676de7204f53f5fc74bb8b4bed1778>'],"================================================
 MESSAGE 1 of 2
@@ -243102,7 +243102,7 @@ Still not needed blank line.
 
 -- 
 With Best Regards,
-Andy Shevchenko",redundant,
+Andy Shevchenko",redundant,no
 20240215220759.976998-5-eajames@linux.ibm.com,linux-i2c,44,"['20240215220759.976998-1-eajames@linux.ibm.com'
  '20240215220759.976998-2-eajames@linux.ibm.com'
  '20240215220759.976998-3-eajames@linux.ibm.com'
@@ -248747,7 +248747,7 @@ On Sat, 17 Feb 2024 at 05:44, fe46e104c3440a56c6fcd51681a256c27140e72f <b3cbbdad
 > > not explained here).
 
 No, this is fine. Please continue sending the patches in logical order
-as you see fit.",duplicate,
+as you see fit.",duplicate,no
 20240417-trailside-hardhead-ad59b591c243@spud,linux-i2c,10,"['20240417000722.919-1-jose.sanbuenaventura@analog.com'
  '20240417000722.919-2-jose.sanbuenaventura@analog.com'
  '20240417000722.919-3-jose.sanbuenaventura@analog.com'
@@ -249667,7 +249667,7 @@ a22656f3a69d238bb54d08176acd6b51e9875238 <e6b77673536ad4d26e377982a17964b9701c96
 Correct.
 
 Thanks,
-Guenter",redundant,
+Guenter",redundant,yes
 20241004182200.3670903-27-sashal@kernel.org,linux-i2c,1,['20241004182200.3670903-27-sashal@kernel.org'],2024-10-04 18:20:25,[PATCH AUTOSEL 6.10 27/70] i2c: i801: Use a different adapter-name for IDF adapters,49bde96a5ce28d1e61585ce5970eac9d8bf63a38 <fbf786a901771c34e96f866a5178753076c5bd71>,"['8c8f0e19b00273811d0148d0614460a5d326dddb <b630f86be88f3b1a1b084a3b00a1631146c75fa9>'
  '4d93d66ca6e633d13d838f0bc841fa18e679e2fc <ddf61436c484d9ff110d87e6f20082ebb6d9ecaf>'
  'd8d41664c872f27b6677e1699b7f9cf2a556f74e <2da58bfb7d80167d229f76c6c1312f9c27727d1f>'
@@ -249730,7 +249730,7 @@ index d2d2a6dbe29f2..94265ee300c0d 100644
  	if (err) {
  		platform_device_unregister(priv->tco_pdev);
 -- 
-2.43.0",duplicate,
+2.43.0",duplicate,yes
 20260525082049.2906283-1-a0282524688@gmail.com,linux-i2c,1,['20260525082049.2906283-1-a0282524688@gmail.com'],2026-05-25 08:20:49,[PATCH v5 0/7] mfd: nct6694: Refactor transport layer and add HIF (eSPI) support,af7a08504bd09f953e5a9c99bc557bf4c538ce19 <4eec307753ed4e21f9f6df41cb9d43a4431289ac>,"['f788566a4ef114d663f963f9fd5bf61269f6750b'
  '72b565b78b89ae9eb240d69912b6cda570bb6e26'
  '4596cdc9eedabb3cffcba4a14974a7bbb207be5e'
@@ -249819,7 +249819,7 @@ Ming Yu (7):
  rename drivers/mfd/{nct6694.c => nct6694-usb.c} (62%)
 
 -- 
-2.34.1",redundant,
+2.34.1",redundant,yes
 2112732.zfJtNyCk0i@fb07-iapwap2.physik.uni-giessen.de,linux-i2c,1,['2112732.zfJtNyCk0i@fb07-iapwap2.physik.uni-giessen.de'],2013-09-23 14:52:46,Re: [RFC] binding for nvec mfd device,364bc510fb90f560b41508fb5d4d2f4f05662a63 <2ac5b1bd2cf3901b0eab907aed6560e8a89ddbfc>,"['8162aec41f0773826d608cb6e03d1598f3fcf252 <6392ed76ef7572174739bb4a3814e46b32b57e8f>'
  '59b19c7529b73b9e081e42cb1d278cdc0b0e1c76 <59b19c7529b73b9e081e42cb1d278cdc0b0e1c76>'
  '0742088283439e81fc0e25e2c2dcaf5d2bfb0dfe <0742088283439e81fc0e25e2c2dcaf5d2bfb0dfe>'
@@ -249959,7 +249959,7 @@ subsystem is too complex.
 Marc
 
 
-[1] http://nv-tegra.nvidia.com/gitweb/?p=linux-2.6.git;a=blob;f=drivers/i2c/i2c-slave.c;h=280a860cd2e84e15b2c1aef0e938d750f56863dd;hb=rel-roth-ota-1#l120",repeated,
+[1] http://nv-tegra.nvidia.com/gitweb/?p=linux-2.6.git;a=blob;f=drivers/i2c/i2c-slave.c;h=280a860cd2e84e15b2c1aef0e938d750f56863dd;hb=rel-roth-ota-1#l120",repeated,no
 234d6445-3928-3ba8-3bdf-edfed6498790@linux.intel.com,linux-i2c,3,"['1502728113-22547-1-git-send-email-thor.thayer@linux.intel.com'
  '1502728113-22547-2-git-send-email-thor.thayer@linux.intel.com'
  '234d6445-3928-3ba8-3bdf-edfed6498790@linux.intel.com']",2017-08-14 16:28:32,[PATCHv6 1/2] dt-bindings: i2c: Add Altera I2C Controller,553ef9747d6a4c086c038e6fb1f7922262362c3c <ca3e8cd003fd5fc8ea3496885eb01ceeb783f51d>,"['9be4432688371df494099f05e6ad7dfcace713d4'
@@ -251304,7 +251304,7 @@ needed.
 
 Thanks,
 
-Thor",redundant,
+Thor",redundant,no
 552E1884.7050007@broadcom.com,linux-i2c,3,"['20150415075056.GA1826@katana' '552E1884.7050007@broadcom.com'
  'CAC=U0a1Cz=UtJ=c9fbXGdgmukBvFDNMDbQudo+f=U7ejqYU0hw@mail.gmail.com']",2015-04-15 07:50:56,Re: [V2 1/2] i2c: brcmstb: Add Broadcom settop SoC i2c controller driver,d8d41664c872f27b6677e1699b7f9cf2a556f74e <7022f6c6a7407e1679e05e65972b7a82f2cd9e41>,"['b824d6c422082b4ca32fe74cf0611a96f46429c7 <fd5fdc322964c28f615acfe0aa72ea14c8cca577>'
  '98eecb5d004b8cf1e5e2c0b61735e11b900139fb'
@@ -252327,7 +252327,7 @@ Yes thats right.
 >
 > Thanks,
 >
-> Ray",redundant,
+> Ray",redundant,no
 871ui6f108.fsf@deeprootsystems.com,linux-i2c,3,"['20120913053325.GC6504@arwen.pp.htv.fi' '50517780.2080002@ti.com'
  '871ui6f108.fsf@deeprootsystems.com']",2012-09-13 05:33:28,Re: [PATCHv8 00/23]I2C big cleanup,667be101e373d26309b13948957305bb7413a477 <4f777e8805b570d032ce4a76a3c75bc747160b0e>,"['46547e824cfb35f6aee2bfa68b0f4f4e29c3ebec <ea3c8b46fb4dcaf3a5461a8c16fa065d17178a46>'
  'a74277df06bc53f5244e6c2e3f9048aeec403a91'
@@ -252705,7 +252705,7 @@ and then, only with CPUidle enabled.
 Until we have CORE retention support in mainline (we're almost there)
 OMAP4 is not a useful test platform for device PM.
 
-Kevin",redundant,
+Kevin",redundant,no
 9eb94d85-5074-4d2f-91a7-b3d39bd2bc4d@oss.qualcomm.com,linux-i2c,10,"['20260708-fix_cancel_sequence_on_failure_for_i2c-v1-0-dd8f841f36a2@oss.qualcomm.com'
  '20260708-fix_cancel_sequence_on_failure_for_i2c-v1-1-dd8f841f36a2@oss.qualcomm.com'
  '20260708-fix_cancel_sequence_on_failure_for_i2c-v1-2-dd8f841f36a2@oss.qualcomm.com'
@@ -253690,7 +253690,7 @@ error log accordingly inside.
 >   			geni_i2c_err(gi2c, BUS_PROTO);
 >   		if (m_stat & M_GP_IRQ_4_EN)
 > @@ -443,7 +448,7 @@ static void geni_i2c_rx_msg_cleanup(struct geni_i2c_dev *gi2c,
-[...]","redundant,repeated",
+[...]","redundant,repeated",no
 CACRpkdba0FHnWsCkNOEevmqvD9hZ_mroJ+mqbpjecG7sTAfBFw@mail.gmail.com,linux-i2c,3,"['1374602524-3398-1-git-send-email-wsa@the-dreams.de'
  '1374602524-3398-7-git-send-email-wsa@the-dreams.de'
  'CACRpkdba0FHnWsCkNOEevmqvD9hZ_mroJ+mqbpjecG7sTAfBFw@mail.gmail.com']",2013-07-23 18:01:33,"[PATCH 00/27] devm cleanup, part #1, take #3",d8d41664c872f27b6677e1699b7f9cf2a556f74e <fb171261fd059efa9b0e80c5d408cece4f0e29a0>,"['d8d41664c872f27b6677e1699b7f9cf2a556f74e <fb171261fd059efa9b0e80c5d408cece4f0e29a0>'
@@ -253883,7 +253883,7 @@ Are you talking to yourself ;-)
 Acked-by: 1ed081b92ab592e867c298d1a6e252e4fbc90949 <44a177810ee20e6602dfe6375622de48365695eb>
 
 Yours,
-Linus Walleij",duplicate,
+Linus Walleij",duplicate,yes
 CAC_JBqppJXegEYUpF-x74dWT687jm6HsQ5ioq8eO1e98BY9Zhg@mail.gmail.com,linux-i2c,4,"['C8C1ADA9-9247-4AB2-99EF-9C42CE467C17@canonical.com'
  '9BF2F852-DBAD-4947-81DE-919D061D5FB8@canonical.com'
  '20181024191427.GC214775@bhelgaas-glaptop.roam.corp.google.com'
@@ -258756,7 +258756,7 @@ b2a7867853af305846e6e3720069c04d9e4a9f2d <408e974d2ccbefed4e793ff195fb7709777422
 > > >> 2.7.4
 > > >
 > > >
-> >",repeated,
+> >",repeated,yes
 CAFPB+YcLSwyVTBmkHFZPM9MTgTsPHuzoxq1KN1b+Z0dvFNF5yw@mail.gmail.com,linux-i2c,2,"['20150520135716.GW1490@lahna.fi.intel.com'
  'CAFPB+YcLSwyVTBmkHFZPM9MTgTsPHuzoxq1KN1b+Z0dvFNF5yw@mail.gmail.com']",2015-05-20 13:57:16,Re: [PATCH RFC] i2c: Use ID table to detect ACPI I2C devices,1761979aa1da36610e3e35916764a507e8578455 <ced9d6da19318bc9138e879f75842a10128bdbdf>,"['3ebf7d770ea0d3d06edd427c510869cdd9b4b3b3 <275cd3efa9006647c56aa7902ae8f9131f7ab617>'
  '98eecb5d004b8cf1e5e2c0b61735e11b900139fb'
@@ -259076,7 +259076,7 @@ table with the ACPI ids.
 
 Thanks for your valuable feedback.
 
-Robert",redundant,
+Robert",redundant,yes
 CAGhUXvDWgsZ4+e-PL7EYkf48urJxfCS+eUKfgnqJOSBHM_oqCA@mail.gmail.com,linux-i2c,20,"['CAGhUXvDNj2v3O==+wWWKPYVzej8Vq+WNiBtPwmYxSQ2dTuLb9Q@mail.gmail.com'
  'CAGhUXvC8eHfxEKzkGN06VvRU6Z0ko7MJ9hF6uXNq+PxRZSbEmQ@mail.gmail.com'
  '70cbe360-6385-2536-32bd-ae803517d2b2@redhat.com'
@@ -260787,7 +260787,7 @@ i2c_handle_smbus_host_notify. It can't be cause of infinite loop.
 
 Now i don't know why RMI4 sends constantly notifications. I don't have 
 current documentation (my documentation don't contains any new function 
-like F03). Maybe there is new method to clear interrupts..",repeated,
+like F03). Maybe there is new method to clear interrupts..",repeated,no
 CAHp75Ve7tREfFGoi2aVUiM3rqHwgddTniUGR_3GFOovV7Nrfbw@mail.gmail.com,linux-i2c,3,"['CAHp75Ve7tREfFGoi2aVUiM3rqHwgddTniUGR_3GFOovV7Nrfbw@mail.gmail.com'
  '20170731133124.smwztpkul2qjy26p@ninjato'
  '305220e7-4ae2-ed44-e4ec-2abf9b3c38f0@linux.intel.com']",2017-07-26 10:37:13,Re: [PATCHv5 3/3] i2c: altera: Add Altera I2C Controller driver,ba20ddc3983800c83c7f0211dd86193289c29f26 <bbbab8c4b6bd190693937eae25cb20e908d728a2>,"['d8d41664c872f27b6677e1699b7f9cf2a556f74e <7022f6c6a7407e1679e05e65972b7a82f2cd9e41>'
@@ -262563,7 +262563,7 @@ IP changes.
 --
 To unsubscribe from this list: send the line ""unsubscribe devicetree"" in
 e616da6e075bb09bca79677b959c39b084a0cc4e <68b2066a863cd1915ba207391788e65d41337c88>
-More majordomo info at  http://vger.kernel.org/majordomo-info.html",redundant,
+More majordomo info at  http://vger.kernel.org/majordomo-info.html",redundant,no
 YMmUwCsdy4OaQCiU@kroah.com,linux-i2c,15,"['20210615191543.1043414-1-robh@kernel.org' 'YMmUwCsdy4OaQCiU@kroah.com'
  'YMnTx4GqTWu75o2n@vkoul-mobl'
  '20210616104135.z5bjalhan4ui2ibz@pengutronix.de'
@@ -265680,7 +265680,7 @@ match one of the strings. I'm sure that's too strict.
 TLDR: clocks for this binding are a mess and the above is probably all
 we can do here.
 
-Rob",redundant,
+Rob",redundant,no
 ZcY132jyoUqNTDso@smile.fi.intel.com,linux-i2c,16,"['20240206145158.227254-1-jarkko.nikula@linux.intel.com'
  '20240206145158.227254-2-jarkko.nikula@linux.intel.com'
  '20240206145158.227254-3-jarkko.nikula@linux.intel.com'
@@ -267260,7 +267260,7 @@ I'm fine with that.
 
 -- 
 With Best Regards,
-Andy Shevchenko","duplicated,duplication",
+Andy Shevchenko","duplicated,duplication",yes
 aDrv4dY0j4lvSDdO@shikoro,linux-i2c,4,"['aDnYz2PB_euziA01@shikoro'
  'CAHk-=wiKW=BPcDvBAsVDemdWBR0uh09A_WMOCoceqj3w3doGJg@mail.gmail.com'
  '174862612186.4033976.6799947837134303124.pr-tracker-bot@kernel.org'
@@ -267797,7 +267797,7 @@ Email body:
 > 
 > is wrong - it needs to be ""mutex_destroy(&it.export...""
 
-Thank you, I will feed this back.","deduplicate,duplicate,redundant",
+Thank you, I will feed this back.","deduplicate,duplicate,redundant",no
 aa63FfnTGzp3Xrew@shikoro,linux-i2c,2,['20260305102955.12340-1-johan@kernel.org' 'aa63FfnTGzp3Xrew@shikoro'],2026-03-05 10:29:55,[PATCH] i2c: robotfuzz-osif: drop redundant device reference,c8ef22bcf1a3ef808edbac5678317f764e841f44 <d2469ccb0a68ed2634e82a8736fc434ff99acc99>,"['4596cdc9eedabb3cffcba4a14974a7bbb207be5e'
  'f788566a4ef114d663f963f9fd5bf61269f6750b'
  'c8ef22bcf1a3ef808edbac5678317f764e841f44 <d2469ccb0a68ed2634e82a8736fc434ff99acc99>']","================================================
@@ -267882,7 +267882,7 @@ On Thu, Mar 05, 2026 at 11:29:55AM +0100, Johan Hovold wrote:
 > 
 > Signed-off-by: c8ef22bcf1a3ef808edbac5678317f764e841f44 <d2469ccb0a68ed2634e82a8736fc434ff99acc99>
 
-Applied to for-next, thanks!",redundant,
+Applied to for-next, thanks!",redundant,no
 bb134298-26de-c565-bf7a-78302914991f@linux.intel.com,linux-i2c,13,"['1469743424-2480-1-git-send-email-lucas.demarchi@intel.com'
  '1469743424-2480-2-git-send-email-lucas.demarchi@intel.com'
  '1469743424-2480-3-git-send-email-lucas.demarchi@intel.com'
@@ -268736,7 +268736,7 @@ then.
 
 thanks
 
-Lucas De Marchi",repeated,
+Lucas De Marchi",repeated,no
 cd88de7e04734400b897c0e2bcf07eab@BL2PR03MB338.namprd03.prod.outlook.com,linux-i2c,1,['cd88de7e04734400b897c0e2bcf07eab@BL2PR03MB338.namprd03.prod.outlook.com'],2014-03-26 05:56:34,RE: [PATCH v3 1/2] i2c: add DMA support for freescale i2c driver,d2da714b71577ff650ef39219790e8786a9807e6 <d2ac7cbeeff3d621e81b45b84dfe9dda7e1ad002>,"['7022f6c6a7407e1679e05e65972b7a82f2cd9e41 <7022f6c6a7407e1679e05e65972b7a82f2cd9e41>'
  '6392ed76ef7572174739bb4a3814e46b32b57e8f <6392ed76ef7572174739bb4a3814e46b32b57e8f>'
  '902722a2d811842737c207cffb8d1ef9269e0445 <902722a2d811842737c207cffb8d1ef9269e0445>'
@@ -268784,7 +268784,7 @@ Well, Do you have a better idea? Although I think it's necessary.
 
 
 Best regards,
-Yuan Yao",duplicating,
+Yuan Yao",duplicating,no
 d1c3f599-619d-41ff-96f1-06858fc78be4@amd.com,linux-i2c,1,['d1c3f599-619d-41ff-96f1-06858fc78be4@amd.com'],2018-12-03 15:25:46,Re: [PATCH v10] i2c: Add drivers for the AMD PCIe MP2 I2C controller,2320ef739f7b731ae368e295da298d08ac90aace <7bf5b4c89a27c18b247f4d5eb0dbac52c3990a6a>,"['4596cdc9eedabb3cffcba4a14974a7bbb207be5e <4596cdc9eedabb3cffcba4a14974a7bbb207be5e>'
  'd8d41664c872f27b6677e1699b7f9cf2a556f74e <fb171261fd059efa9b0e80c5d408cece4f0e29a0>'
  'ac13634508c090621e77f847875fcb05fd554e6a <ac13634508c090621e77f847875fcb05fd554e6a>'
@@ -270464,7 +270464,7 @@ e76e657262f1bc494f0282c7864e2454bd132cf8 <a8df9136e9d9578e09ab1d01735f39f1ab2848
 >> Thanks
 >> Nehal Shah
 >>
->","duplicated,duplication,redundant",
+>","duplicated,duplication,redundant",yes
 d2b6dbf3-fe06-4dd7-a893-75da12e8c136@amd.com,linux-i2c,4,"['ZahG7xgHJ4Tf8mHI@shikoro' 'd2b6dbf3-fe06-4dd7-a893-75da12e8c136@amd.com'
  'CAHk-=wgSF9zaUCMWe8FuLrfwS0PxJXyxQxFGn7_W22C0rTaQXQ@mail.gmail.com'
  'Zai8gFMzdP5mqqOi@shikoro']",2024-01-17 21:30:23,[PULL REQUEST] i2c-for-6.8-rc1-fixed,d8d41664c872f27b6677e1699b7f9cf2a556f74e <3848b1a2b66af6d9a286674f05f35b155bd154dc>,"['4596cdc9eedabb3cffcba4a14974a7bbb207be5e'
@@ -270894,7 +270894,7 @@ Email body:
 > followed by reverting it, I get the feeling that this would be better
 > rebased.
 
-Sure thing, will do.",redundant,
+Sure thing, will do.",redundant,no
 f3ebead75d45623e4b649c7a8d0112584ffd1788.1388392279.git.baruch@tkos.co.il,linux-i2c,1,['f3ebead75d45623e4b649c7a8d0112584ffd1788.1388392279.git.baruch@tkos.co.il'],2013-12-30 08:31:19,[PATCH] i2c: designware: remove HAVE_CLK build dependecy,ab50a678a71eb4addb1e60cd836caf097f1e2824 <ce3deaf503ff01c3f2d7738a4c111f5c9db759d7>,"['98eecb5d004b8cf1e5e2c0b61735e11b900139fb'
  'ab50a678a71eb4addb1e60cd836caf097f1e2824 <ce3deaf503ff01c3f2d7738a4c111f5c9db759d7>']","================================================
 MESSAGE 1 of 1
@@ -270942,7 +270942,7 @@ index e89e3e2..14c4b30 100644
  #include <linux/err.h>
  #include <linux/i2c.h>
 -- 
-1.8.5.2",redundant,
+1.8.5.2",redundant,no
 s5sb3xfm4esdupz3745nzqbkxfilpl27s5pkxi4muzksamoisq@yof3vobthh5u,linux-i2c,2,"['20250513210246.528370-2-e.zanda1@gmail.com'
  's5sb3xfm4esdupz3745nzqbkxfilpl27s5pkxi4muzksamoisq@yof3vobthh5u']",2025-05-13 21:02:47,[PATCH v2] i2c: viai2c-wmt: Replace dev_err() with dev_err_probe() in probe function,1306c8a6e9f5b70edd3b386556cd115e20fe96cd <e24941587d7bc2eb715e8f0edc36e117ffc1dd58>,"['edc6ea923a867538becb5132a54121bfd2a02cd0'
  '1306c8a6e9f5b70edd3b386556cd115e20fe96cd <e24941587d7bc2eb715e8f0edc36e117ffc1dd58>']","================================================
@@ -271042,7 +271042,7 @@ merged to i2c/i2c-host. Thanks a lot for your contribution, I'm
 quite happy to see now all the probe functions using
 dev_err_probe().
 
-Andi",redundant,
+Andi",redundant,no
 0d0d0571-be74-d9a4-4f2d-27881da2e2ed@suse.cz,linux-iommu,2,"['20181207061620.107881-2-drinkcat@chromium.org'
  '0d0d0571-be74-d9a4-4f2d-27881da2e2ed@suse.cz']",2018-12-07 06:16:18,[PATCH v5 1/3] mm: Add support for kmem caches in DMA32 zone,1520b567d2656aad6ed9133ccd213effbb696146 <800dd77ca105d705a70c43a1163cad370ef307b2>,"['b58353b3b029d0c2e719f0afac205f8f2f7bcf91 <37d9c8d4ae25193d77858bc91369d4cc7c9a6da5>'
  'a45d682d518e5b3878dfa9c687f3269ed28d52f5 <44c26d9771a71912405224690baa3c1aee4aead1>'
@@ -271242,7 +271242,7 @@ On 12/7/18 7:16 AM, Nicolas Boichat wrote:
 > 
 > Signed-off-by: 1520b567d2656aad6ed9133ccd213effbb696146 <c815d927519ebcc00bea017449bb91980af3a2e4>
 
-Acked-by: 1e7b87a216d6a5a252445e253d5b937ed5e73330 <04fc050b19b60e9070ab0938b401faa12a131d02>",redundant,
+Acked-by: 1e7b87a216d6a5a252445e253d5b937ed5e73330 <04fc050b19b60e9070ab0938b401faa12a131d02>",redundant,no
 12163854e04da92b5de586912bf7257fc0fed79a.1515512134.git.robin.murphy@arm.com,linux-iommu,2,"['da664cf8f60c77cbb657cc2e3849560604eaf6da.1515512134.git.robin.murphy@arm.com'
  '12163854e04da92b5de586912bf7257fc0fed79a.1515512134.git.robin.murphy@arm.com']",2018-01-09 16:17:25,[PATCH v2 1/3] iommu/msm: Claim bus ops on probe,ab75df42fc050077957620b7d85b339a8cbedac8 <3c568dfd5eb2396875ef15f8f2f03e60e76f8933>,"['f5a6be5f626e9d43f07ce5a6a01d72acde63c3a9'
  '4cf2c7f7721c75851cd62a22dfc7f00b1bf05670'
@@ -271364,7 +271364,7 @@ index 8dce3a9de9d8..331dad909301 100644
  MODULE_DESCRIPTION(""IOMMU API for Renesas VMSA-compatible IPMMU"");
 b330cc10a85f99a6c9d430b481cbc0746790d1d7 <d50c51a642461b72c25b6fab58105d7976d48595>"");
 -- 
-2.13.4.dirty",redundant,
+2.13.4.dirty",redundant,no
 1385041249-7705-2-git-send-email-hdoyu@nvidia.com,linux-iommu,2,"['1385041249-7705-1-git-send-email-hdoyu@nvidia.com'
  '1385041249-7705-2-git-send-email-hdoyu@nvidia.com']",2013-11-21 13:40:36,[PATCHv6 00/13] Unifying SMMU driver among Tegra SoCs,54b1569ead69283752f0c328b12eef4ab8d82b1d <fd34054419e9b1d76232edf40e5ee60679f77947>,"['6392ed76ef7572174739bb4a3814e46b32b57e8f'
  '59b19c7529b73b9e081e42cb1d278cdc0b0e1c76'
@@ -271517,7 +271517,7 @@ index 276c546..131fef5 100644
  extern void proc_device_tree_add_node(struct device_node *, struct proc_dir_entry *);
  extern void proc_device_tree_add_prop(struct proc_dir_entry *pde, struct property *prop);
 -- 
-1.8.1.5",duplicate,
+1.8.1.5",duplicate,no
 1389085234-22296-2-git-send-email-jiang.liu@linux.intel.com,linux-iommu,16,"['1389085234-22296-2-git-send-email-jiang.liu@linux.intel.com'
  '1389085234-22296-3-git-send-email-jiang.liu@linux.intel.com'
  '1389085234-22296-4-git-send-email-jiang.liu@linux.intel.com'
@@ -274837,7 +274837,7 @@ On 2014/1/7 17:00, Jiang Liu wrote:
 
 -- 
 Thanks!
-Yijing",redundant,
+Yijing",redundant,no
 1413196434-5292-2-git-send-email-thierry.reding@gmail.com,linux-iommu,12,"['1413196434-5292-2-git-send-email-thierry.reding@gmail.com'
  '1413196434-5292-3-git-send-email-thierry.reding@gmail.com'
  '1413196434-5292-4-git-send-email-thierry.reding@gmail.com'
@@ -281725,7 +281725,7 @@ Tomeu
 > --
 > To unsubscribe from this list: send the line ""unsubscribe linux-tegra"" in
 0aeb5db19d1e3a44dcd8fe8c7f3af368761c9546 <68b2066a863cd1915ba207391788e65d41337c88>
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html","duplicate,redundant",
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html","duplicate,redundant",yes
 1455655184-14478-2-git-send-email-niklas.soderlund+renesas@ragnatech.se,linux-iommu,2,"['1455655184-14478-1-git-send-email-niklas.soderlund+renesas@ragnatech.se'
  '1455655184-14478-2-git-send-email-niklas.soderlund+renesas@ragnatech.se']",2016-02-16 20:39:36,[PATCH v4 0/8] dmaengine: rcar-dmac: add iommu support for slave transfers,bd1c7f49e34bd03504fac80214651c6b2e5fb956 <3eb690457b309df0b8906a2e022c73239b0e943a>,"['f27e66a9f0d22f8b2e387f139fad79f78599d560'
  'bd1c7f49e34bd03504fac80214651c6b2e5fb956 <3eb690457b309df0b8906a2e022c73239b0e943a>'
@@ -281892,7 +281892,7 @@ index a5c539f..34b6432 100644
  struct iommu_ops;
  struct iommu_group;
 -- 
-2.7.1",duplication,
+2.7.1",duplication,yes
 1507244624-39189-4-git-send-email-jacob.jun.pan@linux.intel.com,linux-iommu,6,"['1507244624-39189-1-git-send-email-jacob.jun.pan@linux.intel.com'
  '1507244624-39189-4-git-send-email-jacob.jun.pan@linux.intel.com'
  '1507244624-39189-14-git-send-email-jacob.jun.pan@linux.intel.com'
@@ -282662,7 +282662,7 @@ index ede0f2e..61ad26b 100644
  	.map			= intel_iommu_map,
  	.unmap			= intel_iommu_unmap,
 -- 
-2.7.4",duplication,
+2.7.4",duplication,yes
 20120517032904.GC22069@truffala.fritz.box,linux-iommu,1,['20120517032904.GC22069@truffala.fritz.box'],2012-05-17 03:29:04,Re: [PATCH 02/13] iommu: IOMMU Groups,66ed692bd243d5a275769e808990ca04cdcdf485 <9cd01139537a0f8f53318a005e1faaf27a409eb9>,"['d4214df91328d40a5f56d4c4e051590e7e7c9d84'
  'd7f77de6429db504db811af1fb41cec856aaa609'
  '640403a08238cadd392d17c6a797f723eaa44616'
@@ -282862,7 +282862,7 @@ Ah, maybe.  I don't know enough about USB conventions to say for sure.
 David Gibson			| I'll have my music baroque, and my code
 david AT gibson.dropbear.id.au	| minimalist, thank you.  NOT _the_ _other_
 				| _way_ _around_!
-http://www.ozlabs.org/~dgibson",duplicate,
+http://www.ozlabs.org/~dgibson",duplicate,no
 20120521135838.GA15046@avionic-0098.mockup.avionic-design.de,linux-iommu,1,['20120521135838.GA15046@avionic-0098.mockup.avionic-design.de'],2012-05-21 13:58:38,Re: [RFC v2 5/5] drm: Add NVIDIA Tegra support,f8147cd3e0a276e27ff99bf4425f3cd1bc5445c8 <6a072c2c06b5925384c46e819553006edfa100a9>,"['862e746d8fddb6ee16aa42d583be5b6a0dd4f4b5 <4bccde92a613b579989a54305f7f8e0ff16b57e8>'
  '0742088283439e81fc0e25e2c2dcaf5d2bfb0dfe <0742088283439e81fc0e25e2c2dcaf5d2bfb0dfe>'
  '05ba455e9089a30bed7e4e6ed30c045d728211a4 <d1dbfe426d5b6b63a08dcf58dadd57523d52b70c>'
@@ -282941,7 +282941,7 @@ However, adding a whole bus_type implementation would pretty much duplicate
 the platform bus code. I guess host1x could just provide struct host1x_client
 a set of corresponding APIs to create them, request channels, etc.
 
-Thierry",duplicate,
+Thierry",duplicate,yes
 20140530182204.GL17056@8bytes.org,linux-iommu,1,['20140530182204.GL17056@8bytes.org'],2014-05-30 18:22:04,Re: [PATCH] iommu: msm: use devm_ioremap_resource to simplify code,b8db0ee25d0a0457be57ffdf93c1c738a95903ef <779f9ebcf3316b8bafc3e10a4b5d06f9a9cdeeb3>,"['ce9feb902b77f8f63cd06385763933799760d021'
  '9bf6a5bf17701eef98badd6bb3beab6096fe830f'
  '03518b200b58398262ec8210a6c48a8604b50e68']","================================================
@@ -282964,7 +282964,7 @@ On Tue, May 27, 2014 at 06:18:42PM +0800, Kefeng Wang wrote:
 >  drivers/iommu/msm_iommu_dev.c |   38 +++++++-------------------------------
 >  1 files changed, 7 insertions(+), 31 deletions(-)
 
-Applied to arm/msm, thanks.",redundant,
+Applied to arm/msm, thanks.",redundant,no
 20140630170221.GA30740@arm.com,linux-iommu,1,['20140630170221.GA30740@arm.com'],2014-06-30 17:02:21,Re: [RFC/PATCH 4/7] iommu: msm: Add MSM IOMMUv1 driver,98cf300ed5945ab0b4084f6dda029714550b64fd <2869d6fb07b0a5eae3f66f13bf9043ad707748d7>,"['86aee2f0fccc6832c7a5ca7d5f47de0001f86541 <86aee2f0fccc6832c7a5ca7d5f47de0001f86541>'
  'ce9feb902b77f8f63cd06385763933799760d021 <ce9feb902b77f8f63cd06385763933799760d021>'
  'd7f2c8d3283d656de2e919fe2d73e9a51c3650a6 <d7f2c8d3283d656de2e919fe2d73e9a51c3650a6>'
@@ -283028,7 +283028,7 @@ implementing block mappings in the existing driver.
 
 Thanks,
 
-Will",duplicating,
+Will",duplicating,yes
 20140812013559.GA25121@laptop.dumpdata.com,linux-iommu,9,"['20140812013559.GA25121@laptop.dumpdata.com' '871tsm5vcn.fsf@nvidia.com'
  'CAF6AEGvZUanVtPxAt76+AAdOaNwyMJ3cmcJ1srsEYBeG7ELkBQ@mail.gmail.com'
  '4605275.P2SLc4fsBd@avalon' '53EA472B.3020900@codeaurora.org'
@@ -283691,7 +283691,7 @@ So the prototype would be:
  patch-set).
 
 
-	Joerg",duplication,
+	Joerg",duplication,yes
 20151009182228.14752.99700.stgit@gimli.home,linux-iommu,1,['20151009182228.14752.99700.stgit@gimli.home'],2015-10-09 18:40:56,[RFC PATCH 0/2] VFIO no-iommu,9be1fd51e9d7328757e3b30c71a4573e7fb8e470 <b6108951141e63870aa607dad6de521546216ecd>,"['6c014b4283864d35e2d65d829c8dbbcfeb5adc46 <7b801d956458b59c5fd9193851bc647aa46c8eb7>'
  'avi-RmZWMc9puTNJc61us3aD9laTQe2KTcn/@public.gmane.org'
  'c1717e7879662a3193ba5351952529c2944afa19 <7b801d956458b59c5fd9193851bc647aa46c8eb7>'
@@ -283772,7 +283772,7 @@ Alex Williamson (2):
  delete mode 100644 drivers/vfio/vfio.c
  create mode 100644 drivers/vfio/vfio_core.c
  create mode 100644 drivers/vfio/vfio_noiommu.c
- create mode 100644 drivers/vfio/vfio_private.h",duplicating,
+ create mode 100644 drivers/vfio/vfio_private.h",duplicating,yes
 20151028211309.14155.23867.stgit@gimli.home,linux-iommu,1,['20151028211309.14155.23867.stgit@gimli.home'],2015-10-28 21:21:45,[PATCH] vfio: Include No-IOMMU mode,9be1fd51e9d7328757e3b30c71a4573e7fb8e470 <2493e6212f368ddd2cbd839571a91cfe21bab41e>,"['1e593423b335915a1f336d2c2b5828fe2a48c484'
  'ccdff55a71decdd144eeeb4dcd8311e903191320'
  '9f03423368b8e161f625602ef18f7340ce3e889b'
@@ -284234,7 +284234,7 @@ index 9fd7b5d..751b69f 100644
 +/*
   * The IOCTL interface is designed for extensibility by embedding the
   * structure length (argsz) and flags into structures passed between
-  * kernel and userspace.  We therefore use the _IO() macro for these",duplication,
+  * kernel and userspace.  We therefore use the _IO() macro for these",duplication,yes
 20161018160414.1228-2-lorenzo.pieralisi@arm.com,linux-iommu,17,"['20161018160414.1228-2-lorenzo.pieralisi@arm.com'
  '20161018160414.1228-3-lorenzo.pieralisi@arm.com'
  '20161018160414.1228-4-lorenzo.pieralisi@arm.com'
@@ -286942,7 +286942,7 @@ Done, please find it here, I will post a v7 this week with updates.
 
 git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/iort-smmu-v6
 
-Lorenzo",duplicated,
+Lorenzo",duplicated,no
 20180315163509.17740-6-shameerali.kolothum.thodi@huawei.com,linux-iommu,6,"['20180315163509.17740-2-shameerali.kolothum.thodi@huawei.com'
  '20180315163509.17740-4-shameerali.kolothum.thodi@huawei.com'
  '20180315163509.17740-5-shameerali.kolothum.thodi@huawei.com'
@@ -287850,7 +287850,7 @@ Kevin
 > _______________________________________________
 > iommu mailing list
 091385be99b45f459a231582d583ec9f3fa3d194 <ce9feb902b77f8f63cd06385763933799760d021>
-> https://lists.linuxfoundation.org/mailman/listinfo/iommu","duplicate,duplicated",
+> https://lists.linuxfoundation.org/mailman/listinfo/iommu","duplicate,duplicated",no
 20180425092533.GO16141@n2100.armlinux.org.uk,linux-iommu,7,"['20180425085439.GA29996@infradead.org'
  '20180425092533.GO16141@n2100.armlinux.org.uk'
  '20180425100429.GR25142@phenom.ffwll.local'
@@ -288436,7 +288436,7 @@ Software Engineer, Intel Corporation
 _______________________________________________
 dri-devel mailing list
 dri-devel@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/dri-devel",redundant,
+https://lists.freedesktop.org/mailman/listinfo/dri-devel",redundant,no
 20180507125329.24648-2-anna-maria@linutronix.de,linux-iommu,4,"['20180507125329.24648-2-anna-maria@linutronix.de'
  '20180507125329.24648-3-anna-maria@linutronix.de'
  '20180507125329.24648-4-anna-maria@linutronix.de'
@@ -288851,7 +288851,7 @@ index 38ec7cae0024..f9207e5b5901 100644
  
  /*
 -- 
-2.15.1",duplicates,
+2.15.1",duplicates,no
 20200414180912.GH5100@ziepe.ca,linux-iommu,44,"['20200414170252.714402-1-jean-philippe@linaro.org'
  '20200414170252.714402-2-jean-philippe@linaro.org'
  '20200414170252.714402-3-jean-philippe@linaro.org'
@@ -295325,7 +295325,7 @@ mm_struct.
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",duplicated,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",duplicated,no
 20200427203341.GD242333@romley-ivt3.sc.intel.com,linux-iommu,37,"['1585596788-193989-1-git-send-email-fenghua.yu@intel.com'
  '1585596788-193989-2-git-send-email-fenghua.yu@intel.com'
  '1585596788-193989-3-git-send-email-fenghua.yu@intel.com'
@@ -298425,7 +298425,7 @@ to complete (mmap'd files, shared memory with other processes).
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu","duplicated,repeated",
+https://lists.linuxfoundation.org/mailman/listinfo/iommu","duplicated,repeated",no
 20220222185416.1722611-2-yian.chen@intel.com,linux-iommu,3,"['20220222185416.1722611-1-yian.chen@intel.com'
  '20220222185416.1722611-2-yian.chen@intel.com'
  '20220222185416.1722611-3-yian.chen@intel.com']",2022-02-22 18:54:14,[PATCH v2 0/2] Enable ATS for the devices in SATC table,271e90b6c4ca84fcd325fd633d722d66b3562bd0 <f455b5f79f14f39e37b854a7af9c68676bd647ca>,,"================================================
@@ -298816,7 +298816,7 @@ index fe9fd417d611..9262cdf04f05 100644
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",duplicated,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",duplicated,no
 20220621144342.uCZ8Q7tU8m03Oj0gH8sAAreMguqP5YqF04TRmduoS-U@z,linux-iommu,1,['20220621144342.uCZ8Q7tU8m03Oj0gH8sAAreMguqP5YqF04TRmduoS-U@z'],2022-06-21 14:43:42,[PATCH v9 00/11] iommu: SVA and IOPF refactoring,368b87c1a3eb7fe8fbb9406ede55a78b3f1abbcd <a7026c41fc9dd23fa0a3361816d62f9ec6bc34c3>,"['604a8062716f926f1fd8a7d95b926548f76d22f9 <b7640a4c543daa6d1367d1d6ebe6728bcf8ae849>'
  'b3d294089dcaca9dc4cbf9678965d9710965c5b2 <ec0a4651e7586cc7e7c8f8219ab8cc5503928e5c>'
  '29884442ac405e623c619cbe3ac4dd092a7c6dba <7444765ffd82efd44bbbe396334a157374f43467>'
@@ -298980,7 +298980,7 @@ Lu Baolu (11):
  create mode 100644 drivers/iommu/iommu-sva.c
 
 -- 
-2.25.1","duplicate,redundant",
+2.25.1","duplicate,redundant",no
 20230313204158.1495067-2-jacob.jun.pan@linux.intel.com,linux-iommu,14,"['20230313204158.1495067-1-jacob.jun.pan@linux.intel.com'
  '20230313204158.1495067-3-jacob.jun.pan@linux.intel.com'
  '20230313204158.1495067-2-jacob.jun.pan@linux.intel.com'
@@ -300925,7 +300925,7 @@ On Mon, Mar 13, 2023 at 01:41:53PM -0700, Jacob Pan wrote:
 
 Reviewed-by: 5349fc97481694a5f4c997163269274276b91909 <e7db12a8be8ab57af781aee6836149640f233614>
 
-Jason",duplicated,
+Jason",duplicated,yes
 20231024150609.46884-2-yi.l.liu@intel.com,linux-iommu,30,"['20231024150609.46884-1-yi.l.liu@intel.com'
  '20231024150609.46884-2-yi.l.liu@intel.com'
  '20231024150609.46884-3-yi.l.liu@intel.com'
@@ -304783,7 +304783,7 @@ remove above if.
 
 -- 
 Regards,
-Yi Liu",redundant,
+Yi Liu",redundant,no
 20240624175837.GU791043@ziepe.ca,linux-iommu,9,"['24d7ec005e77e4e0127995ba6f4ad16f33737fa5.1718981216.git.teddy.astie@vates.tech'
  'da3ec316-b001-4711-b323-70af3e6bb014@arm.com'
  'a04e169d-b38a-43dc-b783-a8af1e1b0468@vates.tech'
@@ -307326,7 +307326,7 @@ Teddy Astie | Vates XCP-ng Intern
 
 XCP-ng & Xen Orchestra - Vates solutions
 
-web: https://vates.tech",redundant,
+web: https://vates.tech",redundant,no
 20240920155813.3434021-3-quic_bibekkum@quicinc.com,linux-iommu,14,"['20240920155813.3434021-1-quic_bibekkum@quicinc.com'
  '20240920155813.3434021-2-quic_bibekkum@quicinc.com'
  '20240920155813.3434021-3-quic_bibekkum@quicinc.com'
@@ -308718,7 +308718,7 @@ Bibek
 >>>> 2.34.1
 >>>>
 >>>
->","duplicate,redundant",
+>","duplicate,redundant",no
 20250228173857.GD39591@nvidia.com,linux-iommu,5,"['4e68d5820be06adc1b34fc0d1c9399481151daee.1740742271.git.robin.murphy@arm.com'
  '20250228173857.GD39591@nvidia.com' 'Z8IapaN1ZD0wImak@Asurada-Nvidia'
  '20250303172746.GB133783@nvidia.com'
@@ -309440,7 +309440,7 @@ into IOMMU_x_DMA does seem more logical and understandable than the
 other alternative of having one weird IOMMU_FD_x symbol.
 
 Thanks,
-Robin.",redundant,
+Robin.",redundant,no
 202507241929.76UExdsw-lkp@intel.com,linux-iommu,10,"['cover.1753133022.git.ashish.kalra@amd.com'
  '6a48567cd99a0ef915862b3c6590d1415d287870.1753133022.git.ashish.kalra@amd.com'
  '0a9f79741e8a5b1619069a892bc5c22f17df1c34.1753133022.git.ashish.kalra@amd.com'
@@ -310435,7 +310435,7 @@ On 7/22/2025 3:23 AM, Ashish Kalra wrote:
 > are already enabled in the previous kernel.
 > 
 > Signed-off-by: 452a572a88ee56ad3d45a1d7c4c692bc14efecbf <53895918edaecb7547c2387ecef5f0f746c988c5>
-Tested-by: b9625adabc122a3fc05490cd681cd88d100f1b63 <a0b5f90e4537513ab84073a1af19f18a3060b80c>",repeated,
+Tested-by: b9625adabc122a3fc05490cd681cd88d100f1b63 <a0b5f90e4537513ab84073a1af19f18a3060b80c>",repeated,no
 202601210208.mg3YUkif-lkp@intel.com,linux-iommu,72,"['20260120064230.3602565-1-mrathor@linux.microsoft.com'
  '20260120064230.3602565-2-mrathor@linux.microsoft.com'
  '20260120064230.3602565-3-mrathor@linux.microsoft.com'
@@ -330281,7 +330281,7 @@ Thanks,
 >>   	}
 >> -- 
 >> 2.51.2.vfs.0.1
->>",redundant,
+>>",redundant,no
 20260309184104.2321071-1-liulynn@google.com,linux-iommu,3,"['20260304080636.167426-1-liulynn@google.com'
  '116b79a2-fadb-4796-8cb7-9c2dfde54999@arm.com'
  '20260309184104.2321071-1-liulynn@google.com']",2026-03-04 08:06:36,[PATCH v2] iommu/iova: Add NULL check in iova_magazine_free(),5794b7ba4b67c9fe7aced58d22d0a814972085ef <8bfa0933f4506f7024c0adc5ae718044dfbdc79c>,"['dc16311169e2bf52bdbe9bac31dbb560fe883001'
@@ -330533,7 +330533,7 @@ index 18f839721813..cf6cd9f23b97 100644
  		}
  		free_percpu(rcache->cpu_rcaches);
 -- 
-2.53.0.473.g4a7958ca14-goog",redundant,
+2.53.0.473.g4a7958ca14-goog",redundant,no
 24f90689e35a90a337601943a48902a7ab6a7c4d.1512038236.git.robin.murphy@arm.com,linux-iommu,5,"['24f90689e35a90a337601943a48902a7ab6a7c4d.1512038236.git.robin.murphy@arm.com'
  'fde583dacee8099ed4e952dbf1c4dfb42070e9c5.1512038236.git.robin.murphy@arm.com'
  '9d2a2eb4527987aec520e112163a178d92fc946b.1512038236.git.robin.murphy@arm.com'
@@ -331224,7 +331224,7 @@ think we should address before merging.
 
 Cheers,
 
-Will",copy-paste,
+Will",copy-paste,no
 2513969.oSmPVqOvWp@avalon,linux-iommu,7,"['066c4af0e29c9cc658bd5e48edc5e2d7ba7140a1.1453723096.git.robin.murphy@arm.com'
  '2729ad4784c16e0199e30ce4c7e4bcc26dd4ee8f.1453723096.git.robin.murphy@arm.com'
  '81a5e784494a04713e152659c95b34e92d944f32.1453723096.git.robin.murphy@arm.com'
@@ -333112,7 +333112,7 @@ Robin.
 > In personal conversations with technical people, I call myself a hacker. But
 > when I'm talking to journalists I just say ""programmer"" or something like that.
 >                                  -- Linus Torvalds
->","duplication,redundant,repeated",
+>","duplication,redundant,repeated",yes
 2535689.1BCLMh4Saa@diego,linux-iommu,43,"['cover.1628094600.git.robin.murphy@arm.com'
  '46f4cda8215bd5f8a9f9fd5a4a6451805f75efa3.1628094600.git.robin.murphy@arm.com'
  'ebc82f082d5fde58557efbec66f34b1be6a12599.1628094600.git.robin.murphy@arm.com'
@@ -336987,7 +336987,7 @@ Rajat
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",redundant,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",redundant,yes
 2d7e1823e264aa1990899cc95736e78e1ec21084.1690871004.git.petr.tesarik.ext@huawei.com,linux-iommu,18,"['2d7e1823e264aa1990899cc95736e78e1ec21084.1690871004.git.petr.tesarik.ext@huawei.com'
  '7a92817b18ce0e1bd38967784f53bf76a43cb886.1690871004.git.petr.tesarik.ext@huawei.com'
  'cover.1690871004.git.petr.tesarik.ext@huawei.com'
@@ -340339,7 +340339,7 @@ On Thu, Sep 07, 2023 at 01:12:23PM +0200, Petr Tesařík wrote:
 
 Please take a look at:
 
-https:cf58f3ce00ad74ecb78ea0f1cc2b4b7dd2989876 <223f8a77bcddbfaaa8c83134d35134665dc1cbd2>/T/#u",repeated,
+https:cf58f3ce00ad74ecb78ea0f1cc2b4b7dd2989876 <223f8a77bcddbfaaa8c83134d35134665dc1cbd2>/T/#u",repeated,no
 47a738b1-7da5-7043-c16c-4159c6211f7e@arm.com,linux-iommu,1,['47a738b1-7da5-7043-c16c-4159c6211f7e@arm.com'],2017-05-26 12:56:42,Re: [PATCH 3/4] iommu: add qcom_iommu,ab75df42fc050077957620b7d85b339a8cbedac8 <75636d3d8b308892d0e2ffbbe98d247abb85639f>,"['8162aec41f0773826d608cb6e03d1598f3fcf252 <6392ed76ef7572174739bb4a3814e46b32b57e8f>'
  'e276a6e67762a9cf9b07891dafeb1932a294cacb <6ac54bea1cf3392edb2b8f3bd1606d7d4f447dc6>'
  '86aee2f0fccc6832c7a5ca7d5f47de0001f86541'
@@ -341379,7 +341379,7 @@ Robin.
 > +
 > +MODULE_DESCRIPTION(""IOMMU API for QCOM IOMMU v1 implementations"");
 > +MODULE_LICENSE(""GPL v2"");
->",redundant,
+>",redundant,no
 4bac4087-77d8-45c1-852a-1c6a37044431@intel.com,linux-iommu,102,"['20240412082121.33382-1-yi.l.liu@intel.com'
  '20240412082121.33382-2-yi.l.liu@intel.com'
  '20240412082121.33382-3-yi.l.liu@intel.com'
@@ -351363,7 +351363,7 @@ I don't see a particular issue with this though?
 As long as it is well defined and it is clear to userspace when what
 parts are valid or not it is fine to get pretty big.
 
-Jason","duplicate,duplication",
+Jason","duplicate,duplication",yes
 6b20fde4-e416-4d77-a6d0-32fc3319fc6a@infradead.org,linux-iommu,7,"['20251107081300.13033-2-bagasdotme@gmail.com'
  '20251107081300.13033-3-bagasdotme@gmail.com'
  '20251107081300.13033-4-bagasdotme@gmail.com'
@@ -351709,7 +351709,7 @@ Oops, I misunderstood the review. Will send the fixup shortly.
 Thanks.
 
 -- 
-An old man doll... just what I always wanted! - Clara",duplicate,
+An old man doll... just what I always wanted! - Clara",duplicate,no
 80a3b07d-f3a7-07c4-4e8f-76e28563027c@arm.com,linux-iommu,14,"['20200421202004.11686-1-saiprakash.ranjan@codeaurora.org'
  'b491e02ad790a437115fdeab6b21bc48@codeaurora.org'
  '1ced023b-157c-21a0-ac75-1adef7f029f0@arm.com'
@@ -353201,7 +353201,7 @@ Will
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",duplicating,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",duplicating,yes
 8701bfbe-e52e-0e26-2a71-f5f81684de70@arm.com,linux-iommu,1,['8701bfbe-e52e-0e26-2a71-f5f81684de70@arm.com'],2017-03-08 18:58:20,Re: [PATCH V8 01/11] iommu/of: Refactor of_iommu_configure() for error handling,b570b971ff9638102b0031d8a76559f5e10776ee <717c80ddd40e01f8bcef3c8d4fdb15cab08fb4ac>,,"================================================
 MESSAGE 1 of 1
 ================================================
@@ -353389,7 +353389,7 @@ Jean-Philippe
 >  }
 >  
 >  static int __init of_iommu_init(void)
->",duplication,
+>",duplication,yes
 BN9PR11MB5276B603CF2A2BA2462BBCE78CFC9@BN9PR11MB5276.namprd11.prod.outlook.com,linux-iommu,7,"['0-v2-568c93fef076+5a-iommufd_noiommu_jgg@nvidia.com'
  'BN9PR11MB5276B603CF2A2BA2462BBCE78CFC9@BN9PR11MB5276.namprd11.prod.outlook.com'
  'DS0PR11MB75292238656F19908C0D0A4BC3C69@DS0PR11MB7529.namprd11.prod.outlook.com'
@@ -354400,7 +354400,7 @@ Yes, I put it in an inline for Yi
 And did the other stuff
 
 Thanks,
-Jason",repeated,
+Jason",repeated,yes
 CA+CK2bC-uMw6hSNRCeWQjKDihd7=fd01g9VyQ_Y1iRwcq0LAaw@mail.gmail.com,linux-iommu,96,"['20240221194052.927623-1-surenb@google.com'
  '20240221194052.927623-2-surenb@google.com'
  '20240221194052.927623-3-surenb@google.com'
@@ -366687,7 +366687,7 @@ On Tue, Mar 12, 2024 at 11:23:45AM -0700, Luis Chamberlain wrote:
 > loading and unloading should just work, otherwise then this should not
 > work with modules and leave them in a zombie state.
 
-Not have memory allocation profiling on modules?",duplicate,
+Not have memory allocation profiling on modules?",duplicate,no
 CAMSpPPd7awDB_JL0_4pY9qiSXeLt3QzpSL95XogyE9h0kgyq_A@mail.gmail.com,linux-iommu,1,['CAMSpPPd7awDB_JL0_4pY9qiSXeLt3QzpSL95XogyE9h0kgyq_A@mail.gmail.com'],2017-03-29 04:43:31,Re: [RFC PATCH 1/3] of/pci: dma-ranges to account highest possible host bridge dma_mask,dc59b4ae622b271988e4333f8896861be92681a5 <525b08bdcacfa7f794099915facb19402392289f>,"['e276a6e67762a9cf9b07891dafeb1932a294cacb <6ac54bea1cf3392edb2b8f3bd1606d7d4f447dc6>'
  'b8db0ee25d0a0457be57ffdf93c1c738a95903ef <779f9ebcf3316b8bafc3e10a4b5d06f9a9cdeeb3>'
  '5c2ca34f2eecacb1f43feda674ff1d5b4b2b0ce7 <ce9feb902b77f8f63cd06385763933799760d021>'
@@ -366941,7 +366941,7 @@ Oza.
 --
 To unsubscribe from this list: send the line ""unsubscribe devicetree"" in
 e616da6e075bb09bca79677b959c39b084a0cc4e <68b2066a863cd1915ba207391788e65d41337c88>
-More majordomo info at  http://vger.kernel.org/majordomo-info.html",duplicated,
+More majordomo info at  http://vger.kernel.org/majordomo-info.html",duplicated,yes
 CAPY8ntDuKjD08Q0Y8uukpd7ep85y2qoGDv8hPFxu3QPmL8+wew@mail.gmail.com,linux-iommu,36,"['20240524182702.1317935-1-dave.stevenson@raspberrypi.com'
  '20240524182702.1317935-2-dave.stevenson@raspberrypi.com'
  '20240524182702.1317935-3-dave.stevenson@raspberrypi.com'
@@ -370663,7 +370663,7 @@ As noted in the cover letter for this series, if this isn't the
 approved mechanism, then please let me know what is.
 
 Many thanks
-  Dave","duplicate,duplicated",
+  Dave","duplicate,duplicated",yes
 FFF73D592F13FD46B8700F0A279B802F573BC731@ORSMSX114.amr.corp.intel.com,linux-iommu,8,"['cover.1590686413.git.sai.praneeth.prakhya@intel.com'
  'c76e3912c49d5a28bd9c8c30fb35d546a2f26724.1590686413.git.sai.praneeth.prakhya@intel.com'
  '27526650577dc4f521732c37cdac78c68ac99045.1590686413.git.sai.praneeth.prakhya@intel.com'
@@ -372186,7 +372186,7 @@ Sai
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",duplicating,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",duplicating,no
 ZC8e1QKO64pDdPfk@nvidia.com,linux-iommu,36,"['0-v3-e89a9bb522f5+8c87-iommu_err_unwind_jgg@nvidia.com'
  '1-v3-e89a9bb522f5+8c87-iommu_err_unwind_jgg@nvidia.com'
  '2-v3-e89a9bb522f5+8c87-iommu_err_unwind_jgg@nvidia.com'
@@ -376018,7 +376018,7 @@ blocking behavior, if they have a failure from that point they can
 leave the device blocking. When the core code asks for blocking during
 the error handling it is NOP.
 
-Jason","duplicate,duplication",
+Jason","duplicate,duplication",yes
 ZuFGr53PK3HvhRHl@archie.me,linux-iommu,8,"['20240910204111.7969-1-nicolinc@nvidia.com' 'ZuD8tsci0JPikUYL@archie.me'
  'ZuEbir5Np3sUFkHz@nvidia.com'
  'BN9PR11MB5276142EF52299176BA3179F8C9B2@BN9PR11MB5276.namprd11.prod.outlook.com'
@@ -376802,7 +376802,7 @@ I see. I did this:
 +     flag is set.
 
 Thanks
-Nicolin","duplicate,redundant",
+Nicolin","duplicate,redundant",no
 a0ff60da-a7f9-42db-9942-a7ded659884a@amd.com,linux-iommu,40,"['20240801144523.11803-1-vasant.hegde@amd.com'
  '8e531f39-9d14-4d3b-8a52-c2e8ca026f9e@linux.intel.com'
  '098008f7-2b3e-405a-a096-947e5df560e6@amd.com'
@@ -379739,7 +379739,7 @@ Will post the patch soon.
 >         return __iommu_group_domain_alloc(group, req_type);
 >  }
 > 
-> Jason",duplication,
+> Jason",duplication,yes
 b949c36e-f72c-49be-a243-535c43189d1b@nvidia.com,linux-iommu,9,"['20251205065850.3841834-1-amhetre@nvidia.com'
  '20251205065850.3841834-2-amhetre@nvidia.com'
  '20251205065850.3841834-3-amhetre@nvidia.com'
@@ -381005,7 +381005,7 @@ and re-post.
 > +	new_smmu = __tegra241_cmdqv_probe(smmu, res, irq);
 >   	if (new_smmu)
 >   		return new_smmu;
->",duplicate,
+>",duplicate,no
 cd32131caab8833f48180ee1df79c9da020c5a48.1432735420.git.robin.murphy@arm.com,linux-iommu,5,"['a62413d7c6a1c80e46fe7d4deb1d6f60c13c1c6f.1432735420.git.robin.murphy@arm.com'
  '141cbb28b55e3d748c6426f56016c46e8cf93109.1432735420.git.robin.murphy@arm.com'
  'cd32131caab8833f48180ee1df79c9da020c5a48.1432735420.git.robin.murphy@arm.com'
@@ -382398,7 +382398,7 @@ feedback?
 
 Thanks,
 
-	Joerg",redundant,
+	Joerg",redundant,no
 e9754210-0907-56ac-c286-0aa82ee79e4c@linux.ibm.com,linux-iommu,12,"['20221007095005.2017126-1-schnelle@linux.ibm.com'
  '20221007095005.2017126-2-schnelle@linux.ibm.com'
  '20221007095005.2017126-3-schnelle@linux.ibm.com'
@@ -383766,4 +383766,4 @@ rc3 before taking any patches.
 But I would post and origanize all the things you want for 6.1 next
 week.
 
-Jason","duplicate,duplicates",
+Jason","duplicate,duplicates",no

@@ -2,34 +2,18 @@
 """
 Builds email threads from raw LKML parquet files.
 
-Input:
-    A folder containing one or more parquet files with raw LKML messages
-    (must include the `message_id`, `in_reply_to`, `references` and `date`
-    columns).
+Input: a folder of parquet files with raw LKML messages (needs `message_id`,
+`in_reply_to`, `references` and `date`).
 
-Output:
-    For each input parquet file, a parquet file with the same name and the
-    same columns as the input, plus two extra columns:
+Output: one parquet per input file in `build_threads_output/`, with the input
+columns plus `_thread_id` and `list`. Messages linked through the
+`In-Reply-To`/`References` headers (via union-find) share a `_thread_id`;
+`list` comes from the `list_data_<name>.parquet` filename.
 
-        _thread_id, list
-
-    All rows belonging to the same discussion thread (linked through the
-    `In-Reply-To`/`References` headers, via union-find) share the same
-    `_thread_id`. `list` is the mailing list the file belongs to, taken from
-    the input filename (`list_data_<name>.parquet`, the same convention
-    `select_sample/v1/select_sample_v1.py` relies on).
-    Output files are written to `build_threads_output/` at the project root.
-
-    With `--collapse`, the output has one row per thread instead of one row
-    per message. Each row aggregates every message of the thread (sorted
-    chronologically) into:
-
-        _thread_id, list, n_messages, message_ids, date, subject, from, cc,
-        thread_content
-
-    `thread_content` concatenates the subject, sender and body of every
-    message in the thread, in order, using the same per-message block
-    format as `classify/classify_threads.py`'s LLM prompt.
+With `--collapse`, the output has one row per thread instead of one per
+message, aggregating each thread into `thread_content` -- subject, sender and
+body of every message in chronological order, in the same per-message block
+format as `classify/classify_threads.py`'s LLM prompt.
 """
 
 import argparse
@@ -56,10 +40,8 @@ LIST_DATA_PREFIX = "list_data_"
 
 
 def list_name_from_path(input_path):
-    """Derive the mailing list name from an input filename, following the
-    `list_data_<name>.parquet` convention (see `select_sample/v1/select_sample_v1.py`).
-
-    Falls back to the filename stem for files that don't follow it.
+    """Derive the list name from a `list_data_<name>.parquet` filename,
+    falling back to the filename stem.
     """
     stem = os.path.splitext(os.path.basename(input_path))[0]
 
@@ -108,8 +90,8 @@ def clean_msg_id(x):
     if match:
         return match.group(1)
 
-    # No `@` -> not a real id (e.g. placeholder "Empty"); treat as missing
-    # instead of merging every message that shares it into one thread.
+    # No `@` -> not a real id (e.g. the "Empty" placeholder); treat as missing
+    # so every message sharing it doesn't merge into one thread.
     return None
 
 
@@ -182,16 +164,20 @@ def build_thread_order(light_df):
 
     uf = UnionFind()
 
+    known_ids = set(light_df["_msg_id"])
+
     for msg_id in light_df["_msg_id"]:
         uf.find(msg_id)
 
     for _, row in light_df.iterrows():
         msg_id = row["_msg_id"]
 
-        # in_reply_to is primary; fall back to the last id in references
-        # (immediate parent, RFC 5322) only when in_reply_to is missing.
+        # Part of the archive has `In-Reply-To` rewritten into an id no message
+        # actually has, while `References` kept the original -- so the fallback
+        # (last id = immediate parent, RFC 5322) must also cover an in_reply_to
+        # that matches nothing, not just a missing one.
         parent_id = clean_msg_id(row["in_reply_to"])
-        if parent_id is None:
+        if parent_id is None or parent_id not in known_ids:
             ref_ids = extract_msg_ids(row["references"])
             if ref_ids:
                 parent_id = ref_ids[-1]
@@ -211,9 +197,8 @@ def build_thread_order(light_df):
 
 
 def _view_type_replacement(t):
-    """Recursively map `string_view`/`binary_view` to `large_string`/`large_binary`.
-
-    Returns None if `t` contains no view type (nothing to replace).
+    """Recursively map `string_view`/`binary_view` to `large_string`/
+    `large_binary`, or None if `t` has no view type to replace.
     """
     if pa.types.is_string_view(t):
         return pa.large_string()
@@ -245,11 +230,8 @@ def _view_type_replacement(t):
 
 
 def normalize_view_types(table):
-    """Cast away `string_view`/`binary_view` columns.
-
-    Some dataset files use these Arrow types, which several pyarrow compute
-    kernels (e.g. `take`) don't support yet. No-op for files that don't use
-    them (e.g. `iio`/`amd`), so their output schema is unaffected.
+    """Cast away `string_view`/`binary_view` columns: several pyarrow kernels
+    (e.g. `take`) don't support them yet. No-op for files without them.
     """
     changed = False
     new_fields = []
@@ -269,9 +251,7 @@ def _text(x):
 
 
 def build_thread_content(thread_df):
-    """Concatenate the subject, sender and body of every message in a
-    thread, in order, into a single block of text.
-    """
+    """Concatenate subject, sender and body of every message into one block."""
     total = len(thread_df)
     parts = []
 
@@ -291,11 +271,8 @@ def build_thread_content(thread_df):
 
 
 def build_collapsed_frame(input_path, sorted_positions, thread_ids_sorted, list_name):
-    """One row per thread: `thread_content` plus a few summary columns.
-
-    Rows are grouped in the same (_thread_id, date, original order) sort
-    produced by `build_thread_order`, so `thread_content` lists messages
-    chronologically and each thread's `date` is its earliest message.
+    """One row per thread. Relies on `build_thread_order`'s sort, so messages
+    come out chronologically and each thread's `date` is its earliest one.
     """
     content_table = pq.read_table(input_path, columns=COLLAPSE_COLUMNS)
     content_df = pd.DataFrame({
@@ -326,8 +303,8 @@ def build_collapsed_frame(input_path, sorted_positions, thread_ids_sorted, list_
 def build_threads_for_file(input_path, output_path, collapse=False):
     list_name = list_name_from_path(input_path)
 
-    # pyarrow + to_pylist() instead of pd.read_parquet(): handles `string_view`
-    # list columns (e.g. references) that pandas/pyarrow can't convert directly.
+    # to_pylist() instead of pd.read_parquet(): pandas can't convert the
+    # `string_view` list columns (e.g. references) some files use.
     light_table = pq.read_table(input_path, columns=THREAD_BUILD_COLUMNS)
     light_df = pd.DataFrame({
         col: light_table.column(col).to_pylist() for col in THREAD_BUILD_COLUMNS

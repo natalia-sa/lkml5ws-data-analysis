@@ -208,8 +208,8 @@ def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
     assert first_block.index("Subject:") < first_block.index("From:") < first_block.index("Email body:")
 
 
-# When both `in_reply_to` and `references` are filled, `in_reply_to` must take priority even when the last id in `references` points somewhere else.
-def test_reply_with_in_reply_to_and_references_prefers_in_reply_to(tmp_path):
+# When both `in_reply_to` and `references` are filled and `in_reply_to` matches a known message, it must take priority even when the last id in `references` points somewhere else.
+def test_reply_prefers_in_reply_to_when_it_matches_a_known_message(tmp_path):
     parent_id = (
         "cfa05b01fcdcdc7ec5d3e5a7bb937122162d1176"
         ".1466161813.git.leonard.crestez@intel.com"
@@ -227,6 +227,36 @@ def test_reply_with_in_reply_to_and_references_prefers_in_reply_to(tmp_path):
             "in_reply_to": parent_id,
             "references": ["201606180552.Se53pkBn%fengguang.wu@intel.com"],
             "date": "2016-06-17 21:20:44",
+        },
+    ])
+
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
+
+    assert len(set(thread_ids.values())) == 1
+    assert (result["list"] == "testlist").all()
+
+
+# A reply whose `in_reply_to` was rewritten by the archive into an id no
+# message in the list has must still join its parent's thread through the
+# original id kept in `references`.
+def test_reply_with_rewritten_in_reply_to_links_via_references(tmp_path):
+    parent_id = "20151028211309.14155.23867.stgit@gimli.home"
+
+    df = pd.DataFrame([
+        {
+            "message_id": parent_id,
+            "in_reply_to": None,
+            "references": None,
+            "date": "2015-10-28 21:21:45",
+        },
+        {
+            "message_id": "20151028234124-mutt-send-email-mst@redhat.com",
+            "in_reply_to": (
+                "20151028211309.14155.23867.stgit"
+                "-GCcqpEzw8uZBDLzU/O5InQ@public.gmane.org"
+            ),
+            "references": [parent_id],
+            "date": "2015-10-28 21:46:52",
         },
     ])
 
