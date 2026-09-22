@@ -15,17 +15,28 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(HERE))
 BUILD_THREADS_DIR = os.path.join(PROJECT_ROOT, "build_threads_output")
 PRE_FILTER_DIR = os.path.join(PROJECT_ROOT, "pre_filter", "pre_filter_output")
-OUTPUT_FILE = os.path.join(HERE, "sample_review_v2.csv")
-USP_OUTPUT_FILE = os.path.join(HERE, "sample_review_usp_v2.csv")
+REVIEWER_DIR = os.path.join(HERE, "reviser1")
+OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_v2.csv")
+USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp_v2.csv")
 
 sys.path.insert(0, PROJECT_ROOT)
+from pre_filter.pre_filter_threads import COMMON_HELPER_RE, COMMON_HELPER_TERM  # noqa: E402
 from pre_filter.pre_filter_threads import matches as compute_matched_terms  # noqa: E402
+from pre_filter.pre_filter_threads import strip_quotes  # noqa: E402
+
+# One folder per reviewer, all kept in sync when threads are appended so
+# every reviewer gets the same rows to label. --reviewer picks which one
+# the review session writes to.
+REVIEWER_DIRS = [REVIEWER_DIR, os.path.join(HERE, "reviser2")]
+
+N_COMMON_HELPER_PER_LIST = 5
 
 # Broader than pre_filter's CANDIDATE_RE (includes clon(e/ed/ing/es)) since
 # this is only for visually flagging candidate spots during manual review,
 # not for deciding what counts as a match.
 HIGHLIGHT_RE = re.compile(
-    r"\b(?:duplicat\w*|dedup\w*|redundant\w*|repeated|clon(?:e|ed|ing|es)?|copy[-_\s]?past(?:e|ed|ing))\b",
+    r"\b(?:duplicat\w*|dedup\w*|redundant\w*|repeated|clon(?:e|ed|ing|es)?|copy[-_\s]?past(?:e|ed|ing))\b"
+    f"|{COMMON_HELPER_RE.pattern}",
     re.IGNORECASE,
 )
 
@@ -48,6 +59,15 @@ COLUMNS = [
 # thread; the USP sample instead comes straight from build_threads_output
 # (no `matched_terms` column there), so load_usp_threads() computes it itself.
 PRE_FILTER_COLUMNS = COLUMNS + ["matched_terms"]
+
+
+def use_reviewer(number):
+    """Points the sample files at one reviewer's folder (1-based)."""
+    global REVIEWER_DIR, OUTPUT_FILE, USP_OUTPUT_FILE
+
+    REVIEWER_DIR = REVIEWER_DIRS[number - 1]
+    OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_v2.csv")
+    USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp_v2.csv")
 
 
 def matches_usp(row):
@@ -130,6 +150,7 @@ def pick_thread_keys(matches, seed, n_threads_per_list=N_THREADS_PER_LIST):
 
 
 def build_sample(seed, usp=False):
+    os.makedirs(REVIEWER_DIR, exist_ok=True)
     matches = load_usp_threads() if usp else load_matching_threads()
     output_file = USP_OUTPUT_FILE if usp else OUTPUT_FILE
     n_threads_per_list = None if usp else N_THREADS_PER_LIST
@@ -151,6 +172,62 @@ def build_sample(seed, usp=False):
 
     sample.to_csv(output_file, index=False)
     print(f"Saved sample to: {output_file}")
+
+
+def load_common_helper_threads(known_keys):
+    """Threads picked up only by pre_filter's COMMON_HELPER_RE arm ("move
+    this into a common helper"), which was added after the samples were
+    drawn and so is not covered by them yet. Threads already sampled are
+    skipped."""
+    frames = []
+
+    for list_name in LISTS:
+        path = os.path.join(BUILD_THREADS_DIR, f"list_data_{list_name}.parquet")
+        df = pd.read_parquet(path, columns=COLUMNS)
+        terms = df["thread_content"].apply(lambda c: compute_matched_terms(strip_quotes(c)))
+        df = df[terms.map(lambda t: t == [COMMON_HELPER_TERM])].copy()
+        df["matched_terms"] = COMMON_HELPER_TERM
+        frames.append(df)
+
+    all_matches = pd.concat(frames, ignore_index=True)
+    keys = pd.Series(list(zip(all_matches["list"], all_matches["_thread_id"])))
+
+    return all_matches[~keys.isin(known_keys).values].reset_index(drop=True)
+
+
+def _sample_keys(sample_file):
+    if not os.path.exists(sample_file):
+        return set()
+
+    sample = pd.read_csv(sample_file, usecols=["list", "thread_id"], dtype=str)
+    return set(zip(sample["list"], sample["thread_id"]))
+
+
+def add_common_helper_threads(seed, n_per_list=N_COMMON_HELPER_PER_LIST):
+    """Appends unlabelled common-helper threads to every reviewer's main
+    sample, keeping the rows (and labels) already there untouched. They are
+    then picked up by the next `review()` run."""
+    known_keys = _usp_sample_keys()
+    for reviewer_dir in REVIEWER_DIRS:
+        known_keys |= _sample_keys(os.path.join(reviewer_dir, os.path.basename(OUTPUT_FILE)))
+
+    candidates = load_common_helper_threads(known_keys)
+    picked_keys, _ = pick_thread_keys(candidates, seed, n_threads_per_list=n_per_list)
+
+    picked = candidates.merge(picked_keys, on=["list", "_thread_id"])
+    picked = picked.sort_values(["list", "_thread_id"])
+    picked = picked.rename(columns={"_thread_id": "thread_id"})
+    picked["is_clone_refactoring"] = ""
+
+    print(f"Candidate common-helper threads: {len(candidates)}")
+    print(f"Appending {len(picked)} thread(s) ({n_per_list}/list) to each reviewer sample")
+
+    for reviewer_dir in REVIEWER_DIRS:
+        sample_file = os.path.join(reviewer_dir, os.path.basename(OUTPUT_FILE))
+        current = pd.read_csv(sample_file, dtype=str, keep_default_na=False)
+        updated = pd.concat([current, picked[current.columns]], ignore_index=True)
+        updated.to_csv(sample_file, index=False)
+        print(f"  {sample_file}: {len(current)} -> {len(updated)} rows")
 
 
 def highlight(text):
@@ -251,7 +328,26 @@ def main():
             f"{USP_YEAR_MAX}."
         ),
     )
+    parser.add_argument(
+        "--add-common-helper",
+        action="store_true",
+        help=(
+            f"Append {N_COMMON_HELPER_PER_LIST} unlabelled threads per list "
+            "matched only by pre_filter's common-helper arm to every "
+            "reviewer's main sample, then exit."
+        ),
+    )
+    parser.add_argument(
+        "--reviewer", type=int, choices=range(1, len(REVIEWER_DIRS) + 1), default=1,
+        help="Which reviewer's sample files to review (default: 1)",
+    )
     args = parser.parse_args()
+
+    use_reviewer(args.reviewer)
+
+    if args.add_common_helper:
+        add_common_helper_threads(args.seed)
+        return
 
     output_file = USP_OUTPUT_FILE if args.usp else OUTPUT_FILE
 
