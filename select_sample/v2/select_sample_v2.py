@@ -22,7 +22,7 @@ USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp_v2.csv")
 sys.path.insert(0, PROJECT_ROOT)
 from pre_filter.pre_filter_threads import COMMON_HELPER_RE, COMMON_HELPER_TERM  # noqa: E402
 from pre_filter.pre_filter_threads import matches as compute_matched_terms  # noqa: E402
-from pre_filter.pre_filter_threads import strip_quotes  # noqa: E402
+from pre_filter.pre_filter_threads import replace_quotes  # noqa: E402
 
 # One folder per reviewer, all kept in sync when threads are appended so
 # every reviewer gets the same rows to label. --reviewer picks which one
@@ -184,7 +184,7 @@ def load_common_helper_threads(known_keys):
     for list_name in LISTS:
         path = os.path.join(BUILD_THREADS_DIR, f"list_data_{list_name}.parquet")
         df = pd.read_parquet(path, columns=COLUMNS)
-        terms = df["thread_content"].apply(lambda c: compute_matched_terms(strip_quotes(c)))
+        terms = df["thread_content"].apply(lambda c: compute_matched_terms(replace_quotes(c)))
         df = df[terms.map(lambda t: t == [COMMON_HELPER_TERM])].copy()
         df["matched_terms"] = COMMON_HELPER_TERM
         frames.append(df)

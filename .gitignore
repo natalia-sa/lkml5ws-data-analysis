@@ -28,7 +28,7 @@ patchwork/*-duplicated-status.parquet
 patchwork/.patchwork_cache.json
 
 # Dados gerados pela classificação por LLM (classify_threads.py)
-classify/classify_output/
+classify/*/classify_output/
 
 # Cache de respostas do LLM (classify_threads.py)
-classify/llm_cache.json
+classify/*/llm_cache.json
