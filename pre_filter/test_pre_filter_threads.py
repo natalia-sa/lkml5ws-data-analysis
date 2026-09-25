@@ -56,6 +56,48 @@ def test_quoted_block_is_replaced():
     assert matches(content) == []
 
 
+def make_message(position, total, sender, body):
+    """One message in the layout build_threads writes to thread_content."""
+    return (
+        "\n"
+        "================================================\n"
+        f"MESSAGE {position} of {total}\n"
+        "================================================\n"
+        f"\nSubject:\nRe: [PATCH] foo: add bar\n"
+        f"\nFrom:\n{sender}\n"
+        f"\nEmail body:\n{body}\n"
+    )
+
+
+# An Outlook-style quote has no "> " on its lines: from its header to the end
+# of the message it becomes one placeholder, and the next message is kept.
+@pytest.mark.parametrize("header", [
+    "-----Original Message-----\nFrom: Bob <bob@example.com>\nSent: Monday, May 6, 2019 10:00 AM",
+    "________________________________\nFrom: Bob <bob@example.com>\nSent: Monday, May 6, 2019 10:00",
+    "From: Bob [mailto:bob@example.com]\nSent: Monday, May 6, 2019 10:00 AM\nTo: Alice",
+])
+def test_outlook_quote_is_replaced(header):
+    quote = f"{header}\nSubject: Re: [PATCH] foo: add bar\n\nPlease deduplicate this.\n"
+    content = replace_quotes(
+        make_message(1, 2, "Alice", f"Thanks, fixed in v2.\n\n{quote}")
+        + make_message(2, 2, "Bob", "Applied.")
+    )
+
+    assert f"Thanks, fixed in v2.\n\n{QUOTE_PLACEHOLDER}\n" in content
+    assert "MESSAGE 2 of 2" in content and "Applied." in content
+    assert matches(content) == []
+
+
+# The build_threads sender header ("From:" alone on its line) and a patch
+# author line ("From: name <email>" with no "Sent:") are not quotes.
+def test_from_lines_that_are_not_outlook_quotes_are_kept():
+    body = "From: Alice <alice@example.com>\n\nRemove the duplicated setup code."
+    content = make_message(1, 1, "Alice <alice@example.com>", body)
+
+    assert replace_quotes(content) == content
+    assert matches(replace_quotes(content)) == ["duplicated"]
+
+
 def make_thread(thread_id, thread_content):
     return {"_thread_id": thread_id, "list": "testlist", "thread_content": thread_content}
 

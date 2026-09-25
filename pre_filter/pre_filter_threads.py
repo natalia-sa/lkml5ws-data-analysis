@@ -117,12 +117,31 @@ QUOTED_BLOCK_RE = re.compile(r"(?:^[ \t]*>.*\n?)+", re.MULTILINE)
 
 QUOTE_PLACEHOLDER = "[quoted text removed]"
 
+# Separator build_threads writes before each message of thread_content.
+MESSAGE_SEPARATOR = r"\n?={48}\nMESSAGE \d+ of \d+\n={48}\n"
+
+# An Outlook-style (top-posted) quote: the earlier message pasted below a
+# header, without "> " on its lines, so QUOTED_BLOCK_RE misses it. The header
+# is an "Original Message" line, a line of underscores followed by "From:",
+# or a "From: ..." line with "Sent: ..." in the next few lines -- the
+# build_threads sender header ("From:" alone on its line) never matches.
+# Everything from the header to the end of the message is the quote.
+OUTLOOK_QUOTE_RE = re.compile(
+    r"^[ \t]*(?:"
+    r"-{2,}[ \t]*Original Message[ \t]*-{2,}"
+    r"|_{10,}[ \t]*\n(?=From:)"
+    r"|From:[ \t]*\S[^\n]*\n(?:[^\n]*\n){0,2}?[ \t]*Sent:"
+    r")[\w\W]*?(?=" + MESSAGE_SEPARATOR + r"|\Z)",
+    re.MULTILINE | re.IGNORECASE,
+)
+
 
 def replace_quotes(thread_content):
-    """Replaces each block of quoted reply lines with QUOTE_PLACEHOLDER, so
-    each piece of text is kept (and matched) once, while the reply still
-    shows where it was answering an earlier message."""
-    return QUOTED_BLOCK_RE.sub(QUOTE_PLACEHOLDER + "\n", thread_content or "")
+    """Replaces each block of quoted reply lines, and each Outlook-style quote,
+    with QUOTE_PLACEHOLDER, so each piece of text is kept (and matched) once,
+    while the reply still shows where it was answering an earlier message."""
+    content = QUOTED_BLOCK_RE.sub(QUOTE_PLACEHOLDER + "\n", thread_content or "")
+    return OUTLOOK_QUOTE_RE.sub(QUOTE_PLACEHOLDER + "\n", content)
 
 
 def match_spans(thread_content):
