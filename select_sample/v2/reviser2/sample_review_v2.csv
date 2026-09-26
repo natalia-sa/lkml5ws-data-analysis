@@ -385149,7 +385149,7 @@ index 61bb3d52641c..76fe5a9af3bf 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes
 20201116173700.1830487-12-lee.jones@linaro.org,amd,75,"['20201116173700.1830487-1-lee.jones@linaro.org'
  '20201116173700.1830487-2-lee.jones@linaro.org'
  '20201116173700.1830487-3-lee.jones@linaro.org'
@@ -393482,7 +393482,7 @@ Alex
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,no
 8da6ee63-c970-f8da-3e3b-9172cf338725@gmail.com,amd,18,"['20180914191246.1609-1-christian.koenig@amd.com'
  '20180914191246.1609-2-christian.koenig@amd.com'
  '20180914191246.1609-3-christian.koenig@amd.com'
@@ -396145,7 +396145,7 @@ Acked-by: Alex Deucher <alexander.deucher@amd.com>
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes
 CADnq5_M89n3R8SLWxcMpVnsTLurgZFqB9-p2g_XrST5_4=F=Pg@mail.gmail.com,amd,52,"['20201110193112.988999-1-lee.jones@linaro.org'
  '20201110193112.988999-2-lee.jones@linaro.org'
  '20201110193112.988999-3-lee.jones@linaro.org'
@@ -400866,7 +400866,7 @@ Follow Linaro: Facebook | Twitter | Blog
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,no
 CH0PR12MB5372CB12428104E240F5FA2DF40B9@CH0PR12MB5372.namprd12.prod.outlook.com,amd,5,"['20220309221645.468184-1-jonathan.kim@amd.com'
  '99d17bed-06e1-45c2-7a70-449f1ae47eb0@amd.com'
  'DM6PR12MB3163413DD1FA0B1BFA460A7E850A9@DM6PR12MB3163.namprd12.prod.outlook.com'
@@ -401298,7 +401298,7 @@ Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
 >>>      }
 >>>
 >>>      if ((adev->psp.sys.size_bytes == 0) || (adev->psp.sos.size_bytes ==
->>> 0)) {",common-helper,
+>>> 0)) {",common-helper,no
 1317133794-16397-7-git-send-email-jic23@cam.ac.uk,iio,8,"['1317133794-16397-2-git-send-email-jic23@cam.ac.uk'
  '1317133794-16397-3-git-send-email-jic23@cam.ac.uk'
  '1317133794-16397-7-git-send-email-jic23@cam.ac.uk'
@@ -407948,7 +407948,7 @@ Michael
 Analog Devices GmbH      Wilhelm-Wagenfeld-Str. 6      80807 Muenchen
 Sitz der Gesellschaft: Muenchen; Registergericht: Muenchen HRB 40368;
 Geschaeftsfuehrer:Dr.Carsten Suckrow, Thomas Wessel, William A. Martin,
-Margaret Seif",common-helper,
+Margaret Seif",common-helper,no
 1568723896-19063-2-git-send-email-fabrice.gasnier@st.com,iio,4,"['1568723896-19063-1-git-send-email-fabrice.gasnier@st.com'
  '1568723896-19063-2-git-send-email-fabrice.gasnier@st.com'
  '1568723896-19063-3-git-send-email-fabrice.gasnier@st.com'
@@ -408615,7 +408615,7 @@ Jonathan
 > +#define STM32_ADC_OFFSET		0x100
 >  #define STM32_ADCX_COMN_OFFSET		0x300
 >  
->  /* STM32F4 - Registers for each ADC instance */",common-helper,
+>  /* STM32F4 - Registers for each ADC instance */",common-helper,yes
 20201108155213.1c91e3b9@archlinux,iio,24,"['20201102174950.1148498-1-dmitry.baryshkov@linaro.org'
  '20201102174950.1148498-2-dmitry.baryshkov@linaro.org'
  '20201102174950.1148498-3-dmitry.baryshkov@linaro.org'
@@ -413257,7 +413257,7 @@ isr is a threaded IRQ, so it won't deadlock here.
 
 -- 
 With best wishes
-Dmitry",common-helper,
+Dmitry",common-helper,yes
 2025031413-bunny-stroller-cb42@gregkh,iio,2,"['20250313194801.16035f96@jic23-huawei'
  '2025031413-bunny-stroller-cb42@gregkh']",2025-03-13 19:48:01,"[PULL] IIO: New device support, features and cleanup for 6.15",Jonathan Cameron <jic23@kernel.org>,,"================================================
 MESSAGE 1 of 2
@@ -414006,7 +414006,7 @@ On Thu, Mar 13, 2025 at 07:48:01PM +0000, Jonathan Cameron wrote:
 
 Pulled and pushed out, thanks.
 
-greg k-h",common-helper,
+greg k-h",common-helper,no
 YAqkH0YPCc7DC4Sl@kroah.com,iio,2,['20210122090927.2fd2e3c1@archlinux' 'YAqkH0YPCc7DC4Sl@kroah.com'],2021-01-22 09:09:27,"[PULL] 1st set of new IIO device support, features and cleanups for the 5.12 cycle",Jonathan Cameron <jic23@kernel.org>,,"================================================
 MESSAGE 1 of 2
 ================================================
@@ -414305,7 +414305,7 @@ On Fri, Jan 22, 2021 at 09:09:27AM +0000, Jonathan Cameron wrote:
 
 Pulled and pushed out, thanks.
 
-greg k-h",common-helper,
+greg k-h",common-helper,no
 173223242767.2158732.9121852463880531015.pr-tracker-bot@kernel.org,linux-i2c,2,"['Zz7_OUd-y4ZjnlFZ@ninjato'
  '173223242767.2158732.9121852463880531015.pr-tracker-bot@kernel.org']",2024-11-21 09:36:57,[PULL REQUEST] i2c-for-6.13-rc1,d8d41664c872f27b6677e1699b7f9cf2a556f74e <3848b1a2b66af6d9a286674f05f35b155bd154dc>,"['4596cdc9eedabb3cffcba4a14974a7bbb207be5e'
  'f788566a4ef114d663f963f9fd5bf61269f6750b'
@@ -414721,7 +414721,7 @@ Thank you!
 
 -- 
 Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html",common-helper,
+https://korg.docs.kernel.org/prtracker.html",common-helper,no
 202410100921.WVORo97f-lkp@intel.com,linux-i2c,4,"['20241007023900.3924763-1-aryan.srivastava@alliedtelesis.co.nz'
  '20241007023900.3924763-2-aryan.srivastava@alliedtelesis.co.nz'
  '20241007023900.3924763-3-aryan.srivastava@alliedtelesis.co.nz'
@@ -415338,7 +415338,7 @@ dcdb10ccc89293 Aryan Srivastava 2024-10-07  533
 
 -- 
 0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki",common-helper,
+https://github.com/intel/lkp-tests/wiki",common-helper,yes
 20241030072229.1013235-2-wenst@chromium.org,linux-i2c,10,"['20241030072229.1013235-1-wenst@chromium.org'
  '20241030072229.1013235-2-wenst@chromium.org'
  '20241030072229.1013235-3-wenst@chromium.org'
@@ -417630,7 +417630,7 @@ I'll send an update.
 >
 > --
 > Best regards,
-> Andrey Skvortsov",common-helper,
+> Andrey Skvortsov",common-helper,no
 CAD=FV=XsUbyB4enDobda3eDoTpCqdgVogyC3YWGe9rsjgR1REw@mail.gmail.com,linux-i2c,15,"['20210625052213.32260-1-vkoul@kernel.org'
  '20210625052213.32260-2-vkoul@kernel.org'
  '20210625052213.32260-3-vkoul@kernel.org'
@@ -420751,7 +420751,7 @@ I am sure it wont be trivial and may not work out of box, but would be a
 good experiment to do :)
 
 -- 
-~Vinod",common-helper,
+~Vinod",common-helper,yes
 Z_nP3FGEZzvRf26g@archie.me,linux-i2c,26,"['20250410200202.2974062-1-superm1@kernel.org'
  '20250410200202.2974062-2-superm1@kernel.org'
  '20250410200202.2974062-3-superm1@kernel.org'
@@ -422784,7 +422784,7 @@ index 83c88c79afe2..bbbd6240fa6e 100644
 +	depends on PCI && HAS_IOPORT && X86
  	select I2C_SMBUS
  	help
- 	  If you say yes to this option, support will be included for the Intel",common-helper,
+ 	  If you say yes to this option, support will be included for the Intel",common-helper,yes
 1612385805-3412-5-git-send-email-megha.dey@intel.com,linux-iommu,16,"['1612385805-3412-1-git-send-email-megha.dey@intel.com'
  '1612385805-3412-2-git-send-email-megha.dey@intel.com'
  '1612385805-3412-3-git-send-email-megha.dey@intel.com'
@@ -424752,7 +424752,7 @@ Thanks
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",common-helper,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",common-helper,yes
 20190213182920.16764-2-hch@lst.de,linux-iommu,22,"['20190213182920.16764-1-hch@lst.de' '20190213182920.16764-2-hch@lst.de'
  '20190213182920.16764-3-hch@lst.de' '20190213182920.16764-4-hch@lst.de'
  '20190213182920.16764-5-hch@lst.de' '20190213182920.16764-6-hch@lst.de'
@@ -427706,7 +427706,7 @@ index ad46594b3799..cfa084bca3ea 100644
  
  pgprot_t arch_dma_mmap_pgprot(struct device *dev, pgprot_t prot,
 -- 
-2.20.1",common-helper,
+2.20.1",common-helper,yes
 20200827145735.GI3319@8bytes.org,linux-iommu,121,"['20200826111628.794979401@linutronix.de'
  '20200826112330.683298931@linutronix.de'
  '20200826112330.806095671@linutronix.de'
@@ -439038,7 +439038,7 @@ Jason
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",common-helper,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",common-helper,yes
 20251117184815.1027271-3-smostafa@google.com,linux-iommu,44,"['20251117184815.1027271-1-smostafa@google.com'
  '20251117184815.1027271-2-smostafa@google.com'
  '20251117184815.1027271-3-smostafa@google.com'
@@ -445319,7 +445319,7 @@ Attach it to the aux device :\
 Kernel is monolithic, you don't need to worry about people doing silly
 games with modules.
 
-Jason",common-helper,
+Jason",common-helper,yes
 C5ECD7A89D1DC44195F34B25E172658D4B820D@039-SN2MPN1-011.039d.mgd.msft.net,linux-iommu,10,"['1366691726-9023-1-git-send-email-Varun.Sethi@freescale.com'
  '1366691726-9023-2-git-send-email-Varun.Sethi@freescale.com'
  '1366691726-9023-3-git-send-email-Varun.Sethi@freescale.com'
@@ -448951,4 +448951,4 @@ Email body:
 > 
 Ok, I will post the next version of the patch set.
 
--Varun",common-helper,
+-Varun",common-helper,yes
