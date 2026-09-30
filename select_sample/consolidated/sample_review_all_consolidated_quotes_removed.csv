@@ -13502,7 +13502,7 @@ Michael
 Analog Devices GmbH      Wilhelm-Wagenfeld-Str. 6      80807 Muenchen
 Sitz der Gesellschaft: Muenchen; Registergericht: Muenchen HRB 40368;
 Geschaeftsfuehrer:Dr.Carsten Suckrow, Thomas Wessel, William A. Martin,
-Margaret Seif",common-helper,no,,,,
+Margaret Seif",common-helper,no,no,no,not_duplication,Both reviewers agreed.
 1385041249-7705-2-git-send-email-hdoyu@nvidia.com,linux-iommu,2,"['1385041249-7705-1-git-send-email-hdoyu@nvidia.com'
  '1385041249-7705-2-git-send-email-hdoyu@nvidia.com']",2013-11-21 13:40:36,[PATCHv6 00/13] Unifying SMMU driver among Tegra SoCs,54b1569ead69283752f0c328b12eef4ab8d82b1d <fd34054419e9b1d76232edf40e5ee60679f77947>,"['6392ed76ef7572174739bb4a3814e46b32b57e8f'
  '59b19c7529b73b9e081e42cb1d278cdc0b0e1c76'
@@ -50329,7 +50329,7 @@ Thanks,
 Jonathan
 
 [quoted text removed]
-",common-helper,yes,,,,
+",common-helper,yes,yes,yes,,Both reviewers agreed.
 1574851987-18828-1-git-send-email-le.ma@amd.com,amd,1,['1574851987-18828-1-git-send-email-le.ma@amd.com'],2019-11-27 10:53:07,[PATCH 10/10 v3] drm/amdgpu: reduce redundant uvd context lost warning message,Le Ma <le.ma-5C7GfCeVMHo@public.gmane.org>,"['guchun.chen-5C7GfCeVMHo@public.gmane.org'
  'tao.zhou1-5C7GfCeVMHo@public.gmane.org'
  'Le Ma <le.ma-5C7GfCeVMHo@public.gmane.org>'
@@ -52312,7 +52312,7 @@ Thanks
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",common-helper,yes,,,,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",common-helper,yes,yes,yes,,Both reviewers agreed.
 1663836294-5698-2-git-send-email-manikanta.guntupalli@xilinx.com,linux-i2c,11,"['1663836294-5698-1-git-send-email-manikanta.guntupalli@xilinx.com'
  '1663836294-5698-2-git-send-email-manikanta.guntupalli@xilinx.com'
  '1663836294-5698-3-git-send-email-manikanta.guntupalli@xilinx.com'
@@ -58602,7 +58602,7 @@ Thank you!
 
 -- 
 Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html",common-helper,yes,,,,
+https://korg.docs.kernel.org/prtracker.html",common-helper,yes,no,,,
 175348527925.2011912.6805260803610107718.robh@kernel.org,iio,16,"['20250724111345.47889-5-krzysztof.kozlowski@linaro.org'
  '20250724111345.47889-6-krzysztof.kozlowski@linaro.org'
  '20250724111345.47889-7-krzysztof.kozlowski@linaro.org'
@@ -119073,7 +119073,7 @@ index 61bb3d52641c..76fe5a9af3bf 100644
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes,,,,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes,yes,yes,,Both reviewers agreed.
 20190119190303.65434e58@archlinux,iio,7,"['20190119183932.14321-1-shreeya.patel23498@gmail.com'
  '20190119183932.14321-2-shreeya.patel23498@gmail.com'
  '20190119183932.14321-3-shreeya.patel23498@gmail.com'
@@ -123331,7 +123331,7 @@ index ad46594b3799..cfa084bca3ea 100644
  
  pgprot_t arch_dma_mmap_pgprot(struct device *dev, pgprot_t prot,
 -- 
-2.20.1",common-helper,yes,,,,
+2.20.1",common-helper,yes,yes,yes,,Both reviewers agreed.
 20190505125440.GA25640@kroah.com,linux-i2c,3,"['7f989564-e994-5be6-02da-2838639efe59@linux.intel.com'
  '20190502153251.GG81578@ediswmail.ad.cirrus.com'
  '20190505125440.GA25640@kroah.com']",2019-05-02 12:32:24,Re: [PATCH] i2c: Prevent runtime suspend of adapter when Host Notify is required,eaaff0258d1955a526d6a0c42dd00593f62b129e <2938f3b49d4d6efc7c4d838c89c72cefaee8309a>,"['d8d41664c872f27b6677e1699b7f9cf2a556f74e <fb171261fd059efa9b0e80c5d408cece4f0e29a0>'
@@ -154590,7 +154590,7 @@ Jason
 _______________________________________________
 iommu mailing list
 iommu@lists.linux-foundation.org
-https://lists.linuxfoundation.org/mailman/listinfo/iommu",common-helper,yes,,,,
+https://lists.linuxfoundation.org/mailman/listinfo/iommu",common-helper,yes,yes,yes,,Both reviewers agreed.
 20201028165420.1c229ea2@archlinux,iio,1,['20201028165420.1c229ea2@archlinux'],2020-10-28 16:54:20,iio: dt-schema addtiions. Pull request on github.,Jonathan Cameron <jic23@kernel.org>,,"================================================
 MESSAGE 1 of 1
 ================================================
@@ -157607,7 +157607,7 @@ isr is a threaded IRQ, so it won't deadlock here.
 
 -- 
 With best wishes
-Dmitry",common-helper,yes,,,,
+Dmitry",common-helper,yes,yes,yes,,Both reviewers agreed.
 20201116173700.1830487-12-lee.jones@linaro.org,amd,75,"['20201116173700.1830487-1-lee.jones@linaro.org'
  '20201116173700.1830487-2-lee.jones@linaro.org'
  '20201116173700.1830487-3-lee.jones@linaro.org'
@@ -163219,7 +163219,7 @@ Alex
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes,,,,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes,no,no,not_duplication,"Reviewer 1 said yes, reviewer 2 said no; resolved as no. The series moves extern prototypes that were declared in several .c files (e.g. rv770_get_pi() in 6 dpm files, evergreen_mc_stop/resume in cik.c, ni.c and si.c) into shared headers, but the only stated motivation is fixing W=1 warnings: 'Fixes the following W=1 kernel build warning(s): ... no previous prototype for 'rv770_set_clk_bypass_mode' [-Wmissing-prototypes]'. What is consolidated are declarations, not code, and nobody discusses duplication or reuse (Alex Deucher only replies 'Applied. Thanks!'), so the thread brings no insight about deduplication."
 20201205160046.357244a2@archlinux,iio,13,"['20201203035352.13918-1-xiang.ye@intel.com'
  '20201203035352.13918-2-xiang.ye@intel.com'
  '20201203035352.13918-3-xiang.ye@intel.com'
@@ -211295,7 +211295,7 @@ dcdb10ccc89293 Aryan Srivastava 2024-10-07  533
 
 -- 
 0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki",common-helper,yes,,,,
+https://github.com/intel/lkp-tests/wiki",common-helper,yes,yes,yes,,Both reviewers agreed.
 20241028142000.1058149-2-aren@peacevolution.org,iio,16,"['20241028142000.1058149-1-aren@peacevolution.org'
  '20241028142000.1058149-2-aren@peacevolution.org'
  '20241028142000.1058149-3-aren@peacevolution.org'
@@ -214307,7 +214307,7 @@ Thanks for catching this.
 I'll send an update.
 
 [quoted text removed]
-",common-helper,no,,,,
+",common-helper,no,no,no,not_duplication,Both reviewers agreed.
 20250228173857.GD39591@nvidia.com,linux-iommu,5,"['4e68d5820be06adc1b34fc0d1c9399481151daee.1740742271.git.robin.murphy@arm.com'
  '20250228173857.GD39591@nvidia.com' 'Z8IapaN1ZD0wImak@Asurada-Nvidia'
  '20250303172746.GB133783@nvidia.com'
@@ -215694,7 +215694,7 @@ On Thu, Mar 13, 2025 at 07:48:01PM +0000, Jonathan Cameron wrote:
 
 Pulled and pushed out, thanks.
 
-greg k-h",common-helper,no,,,,
+greg k-h",common-helper,no,no,no,not_duplication,Both reviewers agreed.
 20250528025204.79578-3-Wayne.Lin@amd.com,amd,26,"['20250528025204.79578-1-Wayne.Lin@amd.com'
  '20250528025204.79578-2-Wayne.Lin@amd.com'
  '20250528025204.79578-3-Wayne.Lin@amd.com'
@@ -228097,7 +228097,7 @@ Attach it to the aux device :\
 Kernel is monolithic, you don't need to worry about people doing silly
 games with modules.
 
-Jason",common-helper,yes,,,,
+Jason",common-helper,yes,yes,yes,,Both reviewers agreed.
 20260108044839.4084279-2-lijo.lazar@amd.com,amd,26,"['20260108044839.4084279-1-lijo.lazar@amd.com'
  '20260108044839.4084279-2-lijo.lazar@amd.com'
  '20260108044839.4084279-3-lijo.lazar@amd.com'
@@ -295251,7 +295251,7 @@ Acked-by: Alex Deucher <alexander.deucher@amd.com>
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes,,,,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes,yes,yes,,Both reviewers agreed.
 929bad72-fb12-661e-d7e3-ac837d32c01c@amd.com,amd,2,"['CAEsyxyhFfkZ-bB1hUW659By4Jc3oUomFY30pjpehq=4F3Uum5w@mail.gmail.com'
  '929bad72-fb12-661e-d7e3-ac837d32c01c@amd.com']",2019-03-21 09:39:13,"Re: [PATCH 3/4] drm/amd/display: In VRR mode, do DRM core vblank handling at end of vblank.",Mario Kleiner <mario.kleiner.de-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>,"['Wentland Harry <Harry.Wentland-5C7GfCeVMHo@public.gmane.org>'
  'dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>'
@@ -306064,7 +306064,7 @@ Email body:
 [quoted text removed]
 Ok, I will post the next version of the patch set.
 
--Varun",common-helper,yes,,,,
+-Varun",common-helper,yes,yes,yes,,Both reviewers agreed.
 CA+CK2bC-uMw6hSNRCeWQjKDihd7=fd01g9VyQ_Y1iRwcq0LAaw@mail.gmail.com,linux-iommu,96,"['20240221194052.927623-1-surenb@google.com'
  '20240221194052.927623-2-surenb@google.com'
  '20240221194052.927623-3-surenb@google.com'
@@ -320744,7 +320744,7 @@ I am sure it wont be trivial and may not work out of box, but would be a
 good experiment to do :)
 
 -- 
-~Vinod",common-helper,yes,,,,
+~Vinod",common-helper,yes,yes,yes,,Both reviewers agreed.
 CADnq5_M89n3R8SLWxcMpVnsTLurgZFqB9-p2g_XrST5_4=F=Pg@mail.gmail.com,amd,52,"['20201110193112.988999-1-lee.jones@linaro.org'
  '20201110193112.988999-2-lee.jones@linaro.org'
  '20201110193112.988999-3-lee.jones@linaro.org'
@@ -324198,7 +324198,7 @@ Follow Linaro: Facebook | Twitter | Blog
 _______________________________________________
 amd-gfx mailing list
 amd-gfx@lists.freedesktop.org
-https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes,,,,
+https://lists.freedesktop.org/mailman/listinfo/amd-gfx",common-helper,yes,no,no,not_duplication,"Reviewer 1 said yes, reviewer 2 said no; resolved as no. Same series as '[RESEND v2 00/43] Rid W=1 warnings from GPU': patches move extern prototypes repeated across .c files (e.g. rv770_get_pi() in 6 dpm files, r600_ih_ring_alloc/fini in cik.c and si.c) into shared headers only to fix W=1 '-Wmissing-prototypes' warnings. What is consolidated are declarations, not code, and nobody discusses duplication or reuse (replies are only 'Applied. Thanks!'), so the thread brings no insight about deduplication."
 CADnq5_O3s4FgVDNz=5O4mKOuVeCJUSEfDUri=bQOQHUBv+zU2Q@mail.gmail.com,amd,2,"['20181221141150.GA2872@hp-pavilion-15-notebook-pc-brajeswar'
  'CADnq5_O3s4FgVDNz=5O4mKOuVeCJUSEfDUri=bQOQHUBv+zU2Q@mail.gmail.com']",2018-12-21 14:11:50,[PATCH] drm/amd/powerplay/polaris10_smumgr: Remove duplicate,Brajeswar Ghosh <brajeswar.linux@gmail.com>,"['jrdr.linux@gmail.com' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org' 'linux-kernel@vger.kernel.org'
@@ -338735,7 +338735,7 @@ Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
 
 
 [quoted text removed]
-",common-helper,no,,,,
+",common-helper,no,no,no,not_duplication,Both reviewers agreed.
 DM5PR12MB2469282511E0F2AD53B0257CF1809@DM5PR12MB2469.namprd12.prod.outlook.com,amd,3,"['20211022042046.959686-1-alexander.deucher@amd.com'
  'CADnq5_O8Ds1j8aOSQJJEUd=fNPez-djXmi2f4yrST=Ot=-wMhg@mail.gmail.com'
  'DM5PR12MB2469282511E0F2AD53B0257CF1809@DM5PR12MB2469.namprd12.prod.outlook.com']",2021-10-22 04:20:46,[PATCH] drm/amdgpu/nbio7.4: use original HDP_FLUSH bits for navi1x,Alex Deucher <alexander.deucher@amd.com>,['Alex Deucher <alexander.deucher@amd.com>'],"================================================
@@ -340832,7 +340832,7 @@ On Fri, Jan 22, 2021 at 09:09:27AM +0000, Jonathan Cameron wrote:
 
 Pulled and pushed out, thanks.
 
-greg k-h",common-helper,yes,,,,
+greg k-h",common-helper,yes,no,,,
 YMmUwCsdy4OaQCiU@kroah.com,linux-i2c,15,"['20210615191543.1043414-1-robh@kernel.org' 'YMmUwCsdy4OaQCiU@kroah.com'
  'YMnTx4GqTWu75o2n@vkoul-mobl'
  '20210616104135.z5bjalhan4ui2ibz@pengutronix.de'
@@ -348874,7 +348874,7 @@ index 83c88c79afe2..bbbd6240fa6e 100644
 +	depends on PCI && HAS_IOPORT && X86
  	select I2C_SMBUS
  	help
- 	  If you say yes to this option, support will be included for the Intel",common-helper,yes,,,,
+ 	  If you say yes to this option, support will be included for the Intel",common-helper,yes,yes,yes,,Both reviewers agreed.
 ZcY132jyoUqNTDso@smile.fi.intel.com,linux-i2c,16,"['20240206145158.227254-1-jarkko.nikula@linux.intel.com'
  '20240206145158.227254-2-jarkko.nikula@linux.intel.com'
  '20240206145158.227254-3-jarkko.nikula@linux.intel.com'

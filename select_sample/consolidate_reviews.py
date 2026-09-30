@@ -17,17 +17,17 @@ import sys
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(os.path.dirname(HERE))
+PROJECT_ROOT = os.path.dirname(HERE)
 REVIEWER1_DIR = os.path.join(HERE, "reviser1")
 REVIEWER2_DIR = os.path.join(HERE, "reviser2")
 OUTPUT_PATH = os.path.join(
-    HERE, "consolidated", "sample_review_all_v2_consolidated_quotes_removed.csv"
+    HERE, "consolidated", "sample_review_all_consolidated_quotes_removed.csv"
 )
 
 sys.path.insert(0, PROJECT_ROOT)
 from pre_filter.pre_filter_threads import replace_quotes  # noqa: E402
 
-SAMPLES = ["sample_review_v2.csv", "sample_review_usp_v2.csv"]
+SAMPLES = ["sample_review.csv", "sample_review_usp.csv"]
 
 LABEL_COL = "is_clone_refactoring"
 REVIEWER_COLS = ["reviewer1", "reviewer2"]
