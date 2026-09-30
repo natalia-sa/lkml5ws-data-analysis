@@ -87,15 +87,15 @@ def test_truncated_thread_never_exceeds_the_budget():
 # SYSTEM_PROMPT and parse_response
 
 # The prompt describes the pre-filter the threads passed, and each few-shot
-# example is itself a valid answer.
+# example is itself an answer the combination rules leave as it is.
 def test_prompt_matches_pre_filter_and_has_valid_examples():
     assert "common/shared/generic" in SYSTEM_PROMPT
     assert f'"{QUOTE_PLACEHOLDER}"' in SYSTEM_PROMPT
 
     examples = re.findall(r"^Output:\n(\{.*\})$", SYSTEM_PROMPT, re.MULTILINE)
-    assert len(examples) == 5
+    assert len(examples) == 6
     for example in examples:
-        parse_response(example)
+        assert parse_response(example) == json.loads(example)
 
 
 @pytest.mark.parametrize("categories", [(category,) for category in CATEGORIES] + [
@@ -104,22 +104,29 @@ def test_prompt_matches_pre_filter_and_has_valid_examples():
     ("duplication_discussion", "satd"),
     ("clone_refactoring", "preventive_reuse", "satd"),
 ])
-def test_parse_response_accepts_allowed_combinations(categories):
+def test_parse_response_keeps_allowed_combinations(categories):
     result = parse_response(response_json(*categories, reasoning="step by step"))
 
     assert result == {"reasoning": "step by step", "categories": list(categories)}
 
 
-@pytest.mark.parametrize("categories", [
-    (),
-    ("not_duplication", "satd"),
-    ("duplication_discussion", "clone_refactoring"),
-    ("duplication_discussion", "preventive_reuse"),
-    ("satd", "satd"),
+# An answer breaking the combination rules is fixed the same way the Jev
+# classifier fixes its nouls, and put in CATEGORIES order.
+@pytest.mark.parametrize("categories, expected", [
+    ((), ["not_duplication"]),
+    (("not_duplication", "satd"), ["satd"]),
+    (("duplication_discussion", "clone_refactoring"), ["clone_refactoring"]),
+    (("satd", "preventive_reuse", "duplication_discussion"), ["preventive_reuse", "satd"]),
+    (("satd", "satd"), ["satd"]),
 ])
-def test_parse_response_rejects_invalid_combinations(categories):
-    with pytest.raises(ValueError):
-        parse_response(response_json(*categories))
+def test_parse_response_applies_combination_rules(categories, expected):
+    assert parse_response(response_json(*categories))["categories"] == expected
+
+
+# The cache key changes with the prompt, so answers to an older prompt
+# aren't reused.
+def test_cache_key_includes_model_and_prompt_version():
+    assert cache_key("t1") == f"t1:{classify_threads.MODEL}:{classify_threads.PROMPT_VERSION}"
 
 
 # classify_file

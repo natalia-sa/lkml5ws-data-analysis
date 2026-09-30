@@ -162,6 +162,60 @@ def test_missing_noul_is_rejected():
         jev.classify_thread("content", FakeJev([(200, body)]).client)
 
 
+# The not_duplication option lists the cases of "What is `no`", not the
+# false side of the other categories (a copy merged between series versions
+# is preventive_reuse, a suggested merge is duplication_discussion).
+def test_choice_not_duplication_option_is_the_no_cases():
+    options = jev.CHOICE_QUESTIONS["category"].criteria
+    assert options["not_duplication"] == ["None of the above.", *jev.NOT_DUPLICATION_CASES]
+
+
+# The longest thread, with the preamble and the longest question, fits in
+# Jev's context.
+def test_longest_request_fits_jev_context():
+    from classify.common import JEV_CONTEXT_CHARS, MAX_THREAD_CONTENT_CHARS
+
+    longest_question = max(
+        len(json.dumps(question.model_dump()))
+        for questions in (jev.NOUL_QUESTIONS, jev.CHOICE_QUESTIONS)
+        for question in questions.values()
+    )
+    assert len(jev.STATE_PREAMBLE) + MAX_THREAD_CONTENT_CHARS + longest_question <= JEV_CONTEXT_CHARS
+
+
+# Each choice option starts with what its noul question asks, followed by
+# the noul's true criteria.
+def test_choice_options_carry_the_noul_criteria():
+    options = jev.CHOICE_QUESTIONS["category"].criteria
+    for category in ("clone_refactoring", "preventive_reuse", "duplication_discussion"):
+        assert options[category][1:] == jev.NOUL_QUESTIONS[category].criteria["true"]
+
+
+# The cache key changes with the questions of its style, so answers to
+# older questions aren't reused, and the two styles never share answers.
+def test_cache_key_includes_style_and_questions_version():
+    noul, choice = jev.cache_key("t1", "noul"), jev.cache_key("t1", "choice")
+
+    assert noul == f"t1:{jev.MODEL}:noul:{jev.QUESTIONS_VERSION['noul']}"
+    assert choice == f"t1:{jev.MODEL}:choice:{jev.QUESTIONS_VERSION['choice']}"
+    assert jev.QUESTIONS_VERSION["noul"] != jev.QUESTIONS_VERSION["choice"]
+
+
+# Each question style writes to its own folder under the output dir.
+@pytest.mark.parametrize("style", jev.QUESTION_STYLES)
+def test_classify_writes_each_style_to_its_own_folder(tmp_path, monkeypatch, style):
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+    written = []
+    monkeypatch.setattr(jev, "classify_file",
+                        lambda path, output_dir, *args, **kwargs: written.append(output_dir))
+
+    jev.classify(str(tmp_path / "list_data_testlist.parquet"), output_dir=str(tmp_path / "out"),
+                 cache_file=str(tmp_path / "llm_cache.json"), style=style)
+
+    assert written == [str(tmp_path / "out" / style)]
+    assert (tmp_path / "out" / style).is_dir()
+
+
 # classify_file
 
 def run_classify(tmp_path, thread_ids, fake, cache, **kwargs):

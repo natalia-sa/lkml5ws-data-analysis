@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Classifies the pre-filtered threads into the categories of
-LABELING_CRITERIA.md, with one OpenAI call per thread.
+LABELING_CRITERIA.md, with one OpenAI call per thread: few-shot examples
+and a short chain of thought ("reasoning") before the categories.
 
 Reads the parquets from pre_filter_threads.py and writes them to
 classify_output/ with four new columns: llm_reasoning (the model's short
 analysis), llm_categories (JSON list), llm_model and llm_error (None unless
-the thread failed).
+the thread failed). The categories, their combination rules and the cut of
+long threads come from classify/common.py, shared with the Jev classifier,
+so the two outputs can be compared column for column.
 
 A cache (llm_cache.json) and periodic checkpoints let a run be resumed
 without paying again for threads already classified; failed threads are
@@ -14,9 +17,9 @@ not cached, so a rerun retries them.
 
 import argparse
 import glob
+import hashlib
 import json
 import os
-import re
 import sys
 import threading
 import time
@@ -31,7 +34,12 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, PROJECT_ROOT)
 
-from pre_filter.pre_filter_threads import QUOTE_PLACEHOLDER, match_spans  # noqa: E402
+from classify.common import (  # noqa: E402
+    CATEGORIES,
+    normalize_categories,
+    truncate_thread_content,
+)
+from pre_filter.pre_filter_threads import QUOTE_PLACEHOLDER  # noqa: E402
 
 PRE_FILTER_DIR = os.path.join(PROJECT_ROOT, "pre_filter", "pre_filter_output")
 OUTPUT_DIR = os.path.join(HERE, "classify_output")
@@ -42,17 +50,6 @@ MODEL = "gpt-5.4-nano-2026-03-17"
 
 THREAD_ID_COLUMN = "_thread_id"
 CONTENT_COLUMN = "thread_content"
-
-CATEGORIES = (
-    "clone_refactoring",
-    "preventive_reuse",
-    "duplication_discussion",
-    "satd",
-    "not_duplication",
-)
-
-# duplication_discussion never occurs together with these.
-PATCH_CATEGORIES = {"clone_refactoring", "preventive_reuse"}
 
 SAVE_EVERY = 50
 REQUEST_DELAY = 0.2
@@ -65,17 +62,6 @@ API_MAX_RETRIES = 8
 # token window to clear and try again, this many times.
 RATE_LIMIT_WAIT_SECONDS = 60
 RATE_LIMIT_RETRIES = 3
-
-# The same limit as the Jev classifier (whose input is much smaller), so
-# both models receive the same thread content.
-MAX_THREAD_CONTENT_CHARS = 76_000
-
-# Per-message header written by build_threads.py.
-MESSAGE_HEADER_RE = re.compile(r"=+\nMESSAGE \d+ of \d+\n=+\n")
-
-# Chars kept on each side of a pre-filter match when truncating.
-WINDOW_PAD = 200
-TRUNCATION_MARKER = "\n[...]\n"
 
 
 SYSTEM_PROMPT = """You are a meticulous software-engineering research assistant helping
@@ -108,11 +94,15 @@ Messages appear in chronological order, each as a block:
   Subject: ...
   From: <sender>
   Email body: <raw text, may include unified diffs>
+The sender of MESSAGE 1 is usually the patch author; the others are
+reviewers or maintainers, unless the author replies.
 
-Quoted replies were removed: each block of quoted lines ("> ...") was
-replaced by the line "{placeholder}". It marks where
-a reply answered an earlier message, whose text is usually already in the
-thread above. It is not by itself a reason to doubt the thread.
+Quoted replies were removed: each block of quoted lines ("> ...") and each
+Outlook-style quoted email (the earlier message pasted below a
+"-----Original Message-----" or "From: ... Sent: ..." header) was
+replaced by the line "{placeholder}". It marks where a reply answered an
+earlier message, whose text is usually already in the thread above. It
+is not by itself a reason to doubt the thread.
 
 A long thread was cut: the lines "[...]" mark where text was removed. The
 first message is kept whole whenever it fits, then the start of the rest
@@ -121,14 +111,26 @@ of the thread and the parts around the pre-filter matches.
 ## Categories
 
 1. clone_refactoring -- a patch in the thread consolidates repeated code
-   into a single place: a helper, a macro, a table, a kernel API or
-   common code. Clone size does not matter: a local variable introduced
-   to avoid repeating the same expression, or two constants for the same
-   thing unified into one, also count.
+   that exists in the tree into a single place: a helper, a macro, a
+   table, a kernel API or common code. Clone size does not matter: a
+   local variable introduced to avoid repeating the same expression, or
+   two constants for the same thing unified into one, also count.
 
-2. preventive_reuse -- code is moved to a common place with the STATED
-   purpose of being used by another component (driver, file), even if no
-   copy exists yet.
+2. preventive_reuse -- a patch avoids writing a copy, in one of two ways:
+   - it moves or writes code in a common place with the STATED purpose of
+     being used by another component, even if no copy exists yet;
+   - it deliberately extends or reuses existing code instead of writing a
+     duplicate of it, and says so (e.g. adding a mode to an existing
+     framework instead of reimplementing what it already does).
+   The other user may be in the same driver: code written once so that
+   two callers in one driver share it also counts. The diff must show the
+   reuse was actually done (without a diff, the text must say the patch
+   does it). A reviewer contesting the choice does not change the
+   category. The difference from clone_refactoring: here no repeated code
+   existed in the tree before the patch. A copy that only existed in an
+   earlier version of the same series (v1, v2...) and is merged away in
+   the current one never reached the tree, so it is preventive_reuse, not
+   clone_refactoring.
 
 3. duplication_discussion -- no patch in the thread does
    clone_refactoring or preventive_reuse, but someone (author or
@@ -137,15 +139,29 @@ of the thread and the parts around the pre-filter matches.
    or attributes a bug to copies that diverged (one fixed, the other
    not). A patch that introduces duplication belongs here when someone
    comments on the copy, including the author stating it ("this driver
-   is based on foo.c", "copied from the v11 implementation").
+   is based on foo.c", "copied from the v11 implementation", "same as X
+   but for Y"). A reuse that is only suggested, including a diff or code
+   snippet a reviewer writes inside an email, is discussion: it does not
+   make the thread preventive_reuse or clone_refactoring.
 
-4. satd -- a code duplication is admitted as technical debt, either in a
-   code comment in the diff (TODO/FIXME/XXX/HACK, e.g. "FIXME: duplicated
-   from foo.c, should be shared") or by someone in the discussion
-   ("copying for now, will dedup later", "I'll unify this in a
-   follow-up"). The text must name the duplication or the need to share
-   the code: a TODO that only asks to move code ("move this into a
-   common header") does not count.
+4. satd -- a code duplication is admitted as technical debt, either:
+   - in the code: a comment anywhere in the diff admits the duplication
+     (e.g. "FIXME: duplicated from foo.c, should be shared"). It needs no
+     TODO/FIXME/XXX/HACK tag and need not be added by the thread: an
+     unchanged context line or a removed line also counts;
+   - in the discussion: someone admits a duplication as debt ("copying
+     for now, will dedup later", "I'll unify this in a follow-up"), or
+     the author admits that a copy the patch introduces is a stopgap
+     (calls it a "hack", says such code is not wanted in the proper
+     place).
+   It still counts when the same thread pays the debt. The text must
+   name the duplication or the need to share or unify the code, at least
+   implicitly (e.g. "need to flatten these together" about two sets of
+   definitions called duplicated). Not satd: a TODO that only asks to
+   move code ("move this into a common header"); a copy only stated
+   ("copied from foo.c") with no admission that it is a problem; a remark
+   that code "will go away" or is "for now" without intent to
+   deduplicate it.
 
 5. not_duplication -- none of the above. In particular:
    - redundancy: removing an unnecessary check, call, assignment or
@@ -156,6 +172,8 @@ of the thread and the parts around the pre-filter matches.
      declaration repeated by mistake, a repeated word in a comment, other
      senses of duplicate/redundant/repeated (I2C "repeated start",
      duplicating a packet or an object at runtime);
+   - copies only in the binary: a function defined once in the source but
+     compiled into several objects (e.g. a static function in a header);
    - relocation without a stated reuse motive, including a TODO like
      "move to common header" that doesn't say why;
    - a PULL request where only a commit title in the shortlog mentions
@@ -178,86 +196,121 @@ Combination rules:
   clearly applies, answer not_duplication.
 
 Use the diffs as a check: for clone_refactoring and preventive_reuse,
-confirm that the diff does what the text claims (and look for
+confirm that a patch's diff does what the text claims (and look for
 consolidations the text doesn't call dedup); for duplication_discussion,
-confirm that no patch consolidates or moves code for reuse. Without a
+confirm that no patch consolidates code or implements the reuse. Without a
 diff (e.g. a PULL request), go by what the text states.
 
 ## How to answer
 
 First write your analysis in "reasoning", following these steps, then
 give the categories:
-1. List the patches in the thread and what each diff actually does.
-2. Does any patch consolidate repeated code (clone_refactoring) or move
-   code for stated reuse (preventive_reuse)?
-3. If not, does anyone discuss duplication (duplication_discussion)?
+1. List the patches in the thread and what each diff actually does (a
+   diff a reviewer only suggests inside an email is not a patch).
+2. Does a patch merge copies that exist in the tree (clone_refactoring)?
+   Does a patch avoid a copy by writing code in a common place for a
+   stated user or by extending existing code (preventive_reuse)?
+3. If neither, does anyone discuss duplication (duplication_discussion)?
 4. Is any duplication admitted as debt, in a code comment or in the
    discussion (satd)?
 5. Check the not_duplication cases above, apply the combination rules
    and decide.
-Keep "reasoning" short: at most 80 words, in terse notes, one per step.
+Keep "reasoning" short: at most 100 words, in terse notes, one per step.
 
 Return only:
 {"reasoning": "...", "categories": ["...", ...]}
 
 ## Examples
 
-The threads below are condensed ([...] marks cuts).
+The threads below are made up to illustrate the rules, and condensed
+([...] marks cuts).
 
 ### Example 1
 
 Thread:
-MESSAGE 1 of 3
-Subject: [PATCH] drm/amdgpu: deduplicate ring preempt ib function
+MESSAGE 1 of 2
+Subject: [PATCH] iio: adc: foo: factor out the channel lookup
 Email body:
-The ring preemption function is identical for both gfx_v11_0 and
-gfx_v12_0. This patch refactors the code by moving the core logic
-into a generic function inside amdgpu_gfx.c to reduce code
-duplication and simplify future maintenance.
- drivers/gpu/drm/amd/amdgpu/amdgpu_gfx.c | 51 ++++++++++++++++++++++++
- drivers/gpu/drm/amd/amdgpu/gfx_v11_0.c  | 52 +------------------------
- drivers/gpu/drm/amd/amdgpu/gfx_v12_0.c  | 52 +------------------------
-+int amdgpu_gfx_ring_preempt_ib(struct amdgpu_ring *ring)
+foo_read_raw() and foo_write_raw() open-code the same channel lookup and
+range check. Move it into foo_get_channel() and call it from both.
+ drivers/iio/adc/foo.c | 38 ++++++++++++--------------------
++static struct foo_chan *foo_get_channel(struct foo_state *st, int ch)
+[...]
+-	for (i = 0; i < st->num_chans; i++)
+-		if (st->chans[i].id == chan->channel)
 [...]
 
 Output:
-{"reasoning": "1. One patch: adds amdgpu_gfx_ring_preempt_ib(), deletes ~50 lines each from gfx_v11_0.c and gfx_v12_0.c. 2. Two identical per-version functions replaced by one shared function: clone_refactoring. 4. No debt admitted. 5. Real copies merged, not redundancy.", "categories": ["clone_refactoring"]}
+{"reasoning": "1. One patch: adds foo_get_channel(), removes the same lookup loop from foo_read_raw() and foo_write_raw(). 2. Two copies in the tree merged into one helper: clone_refactoring. 4. No debt admitted. 5. Real copies merged, not redundancy.", "categories": ["clone_refactoring"]}
 
 ### Example 2
 
 Thread:
-MESSAGE 2 of 15
-Subject: [PATCH v3 1/5] soc: qcom: geni: move GENI_IF_DISABLE_RO to common header
+MESSAGE 1 of 3
+Subject: [PATCH 1/2] mfd: bar: move bar_reg_lock() to the core header
 Email body:
-GENI_IF_DISABLE_RO is used by geni spi driver as well to check the
-status if GENI, so move this to common header qcom-geni-se.h
----
- drivers/soc/qcom/qcom-geni-se.c | 1 -
- include/linux/qcom-geni-se.h    | 4 ++++
+The bar-gpio driver added in the next patch needs the same register
+locking, so move bar_reg_lock() from bar-i2c.c to include/linux/mfd/bar.h
+instead of copying it.
+-static void bar_reg_lock(struct bar *bar)
 [...]
--#define GENI_IF_DISABLE_RO		0x64
++static inline void bar_reg_lock(struct bar *bar)
+MESSAGE 2 of 3
+Subject: [PATCH 2/2] gpio: add bar-gpio driver
 [...]
++	bar_reg_lock(bar);
+MESSAGE 3 of 3
+Subject: Re: [PATCH 1/2] mfd: bar: move bar_reg_lock() to the core header
+Email body:
+{placeholder}
+I'm not convinced a second user justifies a shared header; a local copy
+in bar-gpio would be simpler.
 
 Output:
-{"reasoning": "1. Moves one #define from qcom-geni-se.c to a shared header. 2. Stated reason: the geni spi driver uses it too, so preventive_reuse; no prior copy, so not clone_refactoring. 4. No debt admitted. 5. Reuse motive is explicit, not a bare relocation.", "categories": ["preventive_reuse"]}
+{"reasoning": "1. Patch 1 moves bar_reg_lock() to a shared header; patch 2 adds bar-gpio calling it. 2. Written in a common place for a stated second user, no copy existed in the tree: preventive_reuse. The reviewer contesting it doesn't change the category. 4. No debt admitted.", "categories": ["preventive_reuse"]}
 
 ### Example 3
 
 Thread:
-MESSAGE 8 of 8
-Subject: RE: [PATCH V3 1/3] iommu: Add support to change default domain of an iommu_group
+MESSAGE 1 of 1
+Subject: [PATCH v3] i2c: baz: add standard mode
 Email body:
-{placeholder}
-Yes, I agree that we could get "dev" from group->devices. But, I passed
-it as a parameter because it's already done by iommu_group_store_type()
-(as below) and I thought that I could save from duplicating code by
-passing it as a parameter. [...] Please let me know if you think
-otherwise, I am happy to change it.
+Add standard mode transfers to the baz controller.
+Changes in v3: merged baz_std_fill_fifo() into baz_fill_fifo() to avoid
+duplicate code.
+[...]
+ static void baz_fill_fifo(struct baz_i2c *i2c)
++	if (i2c->std_mode)
+[...]
 
 Output:
-{"reasoning": "1. Patch adds sysfs support to change the default domain; nothing consolidated or moved for reuse. 3. Author defends passing dev as a parameter to avoid duplicating code, answering a reviewer who asked to drop it: duplication_discussion. 4. No debt admitted.", "categories": ["duplication_discussion"]}
+{"reasoning": "1. One patch: adds standard mode; baz_fill_fifo() gains a branch for it. 2. The separate copy existed only in v2, never in the tree, and the diff serves both modes from one function: preventive_reuse, not clone_refactoring. 4. No debt admitted.", "categories": ["preventive_reuse"]}
 
 ### Example 4
+
+Thread:
+MESSAGE 1 of 3
+Subject: [PATCH] hwmon: add qux driver
+Email body:
+Add a driver for the qux temperature sensor.
+ drivers/hwmon/qux.c | 412 +++++++++++++++++++++
+MESSAGE 2 of 3
+Subject: Re: [PATCH] hwmon: add qux driver
+Email body:
+{placeholder}
+This looks like the lm-foo driver with different register offsets.
+Please add qux support to lm-foo instead of duplicating it, e.g.
++	{ .compatible = "acme,qux", .data = &qux_regs },
+MESSAGE 3 of 3
+Subject: Re: [PATCH] hwmon: add qux driver
+Email body:
+{placeholder}
+The alarm handling differs too much, I'd rather keep a separate driver.
+
+Output:
+{"reasoning": "1. One patch adds a new driver; the other diff is only a reviewer's suggestion. 2. Nothing consolidated, reuse not implemented. 3. Reviewer asks to extend the existing driver instead of duplicating it, author defends the copy: duplication_discussion. 4. No debt admitted.", "categories": ["duplication_discussion"]}
+
+### Example 5
 
 Thread:
 MESSAGE 1 of 1
@@ -271,9 +324,9 @@ the two will be merged in a follow-up once the x3 variant lands.
 [...]
 
 Output:
-{"reasoning": "1. Adds foo_x2_setup(), a copy of foo_x1_setup(). 2. Nothing consolidated or moved. 3. Author states the copy: duplication_discussion. 4. FIXME and changelog admit it as debt to merge later: satd.", "categories": ["duplication_discussion", "satd"]}
+{"reasoning": "1. Adds foo_x2_setup(), a copy of foo_x1_setup(). 2. Nothing consolidated or reused. 3. Author states the copy: duplication_discussion. 4. FIXME and changelog admit it as debt to merge later: satd.", "categories": ["duplication_discussion", "satd"]}
 
-### Example 5
+### Example 6
 
 Thread:
 MESSAGE 1 of 2
@@ -323,60 +376,17 @@ def save_cache(cache, cache_file=CACHE_FILE):
         json.dump(cache, f, indent=2, ensure_ascii=False)
 
 
+# Changes whenever the prompt or the schema does, so the cache doesn't
+# return answers given to an older prompt.
+PROMPT_VERSION = hashlib.sha256(
+    (SYSTEM_PROMPT + json.dumps(RESPONSE_SCHEMA, sort_keys=True)).encode()
+).hexdigest()[:12]
+
+
 def cache_key(thread_id):
-    # Includes the model, so switching models doesn't reuse old answers.
-    return f"{thread_id}:{MODEL}"
-
-
-def _match_windows(text, budget):
-    """The text around each pre-filter match, each part preceded by
-    TRUNCATION_MARKER, in at most budget chars."""
-    windows = [
-        [max(0, start - WINDOW_PAD), min(len(text), end + WINDOW_PAD)]
-        for _, start, end in match_spans(text)
-    ]
-    merged = []
-    for start, end in windows:
-        if merged and start <= merged[-1][1]:
-            merged[-1][1] = max(merged[-1][1], end)
-        else:
-            merged.append([start, end])
-
-    kept_parts = []
-    used = 0
-    for start, end in merged:
-        remaining = budget - used - len(TRUNCATION_MARKER)
-        if remaining <= 0:
-            break
-        chunk = text[start:end][:remaining]
-        kept_parts.append(TRUNCATION_MARKER + chunk)
-        used += len(TRUNCATION_MARKER) + len(chunk)
-
-    return "".join(kept_parts)
-
-
-def _fit_to_budget(text, budget):
-    """The start of text, then the text around the pre-filter matches after
-    it: the start gets whatever budget the matches leave unused."""
-    head = budget - len(_match_windows(text, budget))
-    return text[:head] + _match_windows(text[head:], budget - head)
-
-
-def truncate_thread_content(text, max_chars=MAX_THREAD_CONTENT_CHARS):
-    """Cuts a thread over max_chars: keeps the first message whole and fits
-    the rest with _fit_to_budget. If the first message alone doesn't fit,
-    the whole thread goes through _fit_to_budget."""
-    if len(text) <= max_chars:
-        return text
-
-    headers = list(MESSAGE_HEADER_RE.finditer(text))
-    if len(headers) > 1:
-        split_at = headers[1].start()
-        first_message, rest = text[:split_at], text[split_at:]
-        if len(first_message) < max_chars:
-            return first_message + _fit_to_budget(rest, max_chars - len(first_message))
-
-    return _fit_to_budget(text, max_chars)
+    # Includes the model and the prompt, so changing either doesn't reuse
+    # old answers.
+    return f"{thread_id}:{MODEL}:{PROMPT_VERSION}"
 
 
 def build_user_prompt(thread_content):
@@ -386,23 +396,10 @@ def build_user_prompt(thread_content):
 
 
 def parse_response(raw_json_text):
-    """Parses the model's answer and checks the combination rules, which the
-    schema can't express."""
+    """Parses the model's answer and applies the combination rules, which
+    the schema can't express, the same way the Jev classifier does."""
     result = json.loads(raw_json_text)
-    categories = result["categories"]
-
-    if not categories:
-        raise ValueError("empty categories list")
-    if len(set(categories)) != len(categories):
-        raise ValueError(f"repeated category in {categories}")
-    if "not_duplication" in categories and len(categories) != 1:
-        raise ValueError(f"not_duplication must be the only category, got {categories}")
-    if "duplication_discussion" in categories and PATCH_CATEGORIES & set(categories):
-        raise ValueError(
-            f"duplication_discussion can't occur with clone_refactoring or "
-            f"preventive_reuse, got {categories}"
-        )
-
+    result["categories"] = normalize_categories(result["categories"])
     return result
 
 

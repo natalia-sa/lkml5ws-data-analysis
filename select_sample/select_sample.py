@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-"""Same input lists and sampling/review logic as select_sample_v1.py, but
-instead of applying its own duplication regex, it draws from the threads
-already filtered by pre_filter/pre_filter_threads.py."""
+"""Draws the review sample from the threads already filtered by
+pre_filter/pre_filter_threads.py."""
 
 import argparse
 import os
@@ -12,12 +11,12 @@ import sys
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(os.path.dirname(HERE))
+PROJECT_ROOT = os.path.dirname(HERE)
 BUILD_THREADS_DIR = os.path.join(PROJECT_ROOT, "build_threads_output")
 PRE_FILTER_DIR = os.path.join(PROJECT_ROOT, "pre_filter", "pre_filter_output")
 REVIEWER_DIR = os.path.join(HERE, "reviser1")
-OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_v2.csv")
-USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp_v2.csv")
+OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review.csv")
+USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp.csv")
 
 sys.path.insert(0, PROJECT_ROOT)
 from pre_filter.pre_filter_threads import COMMON_HELPER_RE, COMMON_HELPER_TERM  # noqa: E402
@@ -66,8 +65,8 @@ def use_reviewer(number):
     global REVIEWER_DIR, OUTPUT_FILE, USP_OUTPUT_FILE
 
     REVIEWER_DIR = REVIEWER_DIRS[number - 1]
-    OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_v2.csv")
-    USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp_v2.csv")
+    OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review.csv")
+    USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp.csv")
 
 
 def matches_usp(row):

@@ -32,3 +32,6 @@ classify/*/classify_output/
 
 # Cache de respostas do LLM (classify_threads.py)
 classify/*/llm_cache.json
+
+# Respostas dos classificadores para o sample rotulado
+classify/evaluation_output/
