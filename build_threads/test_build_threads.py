@@ -3,8 +3,9 @@
 """
 
 import pandas as pd
+import pytest
 
-from build_threads import build_threads_for_file
+from build_threads import build_threads_for_file, is_pull_request
 
 
 def thread_id_by_message_id(df, tmp_path):
@@ -136,11 +137,13 @@ def test_reply_with_no_in_reply_to_links_via_references(tmp_path):
 
 # With `--collapse`, a 3-message thread (cover letter + two replies chained
 # via `in_reply_to`) must collapse into a single row whose `thread_content`
-# holds all three messages, in chronological order.
+# holds all three messages, in chronological order. A thread made only of a
+# pull request and its reply must not produce a row.
 def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
     parent_id = "20260601120000.1-cover@example.com"
     reply_id = "20260601120500.2-reply@example.com"
     grandchild_id = "20260601121000.3-grandchild@example.com"
+    pull_id = "20260601130000.4-pull@example.com"
 
     df = pd.DataFrame([
         {
@@ -171,6 +174,26 @@ def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
             "subject": "Re: [PATCH] fix thing",
             "raw_body": "Applied, thanks!",
             "from": "author@example.com",
+            "cc": None,
+        },
+        {
+            "message_id": pull_id,
+            "in_reply_to": None,
+            "references": None,
+            "date": "2026-06-01 13:00:00",
+            "subject": "[GIT PULL] fixes for 6.20",
+            "raw_body": "Please pull the following changes.",
+            "from": "maintainer@example.com",
+            "cc": None,
+        },
+        {
+            "message_id": "20260601140000.5-merged@example.com",
+            "in_reply_to": pull_id,
+            "references": [pull_id],
+            "date": "2026-06-01 14:00:00",
+            "subject": "Re: [GIT PULL] fixes for 6.20",
+            "raw_body": "The pull request you sent has been merged.",
+            "from": "bot@example.com",
             "cc": None,
         },
     ])
@@ -206,6 +229,96 @@ def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
     assert "Subject:\n[PATCH] fix thing" in first_block
     assert "From:\nauthor@example.com" in first_block
     assert first_block.index("Subject:") < first_block.index("From:") < first_block.index("Email body:")
+
+
+# Pull request messages keep the thread's id but are left out of its collapsed row.
+def test_collapse_leaves_pull_request_messages_out_of_the_thread(tmp_path):
+    pull_id = "20260602090000.1-pull@example.com"
+    merged_id = "20260602100000.2-merged@example.com"
+    report_id = "20260603080000.3-report@example.com"
+
+    df = pd.DataFrame([
+        {
+            "message_id": pull_id,
+            "in_reply_to": None,
+            "references": None,
+            "date": "2026-06-02 09:00:00",
+            "subject": "[GIT PULL] RCU changes for v6.9",
+            "raw_body": "Please pull the RCU changes.",
+            "from": "maintainer@example.com",
+            "cc": None,
+        },
+        {
+            "message_id": merged_id,
+            "in_reply_to": pull_id,
+            "references": [pull_id],
+            "date": "2026-06-02 10:00:00",
+            "subject": "Re: [GIT PULL] RCU changes for v6.9",
+            "raw_body": "Pulled, thanks.",
+            "from": "linus@example.com",
+            "cc": None,
+        },
+        {
+            "message_id": report_id,
+            "in_reply_to": merged_id,
+            "references": [pull_id, merged_id],
+            "date": "2026-06-03 08:00:00",
+            "subject": "Unexplained long boot delays [Was Re: [GIT PULL] RCU changes for v6.9]",
+            "raw_body": "Boot got slower after this merge.",
+            "from": "tester@example.com",
+            "cc": None,
+        },
+    ])
+
+    thread_ids, _ = thread_id_by_message_id(df, tmp_path)
+    assert len(set(thread_ids.values())) == 1
+
+    input_path = tmp_path / "list_data_testlist.parquet"
+    output_path = tmp_path / "collapsed.parquet"
+    build_threads_for_file(str(input_path), str(output_path), collapse=True)
+
+    collapsed = pd.read_parquet(output_path)
+
+    assert len(collapsed) == 1
+
+    row = collapsed.iloc[0]
+
+    assert row["n_messages"] == 1
+    assert list(row["message_ids"]) == [report_id]
+    assert row["subject"].startswith("Unexplained long boot delays")
+    assert row["date"] == "2026-06-03 08:00:00"
+    assert "MESSAGE 1 of 1" in row["thread_content"]
+    assert "Boot got slower after this merge." in row["thread_content"]
+    assert "Please pull the RCU changes." not in row["thread_content"]
+    assert "Pulled, thanks." not in row["thread_content"]
+
+
+@pytest.mark.parametrize("subject, expected", [
+    ("[GIT PULL] Please pull hmm changes", True),
+    ("Re: [GIT PULL] Please pull hmm changes", True),
+    ("[PULL REQUEST] i2c-for-6.13-rc1", True),
+    ("[pull] radeon and amdgpu drm-next-4.12", True),
+    ("[PULL 03/51] KVM: PPC: Book3S HV: Restructure", True),
+    ("[GIT PULL v2 5/5] i.MX defconfig change for 6.11", True),
+    ("[GIT,PULL] chrome-platform changes for v6.1", True),
+    ("[pull-request] [net-2.6 PATCH 0/6] dccp: Revised ICMP / length fixes", True),
+    ("[kvm-unit-tests PULL 0/2] Ppc next patches", True),
+    ("[PATCH 00/10 - GIT PULL] drivers: net: Remove extern", True),
+    ("[PATCH net-next 0/9][pull request] 100GbE Intel Wired LAN Driver Updates", True),
+    ("pull-request: bpf 2021-10-07", True),
+    ("Re: pull request: bluetooth 2012-05-04", True),
+    ("[PATCH 0/8] pull request (net): ipsec 2025-07-23", True),
+    ("[PATCH] gpio: fix thing", False),
+    ("[PATCH] pinctrl: foo: fix [pull-up] handling", False),
+    ("[RFC NOT PULL] Add experimental target 'noqq'", False),
+    ("[NOT YET PULL] Trial of labeling lines in code snippets", False),
+    ("Unexplained long boot delays [Was Re: [GIT PULL] RCU changes for v6.9]", False),
+    ("Re: 32bit x86 build broken (was: Re: [GIT PULL] Networking for 5.16-rc1)", False),
+    ("Re: Pull patches from tip/perf/core to bpf-next", False),
+    (None, False),
+])
+def test_is_pull_request(subject, expected):
+    assert is_pull_request(subject) is expected
 
 
 # When both `in_reply_to` and `references` are filled and `in_reply_to` matches a known message, it must take priority even when the last id in `references` points somewhere else.

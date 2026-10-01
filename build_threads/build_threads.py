@@ -13,7 +13,9 @@ columns plus `_thread_id` and `list`. Messages linked through the
 With `--collapse`, the output has one row per thread instead of one per
 message, aggregating each thread into `thread_content` -- subject, sender and
 body of every message in chronological order, in the same per-message block
-format as `classify/classify_threads.py`'s LLM prompt.
+format as `classify/classify_threads.py`'s LLM prompt. Pull request emails
+still get their `_thread_id` but are left out of the collapsed row, and a
+thread made only of them is dropped.
 """
 
 import argparse
@@ -37,6 +39,18 @@ COLLAPSE_COLUMNS = ["message_id", "subject", "raw_body", "date", "from", "cc"]
 MESSAGE_ID_RE = re.compile(r"<?([^<>\s]+@[^<>\s]+)>?")
 
 LIST_DATA_PREFIX = "list_data_"
+
+# Pull request subjects ("[GIT PULL]", "pull-request: bpf ..."), left out of
+# `thread_content` since they only summarize patches discussed elsewhere.
+PULL_TAG_RE = re.compile(
+    r"\[(?![^\]]*\bnot\b)[^\[\]]*\bpull\b(?!-(?:up|down)\b)[^\[\]]*\]", re.IGNORECASE
+)
+PULL_PREFIX_RE = re.compile(
+    r"^(?:\s*(?:re|fwd?)\s*:|\s*\[[^\]]*\])*\s*pull[- ]request\b", re.IGNORECASE
+)
+
+# "[was: [GIT PULL] ...]" starts a new discussion that only quotes the old subject.
+WAS_CLAUSE_RE = re.compile(r"[\[(]\s*was\b.*", re.IGNORECASE | re.DOTALL)
 
 
 def list_name_from_path(input_path):
@@ -250,6 +264,11 @@ def _text(x):
     return "" if is_missing(x) else str(x)
 
 
+def is_pull_request(subject):
+    subject = WAS_CLAUSE_RE.sub("", _text(subject))
+    return bool(PULL_TAG_RE.search(subject) or PULL_PREFIX_RE.match(subject))
+
+
 def build_thread_content(thread_df):
     """Concatenate subject, sender and body of every message into one block."""
     total = len(thread_df)
@@ -285,6 +304,10 @@ def build_collapsed_frame(input_path, sorted_positions, thread_ids_sorted, list_
 
     rows = []
     for thread_id, group in content_df.groupby("_thread_id", sort=False):
+        group = group[~group["subject"].map(is_pull_request)]
+        if group.empty:
+            continue
+
         rows.append({
             "_thread_id": thread_id,
             "list": list_name,

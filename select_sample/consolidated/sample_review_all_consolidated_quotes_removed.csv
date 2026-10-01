@@ -58602,7 +58602,7 @@ Thank you!
 
 -- 
 Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html",common-helper,yes,no,,,
+https://korg.docs.kernel.org/prtracker.html",common-helper,yes,no,no,not_duplication,"Reviewer 1 said yes, reviewer 2 said no; resolved as no by consensus. The thread is only the '[PULL REQUEST] i2c-for-6.13-rc1' cover email plus the pr-tracker-bot merge notice, with no diff or discussion. The only evidence is changelog text in the PULL email ('i2c: piix4: Move i2c_piix4 macros and structures to common header'; 'PIIX4 driver refactored to enable usage by other drivers (e.g., AMD ASF).'), and the reviewers agreed to disregard the content of PULL request emails, since they only summarize patches already discussed elsewhere."
 175348527925.2011912.6805260803610107718.robh@kernel.org,iio,16,"['20250724111345.47889-5-krzysztof.kozlowski@linaro.org'
  '20250724111345.47889-6-krzysztof.kozlowski@linaro.org'
  '20250724111345.47889-7-krzysztof.kozlowski@linaro.org'
@@ -340832,7 +340832,7 @@ On Fri, Jan 22, 2021 at 09:09:27AM +0000, Jonathan Cameron wrote:
 
 Pulled and pushed out, thanks.
 
-greg k-h",common-helper,yes,no,,,
+greg k-h",common-helper,yes,no,no,not_duplication,"Reviewer 1 said yes, reviewer 2 said no; resolved as no by consensus. The thread is only the '[PULL] 1st set of new IIO device support, features and cleanups for the 5.12 cycle' cover email plus Greg KH's 'Pulled and pushed out, thanks.', with no diff or discussion. The only evidence is changelog text in the PULL email ('Addition of a fixp_linear_interpolate function to support this common operation.'; 'Local var for &pdev->dev to avoid excessive repetition.'), and the reviewers agreed to disregard the content of PULL request emails, since they only summarize patches already discussed elsewhere."
 YMmUwCsdy4OaQCiU@kroah.com,linux-i2c,15,"['20210615191543.1043414-1-robh@kernel.org' 'YMmUwCsdy4OaQCiU@kroah.com'
  'YMnTx4GqTWu75o2n@vkoul-mobl'
  '20210616104135.z5bjalhan4ui2ibz@pengutronix.de'
