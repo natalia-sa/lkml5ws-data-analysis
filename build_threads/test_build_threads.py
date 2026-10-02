@@ -1,23 +1,32 @@
-"""Unit tests for `build_thread_order` and the `--collapse` flag
-(`build_threads_for_file`) in build_threads.py.
+"""Unit tests for build_threads.py: thread building (`build_thread_order`),
+the pre-filter, the one-row-per-thread output and the list selection of `main`.
 """
 
 import pandas as pd
 import pytest
 
+import build_threads
 from build_threads import build_threads_for_file, is_pull_request
+
+MESSAGE_DEFAULTS = {"subject": "", "raw_body": "", "from": "", "cc": None}
 
 
 def thread_id_by_message_id(df, tmp_path):
-    input_path = tmp_path / "list_data_testlist.parquet"
+    input_path = tmp_path / "list_data.parquet"
     output_path = tmp_path / "output.parquet"
-    df.to_parquet(input_path, index=False)
+    df.assign(**{col: df.get(col, value) for col, value in MESSAGE_DEFAULTS.items()}).to_parquet(
+        input_path, index=False
+    )
 
-    build_threads_for_file(str(input_path), str(output_path), collapse=False)
+    build_threads_for_file(str(input_path), str(output_path), "testlist")
 
     result = pd.read_parquet(output_path)
 
-    thread_ids = dict(zip(result["message_id"], result["_thread_id"]))
+    thread_ids = {
+        message_id: thread_id
+        for message_ids, thread_id in zip(result["message_ids"], result["_thread_id"])
+        for message_id in message_ids
+    }
 
     return thread_ids, result
 
@@ -135,11 +144,11 @@ def test_reply_with_no_in_reply_to_links_via_references(tmp_path):
     assert (result["list"] == "testlist").all()
 
 
-# With `--collapse`, a 3-message thread (cover letter + two replies chained
-# via `in_reply_to`) must collapse into a single row whose `thread_content`
-# holds all three messages, in chronological order. A thread made only of a
-# pull request and its reply must not produce a row.
-def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
+# A 3-message thread (cover letter + two replies chained via `in_reply_to`)
+# must become a single row whose `thread_content` holds all three messages, in
+# chronological order. A thread made only of a pull request and its reply must
+# not produce a row.
+def test_three_message_thread_becomes_one_row(tmp_path):
     parent_id = "20260601120000.1-cover@example.com"
     reply_id = "20260601120500.2-reply@example.com"
     grandchild_id = "20260601121000.3-grandchild@example.com"
@@ -152,7 +161,7 @@ def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
             "references": None,
             "date": "2026-06-01 12:00:00",
             "subject": "[PATCH] fix thing",
-            "raw_body": "Here is the patch.",
+            "raw_body": "Here is the patch. It removes duplicated code.",
             "from": "author@example.com",
             "cc": ["reviewer@example.com"],
         },
@@ -198,17 +207,17 @@ def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
         },
     ])
 
-    input_path = tmp_path / "list_data_testlist.parquet"
+    input_path = tmp_path / "list_data.parquet"
     output_path = tmp_path / "output.parquet"
     df.to_parquet(input_path, index=False)
 
-    build_threads_for_file(str(input_path), str(output_path), collapse=True)
+    build_threads_for_file(str(input_path), str(output_path), "testlist")
 
-    collapsed = pd.read_parquet(output_path)
+    result = pd.read_parquet(output_path)
 
-    assert len(collapsed) == 1
+    assert len(result) == 1
 
-    row = collapsed.iloc[0]
+    row = result.iloc[0]
 
     assert row["_thread_id"] in {parent_id, reply_id, grandchild_id}
     assert row["list"] == "testlist"
@@ -218,6 +227,7 @@ def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
     assert row["subject"] == "[PATCH] fix thing"
     assert row["from"] == "author@example.com"
     assert list(row["cc"]) == ["reviewer@example.com"]
+    assert row["is_candidate"] == "yes"
 
     content = row["thread_content"]
     assert content.count("MESSAGE") == 3
@@ -231,8 +241,8 @@ def test_collapse_merges_a_three_message_thread_into_one_row(tmp_path):
     assert first_block.index("Subject:") < first_block.index("From:") < first_block.index("Email body:")
 
 
-# Pull request messages keep the thread's id but are left out of its collapsed row.
-def test_collapse_leaves_pull_request_messages_out_of_the_thread(tmp_path):
+# Pull request messages keep the thread's id but are left out of its row.
+def test_pull_request_messages_are_left_out_of_the_thread(tmp_path):
     pull_id = "20260602090000.1-pull@example.com"
     merged_id = "20260602100000.2-merged@example.com"
     report_id = "20260603080000.3-report@example.com"
@@ -264,7 +274,7 @@ def test_collapse_leaves_pull_request_messages_out_of_the_thread(tmp_path):
             "references": [pull_id, merged_id],
             "date": "2026-06-03 08:00:00",
             "subject": "Unexplained long boot delays [Was Re: [GIT PULL] RCU changes for v6.9]",
-            "raw_body": "Boot got slower after this merge.",
+            "raw_body": "Boot got slower after this merge, the init runs a duplicated probe.",
             "from": "tester@example.com",
             "cc": None,
         },
@@ -273,22 +283,22 @@ def test_collapse_leaves_pull_request_messages_out_of_the_thread(tmp_path):
     thread_ids, _ = thread_id_by_message_id(df, tmp_path)
     assert len(set(thread_ids.values())) == 1
 
-    input_path = tmp_path / "list_data_testlist.parquet"
-    output_path = tmp_path / "collapsed.parquet"
-    build_threads_for_file(str(input_path), str(output_path), collapse=True)
+    input_path = tmp_path / "list_data.parquet"
+    output_path = tmp_path / "output.parquet"
+    build_threads_for_file(str(input_path), str(output_path), "testlist")
 
-    collapsed = pd.read_parquet(output_path)
+    result = pd.read_parquet(output_path)
 
-    assert len(collapsed) == 1
+    assert len(result) == 1
 
-    row = collapsed.iloc[0]
+    row = result.iloc[0]
 
     assert row["n_messages"] == 1
     assert list(row["message_ids"]) == [report_id]
     assert row["subject"].startswith("Unexplained long boot delays")
     assert row["date"] == "2026-06-03 08:00:00"
     assert "MESSAGE 1 of 1" in row["thread_content"]
-    assert "Boot got slower after this merge." in row["thread_content"]
+    assert "Boot got slower after this merge" in row["thread_content"]
     assert "Please pull the RCU changes." not in row["thread_content"]
     assert "Pulled, thanks." not in row["thread_content"]
 
@@ -377,3 +387,82 @@ def test_reply_with_rewritten_in_reply_to_links_via_references(tmp_path):
 
     assert len(set(thread_ids.values())) == 1
     assert (result["list"] == "testlist").all()
+
+
+def message(message_id, body, in_reply_to=None, subject="[PATCH] fix thing"):
+    return {
+        "message_id": message_id,
+        "in_reply_to": in_reply_to,
+        "references": [in_reply_to] if in_reply_to else None,
+        "date": "2026-06-01 12:00:00",
+        "subject": subject,
+        "raw_body": body,
+        "from": "author@example.com",
+        "cc": None,
+    }
+
+
+# A thread is a candidate if any of its messages matches the pre-filter, even
+# only in a reply; only candidates get `thread_content`, with quotes replaced.
+def test_only_candidate_threads_get_thread_content(tmp_path):
+    df = pd.DataFrame([
+        message("1@example.com", "Add the driver."),
+        message("2@example.com", "> Add the driver.\nThis duplicates foo_probe().", "1@example.com"),
+        message("3@example.com", "Fix off-by-one in the checksum loop."),
+        message("4@example.com", "Please pull the duplicated fixes.", subject="[GIT PULL] fixes"),
+    ])
+
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
+    result = result.set_index("_thread_id")
+    replied, plain = result.loc[thread_ids["1@example.com"]], result.loc[thread_ids["3@example.com"]]
+
+    assert replied["is_candidate"] == "yes"
+    assert "[quoted text removed]" in replied["thread_content"]
+    # No match, and a match only in a pull request message, which is left out.
+    assert plain["is_candidate"] == "no"
+    assert pd.isna(plain["thread_content"])
+    assert "4@example.com" not in thread_ids
+
+
+@pytest.fixture
+def lists_env(tmp_path, monkeypatch):
+    for name in ["alpha", "beta"]:
+        folder = tmp_path / "source" / "LKML5Ws" / f"list={name}"
+        folder.mkdir(parents=True)
+        pd.DataFrame([message(f"{name}@example.com", "Remove the duplicated code.")]).to_parquet(
+            folder / "list_data.parquet", index=False
+        )
+
+    output_dir = tmp_path / "output"
+    paths = {"source_dir": str(tmp_path / "source"), "output_dir": str(output_dir)}
+    monkeypatch.setattr(build_threads, "load_paths", lambda: paths)
+    return output_dir
+
+
+def run_main(monkeypatch, *args):
+    monkeypatch.setattr("sys.argv", ["build_threads.py", *args])
+    return build_threads.main()
+
+
+# The list name comes from the `list=<name>` folder, and each list is written
+# to `<output_dir>/list=<name>.parquet`.
+def test_main_builds_every_fetched_list(lists_env, monkeypatch):
+    assert run_main(monkeypatch) == 0
+
+    assert sorted(p.name for p in lists_env.iterdir()) == ["list=alpha.parquet", "list=beta.parquet"]
+    assert pd.read_parquet(lists_env / "list=alpha.parquet")["list"].tolist() == ["alpha"]
+
+
+def test_main_skips_lists_already_built(lists_env, monkeypatch):
+    run_main(monkeypatch, "--lists", "alpha")
+    before = (lists_env / "list=alpha.parquet").stat().st_mtime_ns
+
+    run_main(monkeypatch)
+
+    assert (lists_env / "list=alpha.parquet").stat().st_mtime_ns == before
+    assert (lists_env / "list=beta.parquet").exists()
+
+
+def test_main_rejects_lists_not_fetched(lists_env, monkeypatch):
+    assert run_main(monkeypatch, "--lists", "alpha,gamma") == 1
+    assert not lists_env.exists()

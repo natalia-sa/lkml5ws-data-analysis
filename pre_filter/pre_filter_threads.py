@@ -1,33 +1,16 @@
-#!/usr/bin/env python3
-"""Flags threads that are candidates for discussing code
-duplication (introducing, removing, or maintainer opinion).
-"""
+"""Regex pre-filter for code duplication discussions, called by
+build_threads/build_threads.py on each message."""
 
-import argparse
-import glob
-import os
 import re
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
-import pandas as pd
-
-HERE = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(HERE)
-BUILD_THREADS_DIR = os.path.join(PROJECT_ROOT, "build_threads_output")
-OUTPUT_DIR = os.path.join(HERE, "pre_filter_output")
-
-MAX_WORKERS = 3
-
-# The suffix is letters only, not \w*, so a word ending doesn't run into an
-# underscore and swallow a C identifier ("dedup_token", "duplicate_creds").
+# Letters-only suffix, so C identifiers ("dedup_token") don't match.
 CANDIDATE_RE = re.compile(
     r"\b(?:duplicat[a-z]*|dedup[a-z]*|redundant[a-z]*|repeated|copy[-_\s]?past(?:e|ed|ing))\b",
     re.IGNORECASE,
 )
 
-# Consolidation described without any of the CANDIDATE_RE terms: "move this
-# into a common helper", "factor it out into shared code". The movement verb
-# is required -- a bare "common helper" is usually not about duplication.
+# "move this into a common helper": the verb is required, since a bare
+# "common helper" is usually not about duplication.
 COMMON_HELPER_TERM = "common-helper"
 
 COMMON_HELPER_RE = re.compile(
@@ -38,12 +21,10 @@ COMMON_HELPER_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Any run of non-word characters between the words of an idiom, so
-# "null check", "null-check" and "null\ncheck" are all matched.
+# Matches "null check", "null-check" and "null\ncheck".
 W = r"[\W]+"
 
-# Adjectives that, next to one of CLEANUP_NOUNS below, describe a single
-# unnecessary item being deleted
+# Adjective + noun naming a single unneeded item being removed.
 CLEANUP_ADJECTIVE = r"(?:duplicat\w*|redundant\w*|repeated)"
 
 CLEANUP_NOUNS = [
@@ -91,8 +72,7 @@ def _idiom(phrase):
     return W.join(phrase.split(" "))
 
 
-# The adjective is matched once, before the nouns are tried, so we
-# don't retry the whole list at every position.
+# Adjective first, so the noun list isn't retried at every position.
 FALSE_POSITIVE_RE = re.compile(
     r"\b(?:"
     + "|".join(
@@ -111,8 +91,7 @@ C_IDENTIFIER_RE = re.compile(
 )
 
 
-# A run of lines quoted from an earlier message ("> ...", "> > ..."), which
-# repeats text the thread already contains.
+# Lines quoted from an earlier message ("> ...").
 QUOTED_BLOCK_RE = re.compile(r"(?:^[ \t]*>.*\n?)+", re.MULTILINE)
 
 QUOTE_PLACEHOLDER = "[quoted text removed]"
@@ -120,12 +99,8 @@ QUOTE_PLACEHOLDER = "[quoted text removed]"
 # Separator build_threads writes before each message of thread_content.
 MESSAGE_SEPARATOR = r"\n?={48}\nMESSAGE \d+ of \d+\n={48}\n"
 
-# An Outlook-style (top-posted) quote: the earlier message pasted below a
-# header, without "> " on its lines, so QUOTED_BLOCK_RE misses it. The header
-# is an "Original Message" line, a line of underscores followed by "From:",
-# or a "From: ..." line with "Sent: ..." in the next few lines -- the
-# build_threads sender header ("From:" alone on its line) never matches.
-# Everything from the header to the end of the message is the quote.
+# Outlook-style quote: from an "Original Message", "____" or "From: ... Sent:"
+# header to the end of the message. build_threads' own "From:" line never matches.
 OUTLOOK_QUOTE_RE = re.compile(
     r"^[ \t]*(?:"
     r"-{2,}[ \t]*Original Message[ \t]*-{2,}"
@@ -137,19 +112,14 @@ OUTLOOK_QUOTE_RE = re.compile(
 
 
 def replace_quotes(thread_content):
-    """Replaces each block of quoted reply lines, and each Outlook-style quote,
-    with QUOTE_PLACEHOLDER, so each piece of text is kept (and matched) once,
-    while the reply still shows where it was answering an earlier message."""
+    """Replaces each quote with QUOTE_PLACEHOLDER, so text is matched once."""
     content = QUOTED_BLOCK_RE.sub(QUOTE_PLACEHOLDER + "\n", thread_content or "")
     return OUTLOOK_QUOTE_RE.sub(QUOTE_PLACEHOLDER + "\n", content)
 
 
 def match_spans(thread_content):
-    """Returns (term, start, end) for every match in thread_content, in text
-    order. Matches that fall entirely inside a FALSE_POSITIVE_RE or
-    C_IDENTIFIER_RE span are dropped; any other match still counts
-    normally. A COMMON_HELPER_RE phrase is reported as the
-    COMMON_HELPER_TERM pseudo-term."""
+    """(term, start, end) of every match, in text order, except those inside a
+    FALSE_POSITIVE_RE or C_IDENTIFIER_RE span."""
     text = thread_content or ""
     spans = []
 
@@ -173,67 +143,10 @@ def match_spans(thread_content):
 
 
 def matches(thread_content):
-    """Returns the terms from match_spans, lowercased, deduplicated and
-    sorted, or an empty list if none matched."""
+    """Sorted, lowercased, unique terms matched."""
     return sorted(set(term.lower() for term, _, _ in match_spans(thread_content)))
 
 
-def filter_file(path, output_dir):
-    """Reads a parquet, applies the regex to the thread content with the
-    quoted reply lines replaced by a placeholder and writes only the threads
-    that matched. The stored content is that shorter version."""
-    df = pd.read_parquet(path)
-    content = df["thread_content"].apply(replace_quotes)
-    matched_terms = content.apply(matches)
-
-    matched = matched_terms.map(len) > 0
-    hits = df[matched].copy()
-    hits["thread_content"] = content[matched]
-    hits["matched_terms"] = matched_terms[matched].apply(",".join)
-    hits = hits.sort_values("_thread_id").reset_index(drop=True)
-
-    out_path = os.path.join(output_dir, os.path.basename(path))
-    hits.to_parquet(out_path, index=False)
-    return f"{os.path.basename(path)}: {len(hits)}/{df.shape[0]} candidate threads"
-
-
-def build_pre_filter(path, output_dir=OUTPUT_DIR, max_workers=MAX_WORKERS):
-    os.makedirs(output_dir, exist_ok=True)
-
-    if os.path.isdir(path):
-        files = sorted(glob.glob(os.path.join(path, "*.parquet")))
-    else:
-        files = [path]
-
-    workers = max(1, min(max_workers, len(files)))
-
-    if workers == 1:
-        for file_path in files:
-            print(filter_file(file_path, output_dir))
-    else:
-        with ProcessPoolExecutor(max_workers=workers) as pool:
-            futures = [pool.submit(filter_file, file_path, output_dir) for file_path in files]
-            for future in as_completed(futures):
-                print(future.result())
-
-    print(f"Saved to: {output_dir}")
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "path", nargs="?", default=BUILD_THREADS_DIR,
-        help="A single list parquet or a directory of parquets (e.g. build_threads_output/)",
-    )
-    parser.add_argument("--output-dir", default=OUTPUT_DIR)
-    parser.add_argument(
-        "--jobs", type=int, default=MAX_WORKERS,
-        help=f"Lists filtered in parallel (default: {MAX_WORKERS})",
-    )
-    args = parser.parse_args()
-
-    build_pre_filter(args.path, output_dir=args.output_dir, max_workers=args.jobs)
-
-
-if __name__ == "__main__":
-    main()
+def is_candidate(text):
+    """Whether text, with quoted replies replaced, matches any term."""
+    return bool(matches(replace_quotes(text)))

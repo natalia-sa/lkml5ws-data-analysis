@@ -1,0 +1,12 @@
+zenodo:
+  api_url: https://zenodo.org/api
+  record_id: "17567225"
+  doi: 10.5281/zenodo.17567225
+  version: v1.0.0
+
+# Caminhos relativos à raiz do repositório.
+paths:
+  raw_dir: data/raw
+  source_dir: data/source
+  output_dir: data/output
+  archive_index: config/archive_index.csv

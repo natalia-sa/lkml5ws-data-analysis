@@ -35,3 +35,6 @@ classify/*/llm_cache.json
 
 # Respostas dos classificadores para o sample rotulado
 classify/evaluation_output/
+
+# Dados baixados e extraídos pelo fetch (fetch/fetch.py)
+data/
