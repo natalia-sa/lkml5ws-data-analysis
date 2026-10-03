@@ -207,7 +207,7 @@ def parse_git_trailers(trailers: str) -> list[str]:
     links = []
 
     for line in trailers.splitlines():
-        value = line.strip("Link:").strip()
+        value = line.removeprefix("Link:").strip()
 
         if value:
             links.append(value)
