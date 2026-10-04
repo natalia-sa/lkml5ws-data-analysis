@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
-"""Downloads the LKML5Ws archives from Zenodo and extracts the lists of the
-allow-list (config/lists.yaml) into <source_dir>/LKML5Ws/list=<name>/.
+"""Fetches the lists of the allow-list (config/lists.yaml) into
+<source_dir>/LKML5Ws/list=<name>/, from one of two sources:
+
+- zenodo (default): downloads the LKML5Ws archives and extracts the lists,
+  downloading only the archives that hold them (config/archive_index.csv maps
+  lists to archives);
+- rcpassos: downloads each list's parquet, already uncompressed, from
+  files.rcpassos.me (URL in config/pipeline.yaml). It has no md5, so a
+  download is checked by size and by the parquet magic bytes.
 
 <source_dir>/LKML5Ws/ mirrors the allow-list: on every run, lists taken out of
-it are deleted and lists added to it are fetched, downloading only the
-archives that hold them (config/archive_index.csv maps lists to archives).
+it are deleted and lists added to it are fetched.
 
 Run:
-    .venv/bin/python fetch/fetch.py [--lists a,b]
+    .venv/bin/python fetch/fetch.py [--source zenodo|rcpassos] [--lists a,b]
 """
 
 import argparse
@@ -21,6 +27,7 @@ import shutil
 import sys
 import tarfile
 import time
+from urllib.parse import unquote
 from urllib.request import Request, urlopen
 
 import yaml
@@ -43,6 +50,8 @@ TIMEOUT = 60
 CHUNK_SIZE = 1 << 20
 MAX_RETRIES = 3
 RETRY_DELAY = 30
+
+PARQUET_MAGIC = b"PAR1"
 
 
 class FetchError(Exception):
@@ -109,6 +118,32 @@ def get_archives(zenodo, opener=urlopen):
     return sorted(archives, key=lambda a: int(ARCHIVE_RE.search(a["name"]).group(1)))
 
 
+def get_rcpassos_lists(rcpassos, opener=urlopen):
+    """{list: download}, read from the server's JSON listing (copyparty `?ls`).
+    Each list folder holds only list_data.parquet, so its size is the file's."""
+    url = rcpassos["url"].rstrip("/") + "/"
+    with opener(Request(url + "?ls", headers={"User-Agent": USER_AGENT}), timeout=TIMEOUT) as response:
+        listing = json.loads(response.read())
+
+    lists = {}
+    for folder in listing["dirs"]:
+        name = unquote(folder["href"]).strip("/").removeprefix("list=")
+        lists[name] = {
+            "name": f"list={name}/{LIST_FILE}",
+            "size": folder["sz"],
+            "md5": None,
+            "url": f"{url}{folder['href']}{LIST_FILE}",
+        }
+    return lists
+
+
+def is_parquet(path):
+    with open(path, "rb") as fh:
+        head = fh.read(len(PARQUET_MAGIC))
+        fh.seek(-len(PARQUET_MAGIC), os.SEEK_END)
+        return head == fh.read() == PARQUET_MAGIC
+
+
 def file_md5(path):
     digest = hashlib.md5()
     name = os.path.basename(path).removesuffix(".part")
@@ -120,10 +155,11 @@ def file_md5(path):
 
 
 def download(archive, raw_dir, opener=urlopen):
-    """Resumes a <name>.part left by an interrupted run."""
-    os.makedirs(raw_dir, exist_ok=True)
+    """Resumes a <name>.part left by an interrupted run. Without an md5, the
+    file must be a parquet."""
     path = os.path.join(raw_dir, archive["name"])
-    if os.path.exists(path) and file_md5(path) == archive["md5"]:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    if os.path.exists(path) and (archive["md5"] is None or file_md5(path) == archive["md5"]):
         return path
 
     part = path + ".part"
@@ -147,13 +183,18 @@ def download(archive, raw_dir, opener=urlopen):
         if os.path.getsize(part) < archive["size"]:
             raise DownloadInterrupted(f"{archive['name']}: download incomplete")
 
-    actual = file_md5(part)
-    if actual != archive["md5"]:
-        os.remove(part)
-        raise FetchError(
-            f"{archive['name']}: md5 mismatch (expected {archive['md5']}, got {actual}); "
-            "the download was deleted"
-        )
+    if archive["md5"] is None:
+        if os.path.getsize(part) != archive["size"] or not is_parquet(part):
+            os.remove(part)
+            raise FetchError(f"{archive['name']}: not a valid parquet; the download was deleted")
+    else:
+        actual = file_md5(part)
+        if actual != archive["md5"]:
+            os.remove(part)
+            raise FetchError(
+                f"{archive['name']}: md5 mismatch (expected {archive['md5']}, got {actual}); "
+                "the download was deleted"
+            )
 
     os.replace(part, path)
     return path
@@ -240,21 +281,9 @@ def remove_lists_not_allowed(lists_dir, allow_list):
     return removed
 
 
-def fetch(pipeline, allow_list, only=None, opener=urlopen):
+def fetch_from_zenodo(pipeline, lists_dir, targets, opener):
     paths = pipeline["paths"]
-    lists_dir = os.path.join(paths["source_dir"], LISTS_DIRNAME)
-
-    targets = set(only or allow_list)
-    not_allowed = sorted(targets - set(allow_list))
-    if not_allowed:
-        raise FetchError(f"not in the allow-list (config/lists.yaml): {not_allowed}")
-
     archives = get_archives(pipeline["zenodo"], opener)
-
-    # Every run (also with --lists): lists out of the allow-list are deleted.
-    removed = remove_lists_not_allowed(lists_dir, set(allow_list))
-    if removed:
-        print(f"Removed {len(removed)} lists no longer in the allow-list: {', '.join(removed)}")
 
     index = read_index(paths["archive_index"])
     for archive in archives:
@@ -302,12 +331,51 @@ def fetch(pipeline, allow_list, only=None, opener=urlopen):
     if missing:
         raise FetchError(f"not in any archive of {pipeline['zenodo']['version']}: {missing}")
 
+
+def fetch_from_rcpassos(pipeline, lists_dir, targets, opener):
+    available = get_rcpassos_lists(pipeline["rcpassos"], opener)
+
+    todo = sorted(name for name in targets if not is_extracted(lists_dir, name))
+    missing = sorted(set(todo) - set(available))
+    if missing:
+        raise FetchError(f"not on {pipeline['rcpassos']['url']}: {missing}")
+
+    total_gb = sum(available[name]["size"] for name in todo) / 1e9
+    print(f"{len(targets)} lists requested, {len(todo)} to download ({total_gb:.2f} GB)")
+
+    for number, name in enumerate(todo, start=1):
+        print(f"[{number}/{len(todo)}] {name} ({available[name]['size'] / 1e9:.2f} GB)")
+        download_with_retries(available[name], lists_dir, opener)
+
+
+SOURCES = {"zenodo": fetch_from_zenodo, "rcpassos": fetch_from_rcpassos}
+
+
+def fetch(pipeline, allow_list, only=None, source="zenodo", opener=urlopen):
+    lists_dir = os.path.join(pipeline["paths"]["source_dir"], LISTS_DIRNAME)
+
+    targets = set(only or allow_list)
+    not_allowed = sorted(targets - set(allow_list))
+    if not_allowed:
+        raise FetchError(f"not in the allow-list (config/lists.yaml): {not_allowed}")
+
+    # Every run (also with --lists): lists out of the allow-list are deleted.
+    removed = remove_lists_not_allowed(lists_dir, set(allow_list))
+    if removed:
+        print(f"Removed {len(removed)} lists no longer in the allow-list: {', '.join(removed)}")
+
+    SOURCES[source](pipeline, lists_dir, targets, opener)
+
     print(f"Done: {len(targets)} lists in {lists_dir}")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Download the LKML5Ws archives from Zenodo and extract the allow-listed lists."
+        description="Download the allow-listed LKML5Ws lists from Zenodo or from files.rcpassos.me."
+    )
+    parser.add_argument(
+        "--source", choices=sorted(SOURCES), default="zenodo",
+        help="zenodo: archives to extract (default); rcpassos: lists already uncompressed",
     )
     parser.add_argument(
         "--lists", help="Comma-separated subset of the allow-list to fetch (e.g. for tests)"
@@ -317,7 +385,7 @@ def main():
     try:
         pipeline, allow_list = load_config()
         only = [name.strip() for name in args.lists.split(",")] if args.lists else None
-        fetch(pipeline, allow_list, only)
+        fetch(pipeline, allow_list, only, args.source)
     except (FetchError, OSError, http.client.HTTPException, KeyError, yaml.YAMLError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

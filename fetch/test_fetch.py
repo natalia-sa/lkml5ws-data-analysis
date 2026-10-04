@@ -1,6 +1,6 @@
-"""Unit tests for fetch.py, without network access: a fake opener plays the
-Zenodo API and serves small synthetic archives in the dataset's layout
-(`list=<name>/list_data.parquet`).
+"""Unit tests for fetch.py, without network access: fake openers play the
+Zenodo API, serving small synthetic archives in the dataset's layout
+(`list=<name>/list_data.parquet`), and files.rcpassos.me, serving each list's file.
 """
 
 import hashlib
@@ -324,6 +324,120 @@ def test_index_from_another_version_is_rejected(env):
         env.run()
 
 
+RCPASSOS_URL = "https://rcpassos.test/lists/"
+
+
+def parquet_bytes(payload):
+    return fetch.PARQUET_MAGIC + payload + fetch.PARQUET_MAGIC
+
+
+class FakeRcpassos:
+    """Answers the copyparty listing (`?ls`) and serves each list's parquet,
+    honoring `Range`; `truncate` works as in FakeZenodo."""
+
+    def __init__(self, lists):
+        self.lists = lists
+        self.truncate = {}
+        self.requests = []
+
+    def url(self, name):
+        return f"{RCPASSOS_URL}list%3D{name}/list_data.parquet"
+
+    def __call__(self, request, timeout=None):
+        url = request.full_url
+        byte_range = request.get_header("Range")
+        self.requests.append((url, byte_range))
+
+        if url == RCPASSOS_URL + "?ls":
+            dirs = [{"href": f"list%3D{n}/", "sz": len(d)} for n, d in self.lists.items()]
+            return FakeResponse(json.dumps({"dirs": dirs, "files": []}).encode())
+
+        data, status = next(d for n, d in self.lists.items() if self.url(n) == url), 200
+        if byte_range:
+            data, status = data[int(byte_range.split("=")[1].rstrip("-")):], 206
+        if url in self.truncate:
+            data = data[:self.truncate.pop(url)]
+        return FakeResponse(data, status)
+
+    def downloads(self):
+        return sorted(url for url, _ in self.requests if not url.endswith("?ls"))
+
+
+@pytest.fixture
+def rcpassos_env(env):
+    env.rcpassos = FakeRcpassos({name: parquet_bytes(name.encode() * 100) for name in ["alpha", "beta", "gamma", "delta"]})
+    env.pipeline["rcpassos"] = {"url": RCPASSOS_URL.rstrip("/")}
+
+    def run(allow_list=ALLOW_LIST, only=None):
+        env.rcpassos.requests.clear()
+        fetch.fetch(env.pipeline, list(allow_list), only, source="rcpassos", opener=env.rcpassos)
+
+    env.run_rcpassos = run
+    return env
+
+
+def test_rcpassos_downloads_only_the_allow_list(rcpassos_env):
+    rcpassos_env.run_rcpassos()
+
+    assert rcpassos_env.extracted() == {"alpha", "beta", "gamma"}
+    assert rcpassos_env.rcpassos.downloads() == sorted(rcpassos_env.rcpassos.url(n) for n in ALLOW_LIST)
+    path = rcpassos_env.lists_dir / "list=alpha" / "list_data.parquet"
+    assert path.read_bytes() == rcpassos_env.rcpassos.lists["alpha"]
+    assert not os.path.exists(rcpassos_env.pipeline["paths"]["raw_dir"])
+
+
+def test_rcpassos_second_run_downloads_nothing(rcpassos_env):
+    rcpassos_env.run_rcpassos()
+    rcpassos_env.run_rcpassos()
+
+    assert rcpassos_env.rcpassos.downloads() == []
+
+
+def test_rcpassos_skips_lists_extracted_from_zenodo(rcpassos_env):
+    rcpassos_env.run(only=["alpha"])
+    rcpassos_env.run_rcpassos()
+
+    assert rcpassos_env.rcpassos.downloads() == sorted(rcpassos_env.rcpassos.url(n) for n in ["beta", "gamma"])
+
+
+def test_rcpassos_deletes_lists_removed_from_the_allow_list(rcpassos_env):
+    rcpassos_env.run_rcpassos()
+    rcpassos_env.run_rcpassos(allow_list=["alpha", "gamma"])
+
+    assert rcpassos_env.extracted() == {"alpha", "gamma"}
+    assert not (rcpassos_env.lists_dir / "list=beta").exists()
+
+
+def test_rcpassos_list_missing_fails_before_downloading(rcpassos_env):
+    del rcpassos_env.rcpassos.lists["gamma"]
+
+    with pytest.raises(fetch.FetchError, match=r"not on https://rcpassos.test.*gamma"):
+        rcpassos_env.run_rcpassos()
+
+    assert rcpassos_env.rcpassos.downloads() == []
+
+
+def test_rcpassos_file_that_is_not_parquet_is_deleted(rcpassos_env):
+    rcpassos_env.rcpassos.lists["alpha"] = b"x" * len(rcpassos_env.rcpassos.lists["alpha"])
+
+    with pytest.raises(fetch.FetchError, match="not a valid parquet"):
+        rcpassos_env.run_rcpassos(only=["alpha"])
+
+    assert os.listdir(rcpassos_env.lists_dir / "list=alpha") == []
+
+
+def test_rcpassos_interrupted_download_is_retried_and_resumed(rcpassos_env, monkeypatch):
+    monkeypatch.setattr(fetch.time, "sleep", lambda seconds: None)
+    url = rcpassos_env.rcpassos.url("alpha")
+    rcpassos_env.rcpassos.truncate[url] = 100
+
+    rcpassos_env.run_rcpassos(only=["alpha"])
+
+    assert [r for u, r in rcpassos_env.rcpassos.requests if u == url] == [None, "bytes=100-"]
+    path = rcpassos_env.lists_dir / "list=alpha" / "list_data.parquet"
+    assert path.read_bytes() == rcpassos_env.rcpassos.lists["alpha"]
+
+
 def test_member_paths_cannot_escape_the_list_folder(tmp_path):
     archive = tmp_path / "evil.tar.gz"
     archive.write_bytes(tar_gz({"list=alpha/../../evil": b"x"}))
@@ -339,5 +453,7 @@ def test_committed_config_loads():
 
     assert pipeline["zenodo"]["version"] == "v1.0.0"
     assert pipeline["paths"]["raw_dir"] == os.path.join(fetch.PROJECT_ROOT, "data", "raw")
-    assert len(allow_list) == len(set(allow_list)) == 324
-    assert {"linux-iio", "amd-gfx", "linux-i2c", "linux-iommu", "poky"} <= set(allow_list)
+    assert pipeline["rcpassos"]["url"].startswith("https://")
+    assert len(allow_list) == len(set(allow_list)) == 170
+    assert {"linux-iio", "amd-gfx", "linux-i2c", "lkml", "netdev"} <= set(allow_list)
+    assert not {"git", "u-boot", "poky"} & set(allow_list)
