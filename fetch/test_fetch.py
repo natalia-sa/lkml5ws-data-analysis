@@ -3,6 +3,7 @@ Zenodo API, serving small synthetic archives in the dataset's layout
 (`list=<name>/list_data.parquet`), and files.rcpassos.me, serving each list's file.
 """
 
+import gzip
 import hashlib
 import io
 import json
@@ -220,20 +221,20 @@ def test_lists_option_must_be_in_the_allow_list(env):
         env.run(only=["delta"])
 
 
-def test_unknown_list_fails_before_downloading_once_everything_is_indexed(env):
+def test_unknown_list_is_skipped_before_downloading_once_everything_is_indexed(env, capsys):
     env.run()
 
-    with pytest.raises(fetch.FetchError, match="zeta"):
-        env.run(allow_list=ALLOW_LIST + ["zeta"])
+    env.run(allow_list=ALLOW_LIST + ["zeta"])
 
     assert env.zenodo.downloads() == []
+    assert "Skipped, not in any archive of v1.0.0: ['zeta']" in capsys.readouterr().out
 
 
-def test_unknown_list_fails_at_the_end_when_there_is_no_index(env):
-    with pytest.raises(fetch.FetchError, match="zeta"):
-        env.run(allow_list=ALLOW_LIST + ["zeta"])
+def test_unknown_list_is_skipped_at_the_end_when_there_is_no_index(env, capsys):
+    env.run(allow_list=ALLOW_LIST + ["zeta"])
 
     assert env.extracted() == {"alpha", "beta", "gamma"}
+    assert "Skipped, not in any archive of v1.0.0: ['zeta']" in capsys.readouterr().out
 
 
 def test_md5_mismatch_deletes_the_download_and_fails(env):
@@ -408,13 +409,13 @@ def test_rcpassos_deletes_lists_removed_from_the_allow_list(rcpassos_env):
     assert not (rcpassos_env.lists_dir / "list=beta").exists()
 
 
-def test_rcpassos_list_missing_fails_before_downloading(rcpassos_env):
+def test_rcpassos_list_missing_is_skipped(rcpassos_env, capsys):
     del rcpassos_env.rcpassos.lists["gamma"]
 
-    with pytest.raises(fetch.FetchError, match=r"not on https://rcpassos.test.*gamma"):
-        rcpassos_env.run_rcpassos()
+    rcpassos_env.run_rcpassos()
 
-    assert rcpassos_env.rcpassos.downloads() == []
+    assert rcpassos_env.extracted() == {"alpha", "beta"}
+    assert "Skipped, not on https://rcpassos.test/lists: ['gamma']" in capsys.readouterr().out
 
 
 def test_rcpassos_file_that_is_not_parquet_is_deleted(rcpassos_env):
@@ -449,11 +450,108 @@ def test_member_paths_cannot_escape_the_list_folder(tmp_path):
 
 
 def test_committed_config_loads():
-    pipeline, allow_list = fetch.load_config()
+    pipeline = fetch.load_config()
 
     assert pipeline["zenodo"]["version"] == "v1.0.0"
     assert pipeline["paths"]["raw_dir"] == os.path.join(fetch.PROJECT_ROOT, "data", "raw")
     assert pipeline["rcpassos"]["url"].startswith("https://")
-    assert len(allow_list) == len(set(allow_list)) == 170
-    assert {"linux-iio", "amd-gfx", "linux-i2c", "lkml", "netdev"} <= set(allow_list)
-    assert not {"git", "u-boot", "poky"} & set(allow_list)
+    assert pipeline["maintainers"]["tag"] == "v7.2"
+    assert pipeline["maintainers"]["exclude"] == ["dpdk-dev", "linux-patches"]
+
+
+MAINTAINERS = """\
+List of maintainers
+===================
+
+Descriptions of section entries:
+
+	L: *Mailing list* that is relevant to this area
+
+IIO SUBSYSTEM AND DRIVERS
+M:	Jonathan Cameron <jic23@kernel.org>
+L:	linux-iio@vger.kernel.org
+S:	Maintained
+F:	drivers/iio/
+
+UTIL-LINUX PACKAGE
+M:	Karel Zak <kzak@redhat.com>
+L:	util-linux@vger.kernel.org
+S:	Maintained
+
+IIO LIGHT SENSOR
+L:	LINUX-IIO@vger.kernel.org (moderated for non-subscribers)
+F:	drivers/iio/light/
+"""
+
+LORE = {
+    "linux-iio": "[publicinbox \"linux-iio\"]\n\taddress = linux-iio@vger.kernel.org\n",
+    "util-linux": "\taddress = util-linux@vger.kernel.org\n",
+    "git": "\taddress = git@vger.kernel.org\n",
+    "moved": "\taddress = new@lists.linux.dev\n\taddress = linux-iio@vger.kernel.org\n",
+    "old-domain": "\taddress = linux-iio@lists.old.org\n",
+    "same-name": "\taddress = linux-iio@other-project.org\n",
+}
+
+
+class FakeKernelOrg:
+    """Serves MAINTAINERS, the lore manifest and each lore list's config page."""
+
+    def __init__(self, maintainers=MAINTAINERS):
+        self.maintainers = maintainers.encode()
+        self.urls = []
+
+    def __call__(self, request, timeout=None):
+        url = request.full_url
+        self.urls.append(url)
+        if url.startswith("https://git.kernel.org/"):
+            return FakeResponse(self.maintainers)
+        if url == fetch.LORE_MANIFEST_URL:
+            manifest = {f"/{name}/git/0.git": {} for name in LORE}
+            return FakeResponse(gzip.compress(json.dumps(manifest).encode()))
+        return FakeResponse(LORE[url.split("/")[3]].encode())
+
+
+@pytest.fixture
+def maintainers_pipeline(tmp_path):
+    return {
+        "maintainers": {
+            "tag": "v1.0", "commit": "abc123",
+            "sha256": hashlib.sha256(MAINTAINERS.encode()).hexdigest(),
+            "exclude": ["same-name"],
+        },
+        "paths": {"source_dir": str(tmp_path / "source")},
+    }
+
+
+def test_kernel_list_addresses_only_count_entries_with_files():
+    assert fetch.kernel_list_addresses(MAINTAINERS) == {"linux-iio@vger.kernel.org"}
+
+
+def test_allow_list_has_the_lore_lists_in_maintainers(maintainers_pipeline, tmp_path):
+    allow_list = fetch.maintainers_allow_list(
+        maintainers_pipeline, FakeKernelOrg(), str(tmp_path / "addresses.csv")
+    )
+
+    # "old-domain" matches despite the domain; "same-name" too, but is excluded.
+    assert allow_list == ["linux-iio", "moved", "old-domain"]
+    assert (tmp_path / "source" / "MAINTAINERS-v1.0").read_text() == MAINTAINERS
+
+
+def test_maintainers_and_lore_addresses_are_not_fetched_again(maintainers_pipeline, tmp_path):
+    addresses = str(tmp_path / "addresses.csv")
+    fetch.maintainers_allow_list(maintainers_pipeline, FakeKernelOrg(), addresses)
+    server = FakeKernelOrg()
+
+    fetch.maintainers_allow_list(maintainers_pipeline, server, addresses)
+
+    assert server.urls == [fetch.LORE_MANIFEST_URL]
+    assert fetch.read_addresses(addresses)["moved"] == ["new@lists.linux.dev", "linux-iio@vger.kernel.org"]
+
+
+def test_maintainers_with_another_sha256_is_rejected(maintainers_pipeline, tmp_path):
+    with pytest.raises(fetch.FetchError, match="sha256 mismatch"):
+        fetch.maintainers_allow_list(
+            maintainers_pipeline, FakeKernelOrg("other"), str(tmp_path / "addresses.csv")
+        )
+
+    assert not (tmp_path / "source" / "MAINTAINERS-v1.0").exists()

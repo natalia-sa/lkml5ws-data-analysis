@@ -4,6 +4,22 @@ zenodo:
   doi: 10.5281/zenodo.17567225
   version: v1.0.0
 
+# Listas já descompactadas (fetch.py --source rcpassos).
+rcpassos:
+  url: https://files.rcpassos.me/public/Academic/Datasets/LKML5Ws_uncompressed_lists/
+
+# MAINTAINERS do kernel na release v7.2 (2026-08-16), de onde o fetch tira a
+# allow-list.
+maintainers:
+  tag: v7.2
+  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
+  sha256: a29b1fd99b844423102debd02c9cd66f9fa30c45ff8782028d0971a5884735c6
+  # A comparação ignora o domínio do endereço; estas listas casam assim com
+  # outra lista do MAINTAINERS e ficam de fora.
+  exclude:
+    - dpdk-dev        # dev@dpdk.org casa com dev@openvswitch.org
+    - linux-patches   # patches@lists.linux.dev casa com patches@opensource.cirrus.com
+
 # Caminhos relativos à raiz do repositório.
 paths:
   raw_dir: data/raw

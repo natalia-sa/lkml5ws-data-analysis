@@ -21,7 +21,7 @@ typesafe-sdk==0.7.1
 # Leitura do .env (OPENAI_API_KEY, TYPESAFE_API_KEY, OPENROUTER_API_KEY) usada por classify/*/classify_threads.py.
 python-dotenv==1.2.2
 
-# Leitura de config/pipeline.yaml e config/lists.yaml (fetch/fetch.py).
+# Leitura de config/pipeline.yaml (fetch/fetch.py).
 PyYAML==6.0.3
 
 # Testes unitarios

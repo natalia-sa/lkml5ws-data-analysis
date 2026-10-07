@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
-"""Fetches the lists of the allow-list (config/lists.yaml) into
-<source_dir>/LKML5Ws/list=<name>/, from one of two sources:
+"""Fetches the lists of the allow-list into <source_dir>/LKML5Ws/list=<name>/.
+
+The allow-list is built from the kernel's MAINTAINERS at the version fixed in
+config/pipeline.yaml (`maintainers`): a lore list is in it if the part before
+the @ of one of its addresses (lore config page, cached in
+config/lore_addresses.csv) matches an address on an `L:` line of an entry that
+has an `F:` line, i.e. covers kernel files. The domain is ignored so that lists
+that moved (iommu@lists.linux-foundation.org -> iommu@lists.linux.dev) still
+match; `maintainers.exclude` lists those that match a different list this way.
+
+The lists are fetched from one of two sources:
 
 - zenodo (default): downloads the LKML5Ws archives and extracts the lists,
   downloading only the archives that hold them (config/archive_index.csv maps
@@ -18,6 +27,7 @@ Run:
 
 import argparse
 import csv
+import gzip
 import hashlib
 import http.client
 import json
@@ -27,6 +37,7 @@ import shutil
 import sys
 import tarfile
 import time
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import unquote
 from urllib.request import Request, urlopen
 
@@ -36,6 +47,8 @@ from tqdm import tqdm
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(HERE)
 CONFIG_DIR = os.path.join(PROJECT_ROOT, "config")
+
+ADDRESSES_CSV = os.path.join(CONFIG_DIR, "lore_addresses.csv")
 
 LISTS_DIRNAME = "LKML5Ws"
 LIST_FILE = "list_data.parquet"
@@ -53,6 +66,15 @@ RETRY_DELAY = 30
 
 PARQUET_MAGIC = b"PAR1"
 
+MAINTAINERS_URL = "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/MAINTAINERS?id={commit}"
+LORE_MANIFEST_URL = "https://lore.kernel.org/manifest.js.gz"
+LORE_CONFIG_URL = "https://lore.kernel.org/{name}/_/text/config/raw"
+LORE_WORKERS = 4
+
+LORE_ADDRESS_RE = re.compile(r"^\s*address\s*=\s*(\S+@\S+)\s*$", re.MULTILINE)
+EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+FIELD_RE = re.compile(r"^[A-Z]:\s")
+
 
 class FetchError(Exception):
     pass
@@ -65,13 +87,114 @@ class DownloadInterrupted(FetchError):
 def load_config(config_dir=CONFIG_DIR):
     with open(os.path.join(config_dir, "pipeline.yaml"), encoding="utf-8") as fh:
         pipeline = yaml.safe_load(fh)
-    with open(os.path.join(config_dir, "lists.yaml"), encoding="utf-8") as fh:
-        lists = yaml.safe_load(fh)
 
     for key in ("raw_dir", "source_dir", "archive_index"):
         pipeline["paths"][key] = os.path.join(PROJECT_ROOT, pipeline["paths"][key])
 
-    return pipeline, lists["allow_list"]
+    return pipeline
+
+
+def get(url, opener=urlopen):
+    with opener(Request(url, headers={"User-Agent": USER_AGENT}), timeout=TIMEOUT) as response:
+        return response.read()
+
+
+def fetch_maintainers(maintainers, source_dir, opener=urlopen):
+    """MAINTAINERS at the fixed commit, saved as <source_dir>/MAINTAINERS-<tag>."""
+    path = os.path.join(source_dir, f"MAINTAINERS-{maintainers['tag']}")
+    if os.path.exists(path):
+        with open(path, "rb") as fh:
+            data = fh.read()
+    else:
+        data = get(MAINTAINERS_URL.format(commit=maintainers["commit"]), opener)
+
+    actual = hashlib.sha256(data).hexdigest()
+    if actual != maintainers["sha256"]:
+        raise FetchError(
+            f"MAINTAINERS {maintainers['tag']}: sha256 mismatch "
+            f"(expected {maintainers['sha256']}, got {actual})"
+        )
+
+    if not os.path.exists(path):
+        os.makedirs(source_dir, exist_ok=True)
+        with open(path + ".tmp", "wb") as fh:
+            fh.write(data)
+        os.replace(path + ".tmp", path)
+    return data.decode("utf-8")
+
+
+def kernel_list_addresses(maintainers_text):
+    """Addresses on an `L:` line of an entry that also has an `F:` line."""
+    addresses = set()
+    for block in re.split(r"\n\s*\n", maintainers_text):
+        lines = block.splitlines()
+        fields = [line for line in lines if FIELD_RE.match(line)]
+        if not fields or FIELD_RE.match(lines[0]) or not any(f.startswith("F:") for f in fields):
+            continue
+        for line in fields:
+            if line.startswith("L:") and (match := EMAIL_RE.search(line)):
+                addresses.add(match.group(0).lower())
+    return addresses
+
+
+def lore_names(opener=urlopen):
+    manifest = json.loads(gzip.decompress(get(LORE_MANIFEST_URL, opener)))
+    return sorted({key.split("/")[1] for key in manifest})
+
+
+def lore_addresses(name, opener=urlopen):
+    text = get(LORE_CONFIG_URL.format(name=name), opener).decode("utf-8")
+    return [address.lower() for address in LORE_ADDRESS_RE.findall(text)]
+
+
+def read_addresses(path=ADDRESSES_CSV):
+    addresses = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                addresses.setdefault(row["list"], []).append(row["address"])
+    return addresses
+
+
+def write_addresses(addresses, path=ADDRESSES_CSV):
+    with open(path + ".tmp", "w", encoding="utf-8", newline="") as fh:
+        writer = csv.writer(fh, lineterminator="\n")
+        writer.writerow(["list", "address"])
+        for name in sorted(addresses):
+            for address in addresses[name]:
+                writer.writerow([name, address])
+    os.replace(path + ".tmp", path)
+
+
+def fetch_addresses(names, opener=urlopen, path=ADDRESSES_CSV):
+    """{list: addresses}; lists already in `path` are not fetched again."""
+    addresses = read_addresses(path)
+    todo = [name for name in names if name not in addresses]
+    with ThreadPoolExecutor(LORE_WORKERS) as pool:
+        for name, found in zip(todo, pool.map(lambda name: lore_addresses(name, opener), todo)):
+            addresses[name] = found
+    if todo:
+        write_addresses(addresses, path)
+    return addresses
+
+
+def local_part(address):
+    return address.split("@")[0]
+
+
+def maintainers_allow_list(pipeline, opener=urlopen, addresses_path=ADDRESSES_CSV):
+    """Lore lists whose address, before the @, is on an `L:` line of a
+    MAINTAINERS entry with `F:`, except `maintainers.exclude`."""
+    maintainers = pipeline["maintainers"]
+    text = fetch_maintainers(maintainers, pipeline["paths"]["source_dir"], opener)
+    kernel = {local_part(address) for address in kernel_list_addresses(text)}
+    names = lore_names(opener)
+    addresses = fetch_addresses(names, opener, addresses_path)
+    excluded = set(maintainers.get("exclude", []))
+    return sorted(
+        name for name in names
+        if name not in excluded and kernel & {local_part(a) for a in addresses[name]}
+    )
 
 
 def progress(desc, total, initial=0):
@@ -300,7 +423,8 @@ def fetch_from_zenodo(pipeline, lists_dir, targets, opener):
     if all(a["name"] in index for a in archives):
         missing = sorted(todo - set(location))
         if missing:
-            raise FetchError(f"not in any archive of {pipeline['zenodo']['version']}: {missing}")
+            print(f"Skipped, not in any archive of {pipeline['zenodo']['version']}: {missing}")
+            todo -= set(missing)
 
     to_process = [
         a for a in archives
@@ -327,9 +451,9 @@ def fetch_from_zenodo(pipeline, lists_dir, targets, opener):
         # Only after extracting and indexing, so a failed run can resume from it.
         os.remove(path)
 
-    missing = sorted(name for name in targets if not is_extracted(lists_dir, name))
+    missing = sorted(name for name in todo if not is_extracted(lists_dir, name))
     if missing:
-        raise FetchError(f"not in any archive of {pipeline['zenodo']['version']}: {missing}")
+        print(f"Skipped, not in any archive of {pipeline['zenodo']['version']}: {missing}")
 
 
 def fetch_from_rcpassos(pipeline, lists_dir, targets, opener):
@@ -338,7 +462,8 @@ def fetch_from_rcpassos(pipeline, lists_dir, targets, opener):
     todo = sorted(name for name in targets if not is_extracted(lists_dir, name))
     missing = sorted(set(todo) - set(available))
     if missing:
-        raise FetchError(f"not on {pipeline['rcpassos']['url']}: {missing}")
+        print(f"Skipped, not on {pipeline['rcpassos']['url']}: {missing}")
+        todo = [name for name in todo if name in available]
 
     total_gb = sum(available[name]["size"] for name in todo) / 1e9
     print(f"{len(targets)} lists requested, {len(todo)} to download ({total_gb:.2f} GB)")
@@ -357,7 +482,7 @@ def fetch(pipeline, allow_list, only=None, source="zenodo", opener=urlopen):
     targets = set(only or allow_list)
     not_allowed = sorted(targets - set(allow_list))
     if not_allowed:
-        raise FetchError(f"not in the allow-list (config/lists.yaml): {not_allowed}")
+        raise FetchError(f"not in the allow-list (MAINTAINERS): {not_allowed}")
 
     # Every run (also with --lists): lists out of the allow-list are deleted.
     removed = remove_lists_not_allowed(lists_dir, set(allow_list))
@@ -371,7 +496,7 @@ def fetch(pipeline, allow_list, only=None, source="zenodo", opener=urlopen):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Download the allow-listed LKML5Ws lists from Zenodo or from files.rcpassos.me."
+        description="Download the LKML5Ws lists in the kernel's MAINTAINERS from Zenodo or files.rcpassos.me."
     )
     parser.add_argument(
         "--source", choices=sorted(SOURCES), default="zenodo",
@@ -383,7 +508,9 @@ def main():
     args = parser.parse_args()
 
     try:
-        pipeline, allow_list = load_config()
+        pipeline = load_config()
+        allow_list = maintainers_allow_list(pipeline)
+        print(f"{len(allow_list)} lists in MAINTAINERS {pipeline['maintainers']['tag']}")
         only = [name.strip() for name in args.lists.split(",")] if args.lists else None
         fetch(pipeline, allow_list, only, args.source)
     except (FetchError, OSError, http.client.HTTPException, KeyError, yaml.YAMLError) as e:
