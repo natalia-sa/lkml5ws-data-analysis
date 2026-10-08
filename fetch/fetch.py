@@ -1,25 +1,12 @@
 #!/usr/bin/env python3
-"""Fetches the lists of the allow-list into <source_dir>/LKML5Ws/list=<name>/.
+"""Downloads the LKML5Ws lists of the allow-list into
+<source_dir>/LKML5Ws/list=<name>/, deleting lists that are no longer in it.
 
-The allow-list is built from the kernel's MAINTAINERS at the version fixed in
-config/pipeline.yaml (`maintainers`): a lore list is in it if the part before
-the @ of one of its addresses (lore config page, cached in
-config/lore_addresses.csv) matches an address on an `L:` line of an entry that
-has an `F:` line, i.e. covers kernel files. The domain is ignored so that lists
-that moved (iommu@lists.linux-foundation.org -> iommu@lists.linux.dev) still
-match; `maintainers.exclude` lists those that match a different list this way.
+Allow-list: lore lists whose address, before the @, is on an `L:` line of a
+MAINTAINERS entry with `F:` in some kernel release of the range in
+config/pipeline.yaml, except `maintainers.exclude`.
 
-The lists are fetched from one of two sources:
-
-- zenodo (default): downloads the LKML5Ws archives and extracts the lists,
-  downloading only the archives that hold them (config/archive_index.csv maps
-  lists to archives);
-- rcpassos: downloads each list's parquet, already uncompressed, from
-  files.rcpassos.me (URL in config/pipeline.yaml). It has no md5, so a
-  download is checked by size and by the parquet magic bytes.
-
-<source_dir>/LKML5Ws/ mirrors the allow-list: on every run, lists taken out of
-it are deleted and lists added to it are fetched.
+Sources: zenodo (archives, md5-checked) or rcpassos (uncompressed lists).
 
 Run:
     .venv/bin/python fetch/fetch.py [--source zenodo|rcpassos] [--lists a,b]
@@ -66,10 +53,13 @@ RETRY_DELAY = 30
 
 PARQUET_MAGIC = b"PAR1"
 
-MAINTAINERS_URL = "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/MAINTAINERS?id={commit}"
+KERNEL_REPO = "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
+KERNEL_TAGS_URL = KERNEL_REPO + "/info/refs?service=git-upload-pack"
+MAINTAINERS_URL = KERNEL_REPO + "/plain/MAINTAINERS?h={tag}"
+RELEASE_TAG_RE = re.compile(r"refs/tags/(v\d+\.\d+(?:\.\d+)?)$", re.MULTILINE)
 LORE_MANIFEST_URL = "https://lore.kernel.org/manifest.js.gz"
 LORE_CONFIG_URL = "https://lore.kernel.org/{name}/_/text/config/raw"
-LORE_WORKERS = 4
+WORKERS = 4
 
 LORE_ADDRESS_RE = re.compile(r"^\s*address\s*=\s*(\S+@\S+)\s*$", re.MULTILINE)
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
@@ -99,30 +89,6 @@ def get(url, opener=urlopen):
         return response.read()
 
 
-def fetch_maintainers(maintainers, source_dir, opener=urlopen):
-    """MAINTAINERS at the fixed commit, saved as <source_dir>/MAINTAINERS-<tag>."""
-    path = os.path.join(source_dir, f"MAINTAINERS-{maintainers['tag']}")
-    if os.path.exists(path):
-        with open(path, "rb") as fh:
-            data = fh.read()
-    else:
-        data = get(MAINTAINERS_URL.format(commit=maintainers["commit"]), opener)
-
-    actual = hashlib.sha256(data).hexdigest()
-    if actual != maintainers["sha256"]:
-        raise FetchError(
-            f"MAINTAINERS {maintainers['tag']}: sha256 mismatch "
-            f"(expected {maintainers['sha256']}, got {actual})"
-        )
-
-    if not os.path.exists(path):
-        os.makedirs(source_dir, exist_ok=True)
-        with open(path + ".tmp", "wb") as fh:
-            fh.write(data)
-        os.replace(path + ".tmp", path)
-    return data.decode("utf-8")
-
-
 def kernel_list_addresses(maintainers_text):
     """Addresses on an `L:` line of an entry that also has an `F:` line."""
     addresses = set()
@@ -135,6 +101,53 @@ def kernel_list_addresses(maintainers_text):
             if line.startswith("L:") and (match := EMAIL_RE.search(line)):
                 addresses.add(match.group(0).lower())
     return addresses
+
+
+def version(tag):
+    return tuple(int(part) for part in tag.removeprefix("v").split("."))
+
+
+def release_tags(first, last, opener=urlopen):
+    """Kernel release tags (no -rc) from `first` to `last`, oldest first."""
+    text = get(KERNEL_TAGS_URL, opener).decode("utf-8", "replace")
+    tags = set(RELEASE_TAG_RE.findall(text))
+    return sorted((t for t in tags if version(first) <= version(t) <= version(last)), key=version)
+
+
+def maintainers_csv(maintainers):
+    return os.path.join(
+        CONFIG_DIR, f"maintainers_addresses_{maintainers['first_tag']}-{maintainers['last_tag']}.csv"
+    )
+
+
+def maintainers_addresses(maintainers, opener=urlopen, path=None):
+    """{address: [first release, last release]} of the `L:` addresses of
+    entries with `F:`, over every release in the tag range. Cached in `path`."""
+    path = path or maintainers_csv(maintainers)
+    if os.path.exists(path):
+        with open(path, encoding="utf-8", newline="") as fh:
+            return {row["address"]: [row["first_release"], row["last_release"]] for row in csv.DictReader(fh)}
+
+    tags = release_tags(maintainers["first_tag"], maintainers["last_tag"], opener)
+    if not tags or tags[0] != maintainers["first_tag"] or tags[-1] != maintainers["last_tag"]:
+        raise FetchError(f"kernel tags {maintainers['first_tag']}..{maintainers['last_tag']} not found")
+
+    def addresses_at(tag):
+        return kernel_list_addresses(get(MAINTAINERS_URL.format(tag=tag), opener).decode("utf-8", "replace"))
+
+    seen = {}
+    with ThreadPoolExecutor(WORKERS) as pool:
+        for tag, found in zip(tags, tqdm(pool.map(addresses_at, tags), total=len(tags), desc="MAINTAINERS")):
+            for address in found:
+                seen.setdefault(address, [tag, tag])[1] = tag
+
+    with open(path + ".tmp", "w", encoding="utf-8", newline="") as fh:
+        writer = csv.writer(fh, lineterminator="\n")
+        writer.writerow(["address", "first_release", "last_release"])
+        for address in sorted(seen):
+            writer.writerow([address, *seen[address]])
+    os.replace(path + ".tmp", path)
+    return seen
 
 
 def lore_names(opener=urlopen):
@@ -170,7 +183,7 @@ def fetch_addresses(names, opener=urlopen, path=ADDRESSES_CSV):
     """{list: addresses}; lists already in `path` are not fetched again."""
     addresses = read_addresses(path)
     todo = [name for name in names if name not in addresses]
-    with ThreadPoolExecutor(LORE_WORKERS) as pool:
+    with ThreadPoolExecutor(WORKERS) as pool:
         for name, found in zip(todo, pool.map(lambda name: lore_addresses(name, opener), todo)):
             addresses[name] = found
     if todo:
@@ -182,15 +195,14 @@ def local_part(address):
     return address.split("@")[0]
 
 
-def maintainers_allow_list(pipeline, opener=urlopen, addresses_path=ADDRESSES_CSV):
+def maintainers_allow_list(pipeline, opener=urlopen, addresses_path=ADDRESSES_CSV, maintainers_path=None):
     """Lore lists whose address, before the @, is on an `L:` line of a
-    MAINTAINERS entry with `F:`, except `maintainers.exclude`."""
+    MAINTAINERS entry with `F:` in some release, except `maintainers.exclude`."""
     maintainers = pipeline["maintainers"]
-    text = fetch_maintainers(maintainers, pipeline["paths"]["source_dir"], opener)
-    kernel = {local_part(address) for address in kernel_list_addresses(text)}
+    kernel = {local_part(a) for a in maintainers_addresses(maintainers, opener, maintainers_path)}
     names = lore_names(opener)
     addresses = fetch_addresses(names, opener, addresses_path)
-    excluded = set(maintainers.get("exclude", []))
+    excluded = set(maintainers["exclude"])
     return sorted(
         name for name in names
         if name not in excluded and kernel & {local_part(a) for a in addresses[name]}
@@ -217,14 +229,12 @@ class ProgressReader:
 
 
 def get_archives(zenodo, opener=urlopen):
-    url = f"{zenodo['api_url']}/records/{zenodo['record_id']}"
-    with opener(Request(url, headers={"User-Agent": USER_AGENT}), timeout=TIMEOUT) as response:
-        record = json.loads(response.read())
+    record = json.loads(get(f"{zenodo['api_url']}/records/{zenodo['record_id']}", opener))
 
-    version = record["metadata"].get("version")
-    if version != zenodo["version"]:
+    record_version = record["metadata"].get("version")
+    if record_version != zenodo["version"]:
         raise FetchError(
-            f"Zenodo record {zenodo['record_id']} is version {version}, "
+            f"Zenodo record {zenodo['record_id']} is version {record_version}, "
             f"config/pipeline.yaml expects {zenodo['version']}"
         )
 
@@ -245,8 +255,7 @@ def get_rcpassos_lists(rcpassos, opener=urlopen):
     """{list: download}, read from the server's JSON listing (copyparty `?ls`).
     Each list folder holds only list_data.parquet, so its size is the file's."""
     url = rcpassos["url"].rstrip("/") + "/"
-    with opener(Request(url + "?ls", headers={"User-Agent": USER_AGENT}), timeout=TIMEOUT) as response:
-        listing = json.loads(response.read())
+    listing = json.loads(get(url + "?ls", opener))
 
     lists = {}
     for folder in listing["dirs"]:
@@ -476,8 +485,12 @@ def fetch_from_rcpassos(pipeline, lists_dir, targets, opener):
 SOURCES = {"zenodo": fetch_from_zenodo, "rcpassos": fetch_from_rcpassos}
 
 
-def fetch(pipeline, allow_list, only=None, source="zenodo", opener=urlopen):
+def fetch(pipeline, only=None, source="zenodo", opener=urlopen):
     lists_dir = os.path.join(pipeline["paths"]["source_dir"], LISTS_DIRNAME)
+
+    allow_list = maintainers_allow_list(pipeline, opener)
+    maintainers = pipeline["maintainers"]
+    print(f"{len(allow_list)} lists in MAINTAINERS {maintainers['first_tag']}..{maintainers['last_tag']}")
 
     targets = set(only or allow_list)
     not_allowed = sorted(targets - set(allow_list))
@@ -509,10 +522,8 @@ def main():
 
     try:
         pipeline = load_config()
-        allow_list = maintainers_allow_list(pipeline)
-        print(f"{len(allow_list)} lists in MAINTAINERS {pipeline['maintainers']['tag']}")
         only = [name.strip() for name in args.lists.split(",")] if args.lists else None
-        fetch(pipeline, allow_list, only, args.source)
+        fetch(pipeline, only, args.source)
     except (FetchError, OSError, http.client.HTTPException, KeyError, yaml.YAMLError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1

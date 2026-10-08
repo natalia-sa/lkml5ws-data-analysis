@@ -8,12 +8,12 @@ zenodo:
 rcpassos:
   url: https://files.rcpassos.me/public/Academic/Datasets/LKML5Ws_uncompressed_lists/
 
-# MAINTAINERS do kernel na release v7.2 (2026-08-16), de onde o fetch tira a
-# allow-list.
+# MAINTAINERS do kernel em todas as releases entre estas tags, de onde o fetch
+# tira a allow-list. A v2.6.30 (2009-06) é a primeira release em que o campo F: é
+# usado; a v7.2 (2026-08-16) era a última estável em 2026-10.
 maintainers:
-  tag: v7.2
-  commit: 8d3ae59288f1e7d58d76558a6ee96d533bc5019f
-  sha256: a29b1fd99b844423102debd02c9cd66f9fa30c45ff8782028d0971a5884735c6
+  first_tag: v2.6.30
+  last_tag: v7.2
   # A comparação ignora o domínio do endereço; estas listas casam assim com
   # outra lista do MAINTAINERS e ficam de fora.
   exclude:

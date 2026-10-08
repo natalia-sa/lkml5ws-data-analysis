@@ -71,7 +71,7 @@ def tar_gz(files):
 
 
 @pytest.fixture
-def env(tmp_path):
+def env(tmp_path, monkeypatch):
     blobs = {
         name: tar_gz({f"list={lst}/list_data.parquet": content for lst, content in lists.items()})
         for name, lists in ARCHIVES.items()
@@ -97,6 +97,7 @@ def env(tmp_path):
         zenodo = FakeZenodo(record, {f"https://zenodo.test/files/{n}": d for n, d in blobs.items()})
         pipeline = {
             "zenodo": {"api_url": "https://zenodo.test/api", "record_id": "123", "version": "v1.0.0"},
+            "maintainers": {"first_tag": "v1.0", "last_tag": "v1.2", "exclude": []},
             "paths": {
                 "raw_dir": str(tmp_path / "raw"),
                 "source_dir": str(tmp_path / "source"),
@@ -105,9 +106,14 @@ def env(tmp_path):
         }
         lists_dir = tmp_path / "source" / "LKML5Ws"
 
+        def use_allow_list(self, allow_list):
+            """The allow-list MAINTAINERS would give; its tests are further below."""
+            monkeypatch.setattr(fetch, "maintainers_allow_list", lambda pipeline, opener: list(allow_list))
+
         def run(self, allow_list=ALLOW_LIST, only=None):
+            self.use_allow_list(allow_list)
             self.zenodo.requests.clear()
-            fetch.fetch(self.pipeline, list(allow_list), only, opener=self.zenodo)
+            fetch.fetch(self.pipeline, only, opener=self.zenodo)
 
         def extracted(self):
             return {
@@ -126,12 +132,24 @@ def env(tmp_path):
     return Env()
 
 
-def test_archives_are_read_from_the_record_in_part_order(env):
+def test_first_run_extracts_the_allow_list_and_second_run_downloads_nothing(env):
     env.zenodo.record["files"].reverse()
 
-    archives = fetch.get_archives(env.pipeline["zenodo"], env.zenodo)
+    env.run()
 
-    assert [a["name"] for a in archives] == list(ARCHIVES)
+    # Every dataset archive in part order, and nothing else of the record.
+    assert env.zenodo.downloads() == list(ARCHIVES)
+    assert env.extracted() == {"alpha", "beta", "gamma"}
+    assert (env.lists_dir / "list=alpha" / "list_data.parquet").read_bytes() == b"alpha" * 100
+    assert os.listdir(env.pipeline["paths"]["raw_dir"]) == []
+    assert {a: e["lists"] for a, e in env.index().items()} == {
+        "LKML5Ws-anonymized_1.dataset.tar.gz": {"alpha", "beta"},
+        "LKML5Ws-anonymized_2.dataset.tar.gz": {"gamma", "delta"},
+    }
+
+    env.run()
+
+    assert env.zenodo.downloads() == []
 
 
 def test_another_record_version_is_rejected(env):
@@ -139,51 +157,6 @@ def test_another_record_version_is_rejected(env):
 
     with pytest.raises(fetch.FetchError, match="is version v2.0.0"):
         env.run()
-
-
-def test_first_run_extracts_only_the_allow_list_and_deletes_the_archives(env):
-    env.run()
-
-    # Every dataset archive, and nothing else of the record.
-    assert env.zenodo.downloads() == list(ARCHIVES)
-    assert env.extracted() == {"alpha", "beta", "gamma"}
-    assert (env.lists_dir / "list=alpha" / "list_data.parquet").read_bytes() == b"alpha" * 100
-    assert os.listdir(env.pipeline["paths"]["raw_dir"]) == []
-
-
-def test_first_run_indexes_every_list_of_every_archive(env):
-    env.run()
-
-    assert {a: e["lists"] for a, e in env.index().items()} == {
-        "LKML5Ws-anonymized_1.dataset.tar.gz": {"alpha", "beta"},
-        "LKML5Ws-anonymized_2.dataset.tar.gz": {"gamma", "delta"},
-    }
-
-
-def test_second_run_downloads_nothing(env):
-    env.run()
-    env.run()
-
-    assert env.zenodo.downloads() == []
-
-
-def test_new_list_downloads_only_its_archive(env):
-    env.run()
-
-    env.run(allow_list=ALLOW_LIST + ["delta"])
-
-    assert env.zenodo.downloads() == ["LKML5Ws-anonymized_2.dataset.tar.gz"]
-    assert "delta" in env.extracted()
-
-
-def test_list_removed_from_the_allow_list_is_deleted(env):
-    env.run()
-
-    env.run(allow_list=["alpha", "beta"])
-
-    assert env.zenodo.downloads() == []
-    assert env.extracted() == {"alpha", "beta"}
-    assert not (env.lists_dir / "list=gamma").exists()
 
 
 def test_allow_list_change_deletes_removed_and_fetches_only_added_lists(env):
@@ -195,17 +168,10 @@ def test_allow_list_change_deletes_removed_and_fetches_only_added_lists(env):
     assert env.extracted() == {"alpha", "beta", "delta"}
 
 
-def test_deleted_list_is_extracted_again(env):
-    env.run()
-    os.remove(env.lists_dir / "list=beta" / "list_data.parquet")
+def test_lists_option_fetches_only_those_lists_of_the_allow_list(env):
+    with pytest.raises(fetch.FetchError, match="not in the allow-list"):
+        env.run(only=["delta"])
 
-    env.run()
-
-    assert env.zenodo.downloads() == ["LKML5Ws-anonymized_1.dataset.tar.gz"]
-    assert "beta" in env.extracted()
-
-
-def test_lists_option_fetches_only_those_lists(env):
     env.run()  # builds the index
     for name in ALLOW_LIST:
         os.remove(env.lists_dir / f"list={name}" / "list_data.parquet")
@@ -216,25 +182,18 @@ def test_lists_option_fetches_only_those_lists(env):
     assert env.extracted() == {"gamma"}
 
 
-def test_lists_option_must_be_in_the_allow_list(env):
-    with pytest.raises(fetch.FetchError, match="not in the allow-list"):
-        env.run(only=["delta"])
+def test_list_not_in_the_dataset_is_skipped(env, capsys):
+    skipped = "Skipped, not in any archive of v1.0.0: ['zeta']"
 
-
-def test_unknown_list_is_skipped_before_downloading_once_everything_is_indexed(env, capsys):
-    env.run()
-
-    env.run(allow_list=ALLOW_LIST + ["zeta"])
-
-    assert env.zenodo.downloads() == []
-    assert "Skipped, not in any archive of v1.0.0: ['zeta']" in capsys.readouterr().out
-
-
-def test_unknown_list_is_skipped_at_the_end_when_there_is_no_index(env, capsys):
-    env.run(allow_list=ALLOW_LIST + ["zeta"])
+    env.run(allow_list=ALLOW_LIST + ["zeta"])  # no index yet: found out at the end
 
     assert env.extracted() == {"alpha", "beta", "gamma"}
-    assert "Skipped, not in any archive of v1.0.0: ['zeta']" in capsys.readouterr().out
+    assert skipped in capsys.readouterr().out
+
+    env.run(allow_list=ALLOW_LIST + ["zeta"])  # indexed: found out before downloading
+
+    assert env.zenodo.downloads() == []
+    assert skipped in capsys.readouterr().out
 
 
 def test_md5_mismatch_deletes_the_download_and_fails(env):
@@ -245,17 +204,6 @@ def test_md5_mismatch_deletes_the_download_and_fails(env):
 
     assert os.listdir(env.pipeline["paths"]["raw_dir"]) == []
     assert env.extracted() == set()
-
-
-def test_interrupted_download_is_retried_and_resumed(env, monkeypatch):
-    monkeypatch.setattr(fetch.time, "sleep", lambda seconds: None)
-    url = "https://zenodo.test/files/LKML5Ws-anonymized_1.dataset.tar.gz"
-    env.zenodo.truncate[url] = 100
-
-    env.run()
-
-    assert [r for u, r in env.zenodo.requests if u == url] == [None, "bytes=100-"]
-    assert env.extracted() == {"alpha", "beta", "gamma"}
 
 
 def test_download_gives_up_after_the_retries_and_resumes_on_the_next_run(env, monkeypatch):
@@ -370,14 +318,15 @@ def rcpassos_env(env):
     env.pipeline["rcpassos"] = {"url": RCPASSOS_URL.rstrip("/")}
 
     def run(allow_list=ALLOW_LIST, only=None):
+        env.use_allow_list(allow_list)
         env.rcpassos.requests.clear()
-        fetch.fetch(env.pipeline, list(allow_list), only, source="rcpassos", opener=env.rcpassos)
+        fetch.fetch(env.pipeline, only, source="rcpassos", opener=env.rcpassos)
 
     env.run_rcpassos = run
     return env
 
 
-def test_rcpassos_downloads_only_the_allow_list(rcpassos_env):
+def test_rcpassos_downloads_only_the_allow_list_once(rcpassos_env):
     rcpassos_env.run_rcpassos()
 
     assert rcpassos_env.extracted() == {"alpha", "beta", "gamma"}
@@ -386,9 +335,6 @@ def test_rcpassos_downloads_only_the_allow_list(rcpassos_env):
     assert path.read_bytes() == rcpassos_env.rcpassos.lists["alpha"]
     assert not os.path.exists(rcpassos_env.pipeline["paths"]["raw_dir"])
 
-
-def test_rcpassos_second_run_downloads_nothing(rcpassos_env):
-    rcpassos_env.run_rcpassos()
     rcpassos_env.run_rcpassos()
 
     assert rcpassos_env.rcpassos.downloads() == []
@@ -399,14 +345,6 @@ def test_rcpassos_skips_lists_extracted_from_zenodo(rcpassos_env):
     rcpassos_env.run_rcpassos()
 
     assert rcpassos_env.rcpassos.downloads() == sorted(rcpassos_env.rcpassos.url(n) for n in ["beta", "gamma"])
-
-
-def test_rcpassos_deletes_lists_removed_from_the_allow_list(rcpassos_env):
-    rcpassos_env.run_rcpassos()
-    rcpassos_env.run_rcpassos(allow_list=["alpha", "gamma"])
-
-    assert rcpassos_env.extracted() == {"alpha", "gamma"}
-    assert not (rcpassos_env.lists_dir / "list=beta").exists()
 
 
 def test_rcpassos_list_missing_is_skipped(rcpassos_env, capsys):
@@ -455,7 +393,7 @@ def test_committed_config_loads():
     assert pipeline["zenodo"]["version"] == "v1.0.0"
     assert pipeline["paths"]["raw_dir"] == os.path.join(fetch.PROJECT_ROOT, "data", "raw")
     assert pipeline["rcpassos"]["url"].startswith("https://")
-    assert pipeline["maintainers"]["tag"] == "v7.2"
+    assert (pipeline["maintainers"]["first_tag"], pipeline["maintainers"]["last_tag"]) == ("v2.6.30", "v7.2")
     assert pipeline["maintainers"]["exclude"] == ["dpdk-dev", "linux-patches"]
 
 
@@ -483,6 +421,21 @@ L:	LINUX-IIO@vger.kernel.org (moderated for non-subscribers)
 F:	drivers/iio/light/
 """
 
+OLD_MAINTAINERS = MAINTAINERS + """
+OLD ARCHITECTURE
+L:	old-arch@vger.kernel.org
+F:	arch/old/
+"""
+
+# git smart HTTP refs: pkt-lines, with peeled tags ("^{}") and release candidates.
+TAGS = "".join(
+    f"003f{'0' * 40} refs/tags/{tag}\n"
+    for tag in ["v0.9", "v1.0", "v1.0^{}", "v1.1-rc1", "v1.1", "v1.2", "v1.3"]
+)
+
+# MAINTAINERS of each release in v1.0..v1.2; old-arch is gone after v1.0.
+RELEASES = {"v1.0": OLD_MAINTAINERS, "v1.1": MAINTAINERS, "v1.2": MAINTAINERS}
+
 LORE = {
     "linux-iio": "[publicinbox \"linux-iio\"]\n\taddress = linux-iio@vger.kernel.org\n",
     "util-linux": "\taddress = util-linux@vger.kernel.org\n",
@@ -490,21 +443,25 @@ LORE = {
     "moved": "\taddress = new@lists.linux.dev\n\taddress = linux-iio@vger.kernel.org\n",
     "old-domain": "\taddress = linux-iio@lists.old.org\n",
     "same-name": "\taddress = linux-iio@other-project.org\n",
+    "old-arch": "\taddress = old-arch@vger.kernel.org\n",
 }
 
 
 class FakeKernelOrg:
-    """Serves MAINTAINERS, the lore manifest and each lore list's config page."""
+    """Serves the kernel tags, MAINTAINERS of each release, the lore manifest
+    and each lore list's config page."""
 
-    def __init__(self, maintainers=MAINTAINERS):
-        self.maintainers = maintainers.encode()
+    def __init__(self, releases=RELEASES):
+        self.releases = releases
         self.urls = []
 
     def __call__(self, request, timeout=None):
         url = request.full_url
         self.urls.append(url)
-        if url.startswith("https://git.kernel.org/"):
-            return FakeResponse(self.maintainers)
+        if url == fetch.KERNEL_TAGS_URL:
+            return FakeResponse(TAGS.encode())
+        if url.startswith(fetch.KERNEL_REPO):
+            return FakeResponse(self.releases[url.split("h=")[1]].encode())
         if url == fetch.LORE_MANIFEST_URL:
             manifest = {f"/{name}/git/0.git": {} for name in LORE}
             return FakeResponse(gzip.compress(json.dumps(manifest).encode()))
@@ -512,46 +469,59 @@ class FakeKernelOrg:
 
 
 @pytest.fixture
-def maintainers_pipeline(tmp_path):
-    return {
-        "maintainers": {
-            "tag": "v1.0", "commit": "abc123",
-            "sha256": hashlib.sha256(MAINTAINERS.encode()).hexdigest(),
-            "exclude": ["same-name"],
-        },
-        "paths": {"source_dir": str(tmp_path / "source")},
-    }
+def maintainers_env(tmp_path):
+    class Env:
+        pipeline = {"maintainers": {"first_tag": "v1.0", "last_tag": "v1.2", "exclude": ["same-name"]}}
+        addresses = str(tmp_path / "lore_addresses.csv")
+        maintainers = str(tmp_path / "maintainers_addresses.csv")
+
+        def allow_list(self, opener):
+            return fetch.maintainers_allow_list(self.pipeline, opener, self.addresses, self.maintainers)
+
+    return Env()
 
 
-def test_kernel_list_addresses_only_count_entries_with_files():
-    assert fetch.kernel_list_addresses(MAINTAINERS) == {"linux-iio@vger.kernel.org"}
+def test_fetch_uses_the_maintainers_allow_list(env, monkeypatch):
+    calls = []
+    monkeypatch.setattr(fetch, "maintainers_allow_list", lambda pipeline, opener: calls.append(pipeline) or ["alpha"])
+    env.zenodo.requests.clear()
+
+    fetch.fetch(env.pipeline, opener=env.zenodo)
+
+    assert calls == [env.pipeline]
+    assert env.extracted() == {"alpha"}
 
 
-def test_allow_list_has_the_lore_lists_in_maintainers(maintainers_pipeline, tmp_path):
-    allow_list = fetch.maintainers_allow_list(
-        maintainers_pipeline, FakeKernelOrg(), str(tmp_path / "addresses.csv")
-    )
+def test_allow_list_has_the_lore_lists_in_maintainers_of_any_release(maintainers_env):
+    # "old-domain" matches despite the domain; "same-name" too, but is excluded;
+    # "old-arch" is only in v1.0; util-linux's entry has no F:; v0.9, v1.1-rc1
+    # and v1.3 are not read.
+    assert maintainers_env.allow_list(FakeKernelOrg()) == ["linux-iio", "moved", "old-arch", "old-domain"]
 
-    # "old-domain" matches despite the domain; "same-name" too, but is excluded.
-    assert allow_list == ["linux-iio", "moved", "old-domain"]
-    assert (tmp_path / "source" / "MAINTAINERS-v1.0").read_text() == MAINTAINERS
-
-
-def test_maintainers_and_lore_addresses_are_not_fetched_again(maintainers_pipeline, tmp_path):
-    addresses = str(tmp_path / "addresses.csv")
-    fetch.maintainers_allow_list(maintainers_pipeline, FakeKernelOrg(), addresses)
-    server = FakeKernelOrg()
-
-    fetch.maintainers_allow_list(maintainers_pipeline, server, addresses)
-
-    assert server.urls == [fetch.LORE_MANIFEST_URL]
-    assert fetch.read_addresses(addresses)["moved"] == ["new@lists.linux.dev", "linux-iio@vger.kernel.org"]
-
-
-def test_maintainers_with_another_sha256_is_rejected(maintainers_pipeline, tmp_path):
-    with pytest.raises(fetch.FetchError, match="sha256 mismatch"):
-        fetch.maintainers_allow_list(
-            maintainers_pipeline, FakeKernelOrg("other"), str(tmp_path / "addresses.csv")
+    with open(maintainers_env.maintainers, encoding="utf-8") as fh:
+        assert fh.read() == (
+            "address,first_release,last_release\n"
+            "linux-iio@vger.kernel.org,v1.0,v1.2\n"
+            "old-arch@vger.kernel.org,v1.0,v1.0\n"
         )
 
-    assert not (tmp_path / "source" / "MAINTAINERS-v1.0").exists()
+
+def test_maintainers_and_lore_addresses_are_not_fetched_again(maintainers_env):
+    maintainers_env.allow_list(FakeKernelOrg())
+    server = FakeKernelOrg()
+
+    maintainers_env.allow_list(server)
+
+    assert server.urls == [fetch.LORE_MANIFEST_URL]
+    assert fetch.read_addresses(maintainers_env.addresses)["moved"] == [
+        "new@lists.linux.dev", "linux-iio@vger.kernel.org",
+    ]
+
+
+def test_tag_range_not_found_is_rejected(maintainers_env):
+    maintainers_env.pipeline["maintainers"]["last_tag"] = "v1.1.5"
+
+    with pytest.raises(fetch.FetchError, match=r"v1.0..v1.1.5 not found"):
+        maintainers_env.allow_list(FakeKernelOrg())
+
+    assert not os.path.exists(maintainers_env.maintainers)

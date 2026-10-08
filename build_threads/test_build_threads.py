@@ -466,3 +466,37 @@ def test_main_skips_lists_already_built(lists_env, monkeypatch):
 def test_main_rejects_lists_not_fetched(lists_env, monkeypatch):
     assert run_main(monkeypatch, "--lists", "alpha,gamma") == 1
     assert not lists_env.exists()
+
+
+# The archive has messages with no date; a thread made only of those keeps a null date.
+def test_thread_with_no_date_keeps_a_null_date(tmp_path):
+    df = pd.DataFrame([message("1@example.com", "a"), message("2@example.com", "b")])
+    df["date"] = pd.to_datetime(["2026-06-01 12:00:00", None])
+
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
+    result = result.set_index("_thread_id")
+
+    assert result.loc[thread_ids["1@example.com"], "date"] == pd.Timestamp("2026-06-01 12:00:00")
+    assert pd.isna(result.loc[thread_ids["2@example.com"], "date"])
+
+
+# Bodies are loaded a chunk of threads at a time; chunks never split a thread,
+# so the output is the same however small they are.
+def test_output_is_the_same_with_any_body_chunk_size(tmp_path, monkeypatch):
+    df = pd.DataFrame([
+        message("1@example.com", "This duplicates foo_probe()."),
+        message("2@example.com", "> quoted\nAgreed, it is duplicated.", "1@example.com"),
+        message("3@example.com", "Fix off-by-one in the checksum loop."),
+        message("4@example.com", "Remove the duplicated helper."),
+        message("5@example.com", "Copy-paste of bar_init().", "4@example.com"),
+        message("6@example.com", "Also duplicated in baz.", "1@example.com"),
+    ])
+    (tmp_path / "whole").mkdir()
+    (tmp_path / "chunked").mkdir()
+    _, whole = thread_id_by_message_id(df, tmp_path / "whole")
+
+    monkeypatch.setattr(build_threads, "BODY_CHUNK_CHARS", 1)
+    _, chunked = thread_id_by_message_id(df, tmp_path / "chunked")
+
+    pd.testing.assert_frame_equal(whole, chunked)
+    assert (whole["is_candidate"] == "yes").sum() == 2

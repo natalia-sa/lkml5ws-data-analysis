@@ -13,6 +13,9 @@ format as the classifiers' LLM prompt, with quoted replies replaced. Pull
 request emails are left out of the thread, and a thread made only of them is
 dropped.
 
+Candidate bodies are loaded in chunks of threads (`BODY_CHUNK_CHARS`), so
+large lists like lkml fit in memory.
+
 Lists that already have an output file are skipped; delete it to rebuild.
 
 Run:
@@ -24,6 +27,7 @@ import os
 import re
 import sys
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -47,6 +51,10 @@ METADATA_COLUMNS = ["message_id", "subject", "date", "from", "cc"]
 BATCH_SIZE = 50_000
 
 WRITE_BATCH_THREADS = 5_000
+
+# Candidate bodies kept in memory at once, in characters; threads are written
+# in chunks of up to this much body text, one `raw_body` read per chunk.
+BODY_CHUNK_CHARS = 2_000_000_000
 
 MESSAGE_ID_RE = re.compile(r"<?([^<>\s]+@[^<>\s]+)>?")
 
@@ -299,17 +307,42 @@ def iter_rows(input_path, columns):
 def candidate_threads(input_path, thread_of):
     """Pre-filters message by message: a thread is a candidate if any of its
     messages, pull requests aside, matches. Gives the same threads as
-    pre-filtering the whole `thread_content`, without building it."""
+    pre-filtering the whole `thread_content`, without building it. Also
+    returns each message's body length."""
     candidates = set()
+    body_sizes = np.zeros(len(thread_of), dtype=np.int64)
     rows = iter_rows(input_path, ["subject", "from", "raw_body"])
-    for thread_id, (subject, sender, body) in zip(thread_of, rows):
+    for position, (thread_id, (subject, sender, body)) in enumerate(zip(thread_of, rows)):
+        body_sizes[position] = len(body or "")
         if (
             thread_id not in candidates
             and not is_pull_request(subject)
             and is_candidate(message_block(subject, sender, body))
         ):
             candidates.add(thread_id)
-    return candidates
+    return candidates, body_sizes
+
+
+def body_chunks(thread_ids_sorted, sizes_sorted):
+    """Splits the sorted rows into chunks of whole threads with up to
+    `BODY_CHUNK_CHARS` of body each (a larger thread is a chunk of its own).
+    Returns each row's chunk number, in increasing order."""
+    chars_before = np.cumsum(sizes_sorted) - sizes_sorted
+    thread_start = np.ones(len(thread_ids_sorted), dtype=bool)
+    thread_start[1:] = thread_ids_sorted[1:] != thread_ids_sorted[:-1]
+    return np.maximum.accumulate(np.where(thread_start, chars_before // BODY_CHUNK_CHARS, 0))
+
+
+def read_bodies(input_path, positions):
+    """`raw_body` of the rows at `positions` (sorted), converting only those."""
+    bodies = []
+    start = 0
+    for batch in pq.ParquetFile(input_path).iter_batches(batch_size=BATCH_SIZE, columns=["raw_body"]):
+        end = start + batch.num_rows
+        lo, hi = np.searchsorted(positions, [start, end])
+        bodies.extend(batch.column(0).take(positions[lo:hi] - start).to_pylist())
+        start = end
+    return bodies
 
 
 def output_schema(input_path):
@@ -337,12 +370,13 @@ def thread_rows(messages_df, list_name, candidates):
             continue
 
         candidate = thread_id in candidates
+        date = group["date"].iloc[0]
         yield {
             "_thread_id": thread_id,
             "list": list_name,
             "n_messages": len(group),
             "message_ids": group["message_id"].tolist(),
-            "date": group["date"].iloc[0],
+            "date": None if pd.isna(date) else date,
             "subject": group["subject"].iloc[0],
             "from": group["from"].iloc[0],
             "cc": group["cc"].iloc[0],
@@ -372,19 +406,28 @@ def build_threads_for_file(input_path, output_path, list_name):
     del light_df
 
     thread_of = pd.Series(thread_ids_sorted, index=sorted_positions).sort_index().to_numpy()
-    candidates = candidate_threads(input_path, thread_of)
+    candidates, body_sizes = candidate_threads(input_path, thread_of)
 
-    # Only candidates' bodies are kept in memory.
     messages_df = read_columns(input_path, METADATA_COLUMNS)
-    messages_df["raw_body"] = [
-        body if thread_id in candidates else None
-        for thread_id, (body,) in zip(thread_of, iter_rows(input_path, ["raw_body"]))
-    ]
     messages_df = messages_df.iloc[sorted_positions].reset_index(drop=True)
     messages_df["_thread_id"] = thread_ids_sorted
 
-    rows = thread_rows(messages_df, list_name, candidates)
-    write_rows(output_path, output_schema(input_path), rows)
+    # Only candidates' bodies are read, a chunk of threads at a time.
+    is_candidate_sorted = np.fromiter((t in candidates for t in thread_ids_sorted), bool, len(thread_ids_sorted))
+    chunk_of = body_chunks(thread_ids_sorted, np.where(is_candidate_sorted, body_sizes[sorted_positions], 0))
+
+    def rows():
+        for chunk in np.unique(chunk_of):
+            in_chunk = np.flatnonzero(chunk_of == chunk)
+            chunk_df = messages_df.iloc[in_chunk[0]:in_chunk[-1] + 1].copy()
+            wanted = in_chunk[is_candidate_sorted[in_chunk]]
+            order = np.argsort(sorted_positions[wanted])
+            bodies = np.empty(len(chunk_df), dtype=object)
+            bodies[wanted[order] - in_chunk[0]] = read_bodies(input_path, sorted_positions[wanted][order]) if len(wanted) else []
+            chunk_df["raw_body"] = bodies
+            yield from thread_rows(chunk_df, list_name, candidates)
+
+    write_rows(output_path, output_schema(input_path), rows())
 
 
 def available_lists(lists_dir):
