@@ -4,6 +4,13 @@ pandas==3.0.3
 # Backend de parquet usado pelo pandas e pela leitura direta dos .parquet.
 pyarrow==24.0.0
 
+# Leitura da coluna "code" em commit/commit_to_message_id_by_patch_id.py
+# (o pyarrow não lê page headers maiores que 16 MB, que aparecem em listas grandes).
+polars==1.44.2
+
+# libgit2 (patch-ids) em commit/commit_to_message_id_by_patch_id.py.
+pygit2==1.20.1
+
 # Barra de progresso usada em build_threads/build_threads.py e classify/*/classify_threads.py.
 tqdm==4.68.3
 
