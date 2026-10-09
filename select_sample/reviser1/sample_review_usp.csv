@@ -1,167 +1,4 @@
-thread_id,list,n_messages,message_ids,date,subject,from,cc,thread_content,is_clone_refactoring,justification
-20230329180534.99151-2-caionovais@usp.br,amd,4,"['20230329180534.99151-1-caionovais@usp.br'
- '20230329180534.99151-2-caionovais@usp.br'
- '20230329180534.99151-3-caionovais@usp.br'
- '57f41574-7886-3bfc-c992-74d40664f5ba@amd.com']",2023-03-29 18:05:32,[PATCH v2 0/2] drm/amd/display: Remove a unused variable and mark a function as static,Caio Novais <caionovais@usp.br>,"['Jiapeng Chong <jiapeng.chong@linux.alibaba.com>'
- 'Wesley Chalmers <Wesley.Chalmers@amd.com>'
- 'Gabe Teeger <gabe.teeger@amd.com>' 'Leo Li <sunpeng.li@amd.com>'
- 'David Airlie <airlied@gmail.com>'
- 'Qingqing Zhuo <qingqing.zhuo@amd.com>' 'Pan Xinhui <Xinhui.Pan@amd.com>'
- 'Rodrigo Siqueira <Rodrigo.Siqueira@amd.com>'
- 'Roman Li <roman.li@amd.com>'
- 'Nicholas Kazlauskas <Nicholas.Kazlauskas@amd.com>'
- 'Maíra Canal <mairacanal@riseup.net>'
- 'Hamza Mahfooz <hamza.mahfooz@amd.com>'
- 'Aurabindo Pillai <aurabindo.pillai@amd.com>'
- 'Deepak R Varma <drv@mailo.com>' 'Lee Alvin <Alvin.Lee2@amd.com>'
- 'Daniel Vetter <daniel@ffwll.ch>'
- 'Alex Deucher <alexander.deucher@amd.com>' 'Jun Lei <Jun.Lei@amd.com>'
- 'Harry Wentland <harry.wentland@amd.com>'
- 'Christian König <christian.koenig@amd.com>'
- 'Caio Novais <caionovais@usp.br>']","================================================
-MESSAGE 1 of 4
-================================================
-
-Subject:
-[PATCH v2 0/2] drm/amd/display: Remove a unused variable and mark a function as static
-
-Email body:
-This patchset removes one unused variable and mark a function as static.
-
-Caio Novais (2):
-  drm/amd/display: Remove unused variable 'scl_enable'
-  drm/amd/display: Mark function
-    'optc3_wait_drr_doublebuffer_pending_clear' as static
-
- drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c               | 2 +-
- .../gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c | 2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
-
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 2 of 4
-================================================
-
-Subject:
-[PATCH v2 1/2] drm/amd/display: Remove unused variable 'scl_enable'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn314/display_rq_dlg_calc_314.c: In function ‘dml_rq_dlg_get_dlg_params’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn314/display_rq_dlg_calc_314.c:991:14: warning: variable ‘scl_enable’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable 'scl_enable'.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- .../gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c b/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-index d1c2693a2e28..ea4eb66066c4 100644
---- a/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-+++ b/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-@@ -988,7 +988,6 @@ static void dml_rq_dlg_get_dlg_params(
- 	double hratio_c;
- 	double vratio_l;
- 	double vratio_c;
--	bool scl_enable;
- 
- 	unsigned int swath_width_ub_l;
- 	unsigned int dpte_groups_per_row_ub_l;
-@@ -1117,7 +1116,6 @@ static void dml_rq_dlg_get_dlg_params(
- 	hratio_c = scl->hscl_ratio_c;
- 	vratio_l = scl->vscl_ratio;
- 	vratio_c = scl->vscl_ratio_c;
--	scl_enable = scl->scl_enable;
- 
- 	swath_width_ub_l = rq_dlg_param->rq_l.swath_width_ub;
- 	dpte_groups_per_row_ub_l = rq_dlg_param->rq_l.dpte_groups_per_row_ub;
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 3 of 4
-================================================
-
-Subject:
-[PATCH v2 2/2] drm/amd/display: Mark function 'optc3_wait_drr_doublebuffer_pending_clear' as static
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_optc.c:294:6: warning: no previous prototype for ‘optc3_wait_drr_doublebuffer_pending_clear’ [-Wmissing-prototypes]
-
-Get rid of it by marking the function as static
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c
-index 08b92715e2e6..c95f000b63b2 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c
-@@ -291,7 +291,7 @@ static void optc3_set_timing_double_buffer(struct timing_generator *optc, bool e
- 		   OTG_DRR_TIMING_DBUF_UPDATE_MODE, mode);
- }
- 
--void optc3_wait_drr_doublebuffer_pending_clear(struct timing_generator *optc)
-+static void optc3_wait_drr_doublebuffer_pending_clear(struct timing_generator *optc)
- {
- 	struct optc *optc1 = DCN10TG_FROM_TG(optc);
- 
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 4 of 4
-================================================
-
-Subject:
-Re: [PATCH v2 2/2] drm/amd/display: Mark function 'optc3_wait_drr_doublebuffer_pending_clear' as static
-
-Email body:
-On 3/29/23 14:05, Caio Novais wrote:
-> Compiling AMD GPU drivers displays a warning:
-> 
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_optc.c:294:6: warning: no previous prototype for ‘optc3_wait_drr_doublebuffer_pending_clear’ [-Wmissing-prototypes]
-> 
-> Get rid of it by marking the function as static
-> 
-> Signed-off-by: Caio Novais <caionovais@usp.br>
-
-Applied, thanks!
-
-> ---
->   drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c
-> index 08b92715e2e6..c95f000b63b2 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.c
-> @@ -291,7 +291,7 @@ static void optc3_set_timing_double_buffer(struct timing_generator *optc, bool e
->   		   OTG_DRR_TIMING_DBUF_UPDATE_MODE, mode);
->   }
->   
-> -void optc3_wait_drr_doublebuffer_pending_clear(struct timing_generator *optc)
-> +static void optc3_wait_drr_doublebuffer_pending_clear(struct timing_generator *optc)
->   {
->   	struct optc *optc1 = DCN10TG_FROM_TG(optc);
->   
--- 
-Hamza",no,
+thread_id,list,n_messages,message_ids,date,subject,from,cc,thread_content,matched_terms,is_clone_refactoring
 20240220194657.243378-3-davidbtadokoro@usp.br,amd,4,"['20240220194657.243378-1-davidbtadokoro@usp.br'
  '20240220194657.243378-2-davidbtadokoro@usp.br'
  '20240220194657.243378-3-davidbtadokoro@usp.br'
@@ -448,7 +285,7 @@ index 083cb3158859..d6d50cd3755d 100644
  
  #endif /* DAL_DC_DCN10_RV1_CLK_MGR_VBIOS_SMU_H_ */
 -- 
-2.39.2",no,
+2.39.2",,no
 20240809210122.23814-1-luanicaro@usp.br,amd,1,['20240809210122.23814-1-luanicaro@usp.br'],2024-08-09 21:01:17,[RFC PATCH] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['LipArcanjo <luanicaroarcanjo@gmail.com>'
  'Luan Icaro Pinto Arcanjo <luanicaro@usp.br>'
  'amd-gfx@lists.freedesktop.org' 'dri-devel@lists.freedesktop.org']","================================================
@@ -1353,7 +1190,7 @@ index 000000000000..6c9246a6e4e6
 +
 +#endif
 -- 
-2.43.0",yes,Patch removes duplicate copy pasted functions shared across command table helpers.
+2.43.0","copy-pasted,duplications",yes
 20241116224850.22874-1-luanicaro@usp.br,amd,1,['20241116224850.22874-1-luanicaro@usp.br'],2024-11-16 22:47:53,[RFC PATCH v2] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['Luan Arcanjo <luanicaro@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
 MESSAGE 1 of 1
@@ -2216,7 +2053,7 @@ index 000000000000..4e0ceb39b95f
 +
 +#endif
 -- 
-2.43.0",yes,Patch removes duplicate copy pasted functions shared across command table helpers.
+2.43.0","copy-pasted,duplications",yes
 20250207230852.10232-1-luanicaro@usp.br,amd,1,['20250207230852.10232-1-luanicaro@usp.br'],2025-02-07 23:08:50,[PATCH v2] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['Luan Arcanjo <luanicaro@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
 MESSAGE 1 of 1
@@ -3079,7 +2916,7 @@ index 000000000000..4e0ceb39b95f
 +
 +#endif
 -- 
-2.43.0",yes,Patch removes duplicate copy pasted functions shared across command table helpers.
+2.43.0","copy-pasted,duplications",yes
 20260404064003.94877-1-guilherme.bozi@usp.br,amd,1,['20260404064003.94877-1-guilherme.bozi@usp.br'],2026-04-04 06:40:20,[PATCH] drm/amdgpu: use named SRCID for JPEG decode in VCN 1.0,Guilherme Ivo Bozi <guilherme.bozi@usp.br>,"['airlied@gmail.com' 'simona@ffwll.ch' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org' 'guilherme.bozi@usp.br']","================================================
 MESSAGE 1 of 1
@@ -3148,7 +2985,7 @@ index e5951709bfc3..d97883a88b0e 100644
  #endif /* __IRQSRCS_VCN_1_0_H__ */
  
 -- 
-2.47.3",no,
+2.47.3",,no
 20260421015506.9230-1-andrejhirata@usp.br,amd,1,['20260421015506.9230-1-andrejhirata@usp.br'],2026-04-21 01:54:58,[PATCH] drm/amd/pm: Use guard(mutex) instead of manual lock+unlock,Andre Hirata <andrejhirata@usp.br>,"['amd-gfx@lists.freedesktop.org' 'andrejhirata@usp.br'
  'gabriel.dimant@usp.br' 'guilhermesangabriel@usp.br']","================================================
 MESSAGE 1 of 1
@@ -4509,7 +4346,7 @@ index feadf604b..fc8f137a2 100644
  	return ret;
  }
 -- 
-2.43.0",no,
+2.43.0",,no
 20260422003911.33841-3-tiagodourado@usp.br,amd,3,"['20260422003911.33841-1-tiagodourado@usp.br'
  '20260422003911.33841-2-tiagodourado@usp.br'
  '20260422003911.33841-3-tiagodourado@usp.br']",2026-04-22 00:38:43,[PATCH 0/2] drm/amdgpu/jpeg: deduplicate process_interrupt across JPEG versions,Tiago Dourado <tiagodourado@usp.br>,"['luiz.f.f.fernandes@usp.br' 'Tiago Dourado <tiagodourado@usp.br>'
@@ -4727,7 +4564,7 @@ index 1821dced9..92aaf5dea 100644
  				  unsigned int vmid,
  				  struct amdgpu_fence *timedout_fence)
 -- 
-2.43.0",yes,Patch removes duplicate process interrupt implementations across JPEG hardware versions.
+2.43.0","deduplicate,duplicate,duplicates",yes
 20260508103653.39000-1-andrejhirata@usp.br,amd,16,"['20260508024744.6523-1-andrejhirata@usp.br'
  'dcc966e0-da1d-4589-ad04-02aeb1a8e06f@amd.com'
  '20260508103653.39000-1-andrejhirata@usp.br'
@@ -26665,7 +26502,7 @@ vim +247 drivers/gpu/drm/amd/amdgpu/../pm/amdgpu_dpm.c
 
 --
 0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki",no,
+https://github.com/intel/lkp-tests/wiki",,no
 20260512190019.228440-8-guilherme.bozi@usp.br,amd,10,"['20260512190019.228440-1-guilherme.bozi@usp.br'
  '20260512190019.228440-2-guilherme.bozi@usp.br'
  '20260512190019.228440-3-guilherme.bozi@usp.br'
@@ -30543,7 +30380,7 @@ index e7e1d9979876..7b2c4cd42450 100644
  
  
 -- 
-2.47.3",yes,Patch reduces duplicated GPIO translation logic across DCN generations using lookup tables.
+2.47.3",duplicated,yes
 20260520224217.17615-1-ryan.oliveiraf@usp.br,amd,1,['20260520224217.17615-1-ryan.oliveiraf@usp.br'],2026-05-20 22:42:13,[PATCH] drm/amdgpu: Unify vm_fault_interrupt_state logic for gmc v10 and v12_0,Ryan Oliveira <ryan.oliveiraf@usp.br>,"['Ryan Oliveira <ryan.oliveiraf@usp.br>'
  'Kaiky Cintra <kaikycintra@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -30749,7 +30586,7 @@ index 586703ec0dfa..d3eabe3b6dff 100644
  };
  
 -- 
-2.54.0",yes,Patch unifies identical vm fault interrupt logic between gmc versions to remove duplication.
+2.54.0",duplication,yes
 403722a9-eb23-475f-8172-47039f54605d@amd.com,amd,2,"['20260417090841.6190-1-erick.am@usp.br'
  '403722a9-eb23-475f-8172-47039f54605d@amd.com']",2026-04-17 09:07:52,[PATCH] drm/amdgpu: Deduplicate eop_irq v11/v12 functions to use helper,Erick Henrique <erick.am@usp.br>,"['Erick Henrique De Araujo Moreira <erick.am@usp.br>'
  'Lais Alves Da Costa <laisalvesc@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -31244,7 +31081,7 @@ Christian.
 >  static int gfx_v12_0_set_priv_reg_fault_state(struct amdgpu_device *adev,
 > --
 > 2.43.0
->",yes,Patch introduces a shared helper to remove duplicate eop irq implementations.
+>","deduplicate,duplication",yes
 52ff3c29-0e45-4f56-9677-a6fb299c72b6@amd.com,amd,2,"['20241009153424.15256-1-luanicaro@usp.br'
  '52ff3c29-0e45-4f56-9677-a6fb299c72b6@amd.com']",2024-10-09 15:34:01,[RFC PATCH] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['LipArcanjo <luanicaroarcanjo@gmail.com>'
  'Luan Icaro Pinto Arcanjo <luanicaro@usp.br>'
@@ -33083,7 +32920,7 @@ Siqueira
 > +
 > +bool engine_bp_to_atom(enum engine_id id, uint32_t *atom_engine_id);
 > +
-> +#endif",yes,Patch removes duplicate copy pasted functions shared across command table helpers.
+> +#endif","copy-pasted,duplications",yes
 55479c9b-1686-42db-b8da-aaa93c589660@amd.com,amd,2,"['20240613160549.139004-1-jppaulo11@usp.br'
  '55479c9b-1686-42db-b8da-aaa93c589660@amd.com']",2024-06-13 16:05:45,[PATCH] drm/amd/display/dc: Remove dc code repetition,Joao Paulo Pereira da Silva <jppaulo11@usp.br>,"['luanicaro@usp.br' 'paulormm@ime.usp.br'
  'Joao Paulo Pereira da Silva <jppaulo11@usp.br>'
@@ -33426,7 +33263,7 @@ Siqueira
 > +	_optc1_enable_crtc(optc);
 >   	return true;
 >   }
->",yes,Patch removes repeated code between two similar enable crtc functions.
+>","duplication,repeated",yes
 59f9d505-c839-4193-ab1a-30af8ddd6ee9@amd.com,amd,2,"['20260427191556.9672-1-leonardocesar@usp.br'
  '59f9d505-c839-4193-ab1a-30af8ddd6ee9@amd.com']",2026-04-27 19:15:19,[PATCH v3] drm/amdgpu: deduplicate ring preempt ib function,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -33942,7 +33779,7 @@ Christian.
 >         .emit_reg_write_reg_wait = gfx_v12_0_ring_emit_reg_write_reg_wait,
 > --
 > 2.43.0
->",yes,Patch merges identical ring preemption logic into a shared function to remove duplication.
+>","deduplicate,duplication",yes
 606b422c-4531-4950-a22e-61732383f6b5@amd.com,amd,2,"['20260512140142.6610-1-leonardocesar@usp.br'
  '606b422c-4531-4950-a22e-61732383f6b5@amd.com']",2026-05-12 14:01:29,[PATCH] drm/amdgpu: fix inconsistent indenting in amdgpu_gfx_ring_preempt_ib,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>'
  'kernel test robot <lkp@intel.com>' 'amd-gfx@lists.freedesktop.org'
@@ -34016,7 +33853,7 @@ Reviewed-by: Christian König <christian.koenig@amd.com>
 > +	amdgpu_ring_set_preempt_cond_exec(ring, true);
 >  
 >  	if (i >= adev->usec_timeout) {
->  		DRM_ERROR(""ring %d failed to preempt ib\n"", ring->idx);",no,
+>  		DRM_ERROR(""ring %d failed to preempt ib\n"", ring->idx);",,no
 8f0fbad4-fc60-40a7-a8ab-3962e6b8ecd4@amd.com,amd,2,"['20260418201545.20673-1-andrejhirata@usp.br'
  '8f0fbad4-fc60-40a7-a8ab-3962e6b8ecd4@amd.com']",2026-04-18 20:15:52,[PATCH] drm/amdgpu: unify gmc v10 and v11 get_vm_pde and get_vm_pte into common helpers,Andre Hirata <andrejhirata@usp.br>,"['amd-gfx@lists.freedesktop.org' 'andrejhirata@usp.br'
  'gabriel.dimant@usp.br' 'guilhermesangabriel@usp.br']","================================================
@@ -34873,7 +34710,7 @@ Christian.
 > 
 > --
 > 2.43.0
->",yes,Patch proposes unifying identical gmc functions but maintainer rejects removing the duplication.
+>",duplication,yes
 CAAgyy7fZwCqPc7NkiTWd6qLgH-b3xouoSEcr-5q93sYo6ujvEA@mail.gmail.com,amd,3,"['20250207231219.10807-1-luanicaro@usp.br'
  'CADnq5_PQ-WiZt2qnbeSnxXWkj1Cf=OLq0pjWcnzm2PE8be34Mg@mail.gmail.com'
  'CAAgyy7fZwCqPc7NkiTWd6qLgH-b3xouoSEcr-5q93sYo6ujvEA@mail.gmail.com']",2025-02-07 23:12:09,[PATCH v3] drm/amd/display/dc: Refactor remove duplications on command_table files,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['Luan Arcanjo <luanicaro@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -37567,1009 +37404,7 @@ escreveu:
 > > --
 > > 2.43.0
 > >
->",yes,Patch removes duplicate copy pasted functions shared across command table helpers.
-CADnq5_M6LEBPVfAXPcVyR-C2qKYrTk=Nyb1cOjGz_Zo6LX9rxA@mail.gmail.com,amd,18,"['20230327233353.64081-1-caionovais@usp.br'
- '20230327233353.64081-2-caionovais@usp.br'
- '20230327233353.64081-3-caionovais@usp.br'
- '20230327233353.64081-4-caionovais@usp.br'
- '20230327233353.64081-5-caionovais@usp.br'
- '20230327233353.64081-6-caionovais@usp.br'
- '20230327233353.64081-7-caionovais@usp.br'
- '20230327233353.64081-8-caionovais@usp.br'
- '20230327233353.64081-9-caionovais@usp.br'
- '20230327233353.64081-10-caionovais@usp.br'
- '20230327233353.64081-11-caionovais@usp.br'
- '20230327233353.64081-12-caionovais@usp.br'
- '20230327233353.64081-13-caionovais@usp.br'
- 'CADnq5_M6LEBPVfAXPcVyR-C2qKYrTk=Nyb1cOjGz_Zo6LX9rxA@mail.gmail.com'
- 'CADnq5_MpPB-V2ZUr7AQDyczuSyJ4=sMCnRSdqEFG9sfBdn1eLQ@mail.gmail.com'
- 'CADnq5_OhYPi3DVVuZmHM-ghiatEyjzpMviQEJdX_uQFgQY9yUg@mail.gmail.com'
- 'CADnq5_OG8pDyYruc4VCpd_eG8MxZUDf+nPr4zTy+u-7-a5L6uw@mail.gmail.com'
- '878rfh5gg3.fsf@intel.com']",2023-03-27 23:33:41,[PATCH 00/12] drm/amd: Remove unused variables,Caio Novais <caionovais@usp.br>,"['Felipe Clark <felipe.clark@amd.com>' 'Wenjing Liu <wenjing.liu@amd.com>'
- 'Maíra Canal <mairacanal@riseup.net>'
- 'Mario Limonciello <mario.limonciello@amd.com>'
- 'Jun Lei <Jun.Lei@amd.com>' 'David Airlie <airlied@gmail.com>'
- 'Charlene Liu <Charlene.Liu@amd.com>' 'Gabe Teeger <gabe.teeger@amd.com>'
- 'Rodrigo Siqueira <Rodrigo.Siqueira@amd.com>'
- 'Taimur Hassan <Syed.Hassan@amd.com>'
- 'Aurabindo Pillai <aurabindo.pillai@amd.com>'
- 'Alvin Lee <alvin.lee2@amd.com>' 'George Shen <George.Shen@amd.com>'
- 'Hamza Mahfooz <hamza.mahfooz@amd.com>'
- 'Chaitanya Dhere <chaitanya.dhere@amd.com>'
- 'Harry Wentland <harry.wentland@amd.com>'
- 'Alan Liu <HaoPing.Liu@amd.com>' 'Mukul Joshi <mukul.joshi@amd.com>'
- 'André Almeida <andrealmeid@igalia.com>'
- 'Jingwen Zhu <Jingwen.Zhu@amd.com>' 'Guo Zhengkui <guozhengkui@vivo.com>'
- 'Leo Li <sunpeng.li@amd.com>' 'Melissa Wen <mwen@igalia.com>'
- 'Le Ma <le.ma@amd.com>' 'Jiapeng Chong <jiapeng.chong@linux.alibaba.com>'
- 'Caio Novais <caionovais@usp.br>' 'Martin Leung <Martin.Leung@amd.com>'
- 'Ryan Lin <tsung-hua.lin@amd.com>' 'Brian Chang <Brian.Chang@amd.com>'
- 'Sung Joon Kim <sungjoon.kim@amd.com>'
- 'Yifan Zhang <yifan1.zhang@amd.com>' 'Jack Xiao <Jack.Xiao@amd.com>'
- 'Dillon Varone <Dillon.Varone@amd.com>'
- 'Tom Chung <chiahsuan.chung@amd.com>'
- 'Wesley Chalmers <Wesley.Chalmers@amd.com>'
- 'Qingqing Zhuo <qingqing.zhuo@amd.com>' 'Pan Xinhui <Xinhui.Pan@amd.com>'
- 'Zhan Liu <zhan.liu@amd.com>' 'Roman Li <Roman.Li@amd.com>'
- 'Christian König <christian.koenig@amd.com>'
- 'Daniel Vetter <daniel@ffwll.ch>' 'Wayne Lin <wayne.lin@amd.com>'
- 'Alex Deucher <alexander.deucher@amd.com>'
- 'Ethan Wellenreiter <Ethan.Wellenreiter@amd.com>'
- 'Nicholas Kazlauskas <Nicholas.Kazlauskas@amd.com>'
- 'Joshua Ashton <joshua@froggi.es>'
- 'Hawking Zhang <Hawking.Zhang@amd.com>']","================================================
-MESSAGE 1 of 18
-================================================
-
-Subject:
-[PATCH 00/12] drm/amd: Remove unused variables
-
-Email body:
-This patchset cleans the code removing unused variables and one unused
-function.
-
-Caio Novais (12):
-  Remove unused variable 'r'
-  Remove unused variable 'value0'
-  Remove unused variable 'pixel_width'
-  Remove unused variable 'hubp'
-  Remove unused variable 'speakers'
-  Remove unused variable 'mc_vm_apt_default'
-  Remove unused variable 'optc'
-  Remove two unused variables 'speakers' and 'channels' and remove
-    unused function 'speakers_to_channels'
-  Remove two unused variables 'is_pipe_split_expected' and 'state'
-  Remove unused variable 'cursor_bpp'
-  Remove unused variable 'scl_enable'
-  Remove two unused variables 'result_write_min_hblank' and
-    'hblank_size'
-
- drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c       |  8 ----
- .../amd/display/dc/dcn10/dcn10_link_encoder.c |  3 --
- .../drm/amd/display/dc/dcn201/dcn201_dpp.c    |  6 ---
- .../drm/amd/display/dc/dcn201/dcn201_hwseq.c  |  2 -
- .../gpu/drm/amd/display/dc/dcn30/dcn30_afmt.c |  2 -
- .../gpu/drm/amd/display/dc/dcn30/dcn30_hubp.c |  4 --
- .../drm/amd/display/dc/dcn30/dcn30_hwseq.c    |  3 --
- .../gpu/drm/amd/display/dc/dcn31/dcn31_apg.c  | 39 -------------------
- .../drm/amd/display/dc/dcn32/dcn32_resource.c |  4 --
- .../display/dc/dcn32/dcn32_resource_helpers.c |  4 --
- .../dc/dml/dcn31/display_rq_dlg_calc_31.c     |  2 -
- .../dc/link/protocols/link_dp_capability.c    |  7 ----
- 12 files changed, 84 deletions(-)
-
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 2 of 18
-================================================
-
-Subject:
-[PATCH 01/12] drm/amd: Remove unused variable 'r'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c: In function ‘amdgpu_mes_ctx_alloc_meta_data’:
-drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c:1099:13: warning: variable ‘r’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c | 8 --------
- 1 file changed, 8 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c
-index 82e27bd4f038..e0130536f778 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c
-@@ -1096,14 +1096,6 @@ uint32_t amdgpu_mes_get_aggregated_doorbell_index(struct amdgpu_device *adev,
- int amdgpu_mes_ctx_alloc_meta_data(struct amdgpu_device *adev,
- 				   struct amdgpu_mes_ctx_data *ctx_data)
- {
--	int r;
--
--	r = amdgpu_bo_create_kernel(adev,
--			    sizeof(struct amdgpu_mes_ctx_meta_data),
--			    PAGE_SIZE, AMDGPU_GEM_DOMAIN_GTT,
--			    &ctx_data->meta_data_obj,
--			    &ctx_data->meta_data_mc_addr,
--			    &ctx_data->meta_data_ptr);
- 	if (!ctx_data->meta_data_obj)
- 		return -ENOMEM;
- 
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 3 of 18
-================================================
-
-Subject:
-[PATCH 02/12] drm/amd: Remove unused variable 'value0'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn10/dcn10_link_encoder.c: In function ‘dcn10_link_encoder_update_mst_stream_allocation_table’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn10/dcn10_link_encoder.c:1222:18: warning: variable ‘value0’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c b/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c
-index c4287147b853..81aa1631945a 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c
-@@ -1219,7 +1219,6 @@ void dcn10_link_encoder_update_mst_stream_allocation_table(
- 	const struct link_mst_stream_allocation_table *table)
- {
- 	struct dcn10_link_encoder *enc10 = TO_DCN10_LINK_ENC(enc);
--	uint32_t value0 = 0;
- 	uint32_t value1 = 0;
- 	uint32_t value2 = 0;
- 	uint32_t slots = 0;
-@@ -1321,8 +1320,6 @@ void dcn10_link_encoder_update_mst_stream_allocation_table(
- 	do {
- 		udelay(10);
- 
--		value0 = REG_READ(DP_MSE_SAT_UPDATE);
--
- 		REG_GET(DP_MSE_SAT_UPDATE,
- 				DP_MSE_SAT_UPDATE, &value1);
- 
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 4 of 18
-================================================
-
-Subject:
-[PATCH 03/12] drm/amd/display: Remove unused variable 'pixel_width'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn201/dcn201_dpp.c: In function ‘dpp201_get_optimal_number_of_taps’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn201/dcn201_dpp.c:188:18: warning: variable ‘pixel_width’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn201/dcn201_dpp.c | 6 ------
- 1 file changed, 6 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_dpp.c b/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_dpp.c
-index f50ab961bc17..f8ffc06593b2 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_dpp.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_dpp.c
-@@ -185,12 +185,6 @@ static bool dpp201_get_optimal_number_of_taps(
- 		struct scaler_data *scl_data,
- 		const struct scaling_taps *in_taps)
- {
--	uint32_t pixel_width;
--
--	if (scl_data->viewport.width > scl_data->recout.width)
--		pixel_width = scl_data->recout.width;
--	else
--		pixel_width = scl_data->viewport.width;
- 
- 	if (scl_data->viewport.width  != scl_data->h_active &&
- 		scl_data->viewport.height != scl_data->v_active &&
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 5 of 18
-================================================
-
-Subject:
-[PATCH 04/12] drm/amd/display: Remove unused variable 'hubp'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn201/dcn201_hwseq.c: In function ‘dcn201_pipe_control_lock’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn201/dcn201_hwseq.c:544:22: warning: variable ‘hubp’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn201/dcn201_hwseq.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_hwseq.c b/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_hwseq.c
-index 61bcfa03c4e7..1aeb04fbd89d 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_hwseq.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_hwseq.c
-@@ -541,8 +541,6 @@ void dcn201_pipe_control_lock(
- 	bool lock)
- {
- 	struct dce_hwseq *hws = dc->hwseq;
--	struct hubp *hubp = NULL;
--	hubp = dc->res_pool->hubps[pipe->pipe_idx];
- 	/* use TG master update lock to lock everything on the TG
- 	 * therefore only top pipe need to lock
- 	 */
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 6 of 18
-================================================
-
-Subject:
-[PATCH 05/12] drm/amd/display: Remove unused variable 'speakers'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_afmt.c: In function ‘afmt3_se_audio_setup’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_afmt.c:126:18: warning: variable ‘speakers’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn30/dcn30_afmt.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_afmt.c b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_afmt.c
-index 95528e5ef89e..55e388c4c98b 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_afmt.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_afmt.c
-@@ -123,7 +123,6 @@ void afmt3_se_audio_setup(
- {
- 	struct dcn30_afmt *afmt3 = DCN30_AFMT_FROM_AFMT(afmt);
- 
--	uint32_t speakers = 0;
- 	uint32_t channels = 0;
- 
- 	ASSERT(audio_info);
-@@ -131,7 +130,6 @@ void afmt3_se_audio_setup(
- 	if (audio_info == NULL)
- 		return;
- 
--	speakers = audio_info->flags.info.ALLSPEAKERS;
- 	channels = speakers_to_channels(audio_info->flags.speaker_flags).all;
- 
- 	/* setup the audio stream source select (audio -> dig mapping) */
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 7 of 18
-================================================
-
-Subject:
-[PATCH 06/12] drm/amd/display: Remove unused variable 'mc_vm_apt_default'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_hubp.c: In function ‘hubp3_set_vm_system_aperture_settings’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_hubp.c:50:30: warning: variable ‘mc_vm_apt_default’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hubp.c | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hubp.c b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hubp.c
-index dc3e8df706b3..e46bbe7ddcc9 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hubp.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hubp.c
-@@ -47,13 +47,9 @@ void hubp3_set_vm_system_aperture_settings(struct hubp *hubp,
- {
- 	struct dcn20_hubp *hubp2 = TO_DCN20_HUBP(hubp);
- 
--	PHYSICAL_ADDRESS_LOC mc_vm_apt_default;
- 	PHYSICAL_ADDRESS_LOC mc_vm_apt_low;
- 	PHYSICAL_ADDRESS_LOC mc_vm_apt_high;
- 
--	// The format of default addr is 48:12 of the 48 bit addr
--	mc_vm_apt_default.quad_part = apt->sys_default.quad_part >> 12;
--
- 	// The format of high/low are 48:18 of the 48 bit addr
- 	mc_vm_apt_low.quad_part = apt->sys_low.quad_part >> 18;
- 	mc_vm_apt_high.quad_part = apt->sys_high.quad_part >> 18;
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 8 of 18
-================================================
-
-Subject:
-[PATCH 07/12] drm/amd/display: Remove unused variable 'optc'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_hwseq.c: In function ‘dcn30_enable_writeback’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_hwseq.c:326:34: warning: variable ‘optc’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hwseq.c | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hwseq.c b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hwseq.c
-index 3b4d4d68359b..6ef85e71380c 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hwseq.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_hwseq.c
-@@ -323,13 +323,10 @@ void dcn30_enable_writeback(
- {
- 	struct dwbc *dwb;
- 	struct mcif_wb *mcif_wb;
--	struct timing_generator *optc;
- 
- 	dwb = dc->res_pool->dwbc[wb_info->dwb_pipe_inst];
- 	mcif_wb = dc->res_pool->mcif_wb[wb_info->dwb_pipe_inst];
- 
--	/* set the OPTC source mux */
--	optc = dc->res_pool->timing_generators[dwb->otg_inst];
- 	DC_LOG_DWB(""%s dwb_pipe_inst = %d, mpcc_inst = %d"",\
- 		__func__, wb_info->dwb_pipe_inst,\
- 		wb_info->mpcc_inst);
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 9 of 18
-================================================
-
-Subject:
-[PATCH 08/12] drm/amd/display: Remove two unused variables 'speakers' and 'channels' and remove unused function 'speakers_to_channels'
-
-Email body:
-Compiling AMD GPU drivers displays two warnings:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn31/dcn31_apg.c: In function ‘apg31_se_audio_setup’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn31/dcn31_apg.c:117:18: warning: variable ‘channels’ set but not used [-Wunused-but-set-variable]
-and
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn31/dcn31_apg.c:116:18: warning: variable ‘speakers’ set but not used [-Wunused-but-set-variable]
-
-Get rid of them by removing the variables and the function
-""speakers_to_channels"".
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- .../gpu/drm/amd/display/dc/dcn31/dcn31_apg.c  | 39 -------------------
- 1 file changed, 39 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_apg.c b/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_apg.c
-index 24e9ff65434d..e94d0ba915ce 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_apg.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_apg.c
-@@ -72,40 +72,6 @@ static void apg31_disable(
- 	REG_UPDATE(APG_CONTROL2, APG_ENABLE, 0);
- }
- 
--static union audio_cea_channels speakers_to_channels(
--	struct audio_speaker_flags speaker_flags)
--{
--	union audio_cea_channels cea_channels = {0};
--
--	/* these are one to one */
--	cea_channels.channels.FL = speaker_flags.FL_FR;
--	cea_channels.channels.FR = speaker_flags.FL_FR;
--	cea_channels.channels.LFE = speaker_flags.LFE;
--	cea_channels.channels.FC = speaker_flags.FC;
--
--	/* if Rear Left and Right exist move RC speaker to channel 7
--	 * otherwise to channel 5
--	 */
--	if (speaker_flags.RL_RR) {
--		cea_channels.channels.RL_RC = speaker_flags.RL_RR;
--		cea_channels.channels.RR = speaker_flags.RL_RR;
--		cea_channels.channels.RC_RLC_FLC = speaker_flags.RC;
--	} else {
--		cea_channels.channels.RL_RC = speaker_flags.RC;
--	}
--
--	/* FRONT Left Right Center and REAR Left Right Center are exclusive */
--	if (speaker_flags.FLC_FRC) {
--		cea_channels.channels.RC_RLC_FLC = speaker_flags.FLC_FRC;
--		cea_channels.channels.RRC_FRC = speaker_flags.FLC_FRC;
--	} else {
--		cea_channels.channels.RC_RLC_FLC = speaker_flags.RLC_RRC;
--		cea_channels.channels.RRC_FRC = speaker_flags.RLC_RRC;
--	}
--
--	return cea_channels;
--}
--
- static void apg31_se_audio_setup(
- 	struct apg *apg,
- 	unsigned int az_inst,
-@@ -113,17 +79,12 @@ static void apg31_se_audio_setup(
- {
- 	struct dcn31_apg *apg31 = DCN31_APG_FROM_APG(apg);
- 
--	uint32_t speakers = 0;
--	uint32_t channels = 0;
- 
- 	ASSERT(audio_info);
- 	/* This should not happen.it does so we don't get BSOD*/
- 	if (audio_info == NULL)
- 		return;
- 
--	speakers = audio_info->flags.info.ALLSPEAKERS;
--	channels = speakers_to_channels(audio_info->flags.speaker_flags).all;
--
- 	/* DisplayPort only allows for one audio stream with stream ID 0 */
- 	REG_UPDATE(APG_CONTROL2, APG_DP_AUDIO_STREAM_ID, 0);
- 
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 10 of 18
-================================================
-
-Subject:
-[PATCH 09/12] drm/amd/display: Remove two unused variables 'is_pipe_split_expected' and 'state'
-
-Email body:
-Compiling AMD GPU drivers displays two warnings:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource.c: In function ‘dcn32_acquire_post_bldn_3dlut’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource.c:1614:31: warning: variable ‘state’ set but not used [-Wunused-but-set-variable]
-and
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource.c: In function ‘dcn32_populate_dml_pipes_from_context’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource.c:1916:17: warning: variable ‘is_pipe_split_expected’ set but not used [-Wunused-but-set-variable]
-
-Get rid of them by removing the variables.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-index 74e50c09bb62..3435d3294e0b 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-@@ -1611,7 +1611,6 @@ bool dcn32_acquire_post_bldn_3dlut(
- 		struct dc_transfer_func **shaper)
- {
- 	bool ret = false;
--	union dc_3dlut_state *state;
- 
- 	ASSERT(*lut == NULL && *shaper == NULL);
- 	*lut = NULL;
-@@ -1620,7 +1619,6 @@ bool dcn32_acquire_post_bldn_3dlut(
- 	if (!res_ctx->is_mpc_3dlut_acquired[mpcc_id]) {
- 		*lut = pool->mpc_lut[mpcc_id];
- 		*shaper = pool->mpc_shaper[mpcc_id];
--		state = &pool->mpc_lut[mpcc_id]->state;
- 		res_ctx->is_mpc_3dlut_acquired[mpcc_id] = true;
- 		ret = true;
- 	}
-@@ -1913,7 +1911,6 @@ int dcn32_populate_dml_pipes_from_context(
- 	struct resource_context *res_ctx = &context->res_ctx;
- 	struct pipe_ctx *pipe;
- 	bool subvp_in_use = false;
--	uint8_t is_pipe_split_expected[MAX_PIPES] = {0};
- 	struct dc_crtc_timing *timing;
- 
- 	dcn20_populate_dml_pipes_from_context(dc, context, pipes, fast_validate);
-@@ -2002,7 +1999,6 @@ int dcn32_populate_dml_pipes_from_context(
- 		}
- 
- 		DC_FP_START();
--		is_pipe_split_expected[i] = dcn32_predict_pipe_split(context, &pipes[pipe_cnt]);
- 		DC_FP_END();
- 
- 		pipe_cnt++;
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 11 of 18
-================================================
-
-Subject:
-[PATCH 10/12] drm/amd/display: Remove unused variable 'cursor_bpp'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource_helpers.c: In function ‘dcn32_helper_calculate_mall_bytes_for_cursor’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource_helpers.c:62:18: warning: variable ‘cursor_bpp’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource_helpers.c | 4 ----
- 1 file changed, 4 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource_helpers.c b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource_helpers.c
-index 3a2d7bcc4b6d..a616cf078cf4 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource_helpers.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource_helpers.c
-@@ -59,25 +59,21 @@ uint32_t dcn32_helper_calculate_mall_bytes_for_cursor(
- {
- 	struct hubp *hubp = pipe_ctx->plane_res.hubp;
- 	uint32_t cursor_size = hubp->curs_attr.pitch * hubp->curs_attr.height;
--	uint32_t cursor_bpp = 4;
- 	uint32_t cursor_mall_size_bytes = 0;
- 
- 	switch (pipe_ctx->stream->cursor_attributes.color_format) {
- 	case CURSOR_MODE_MONO:
- 		cursor_size /= 2;
--		cursor_bpp = 4;
- 		break;
- 	case CURSOR_MODE_COLOR_1BIT_AND:
- 	case CURSOR_MODE_COLOR_PRE_MULTIPLIED_ALPHA:
- 	case CURSOR_MODE_COLOR_UN_PRE_MULTIPLIED_ALPHA:
- 		cursor_size *= 4;
--		cursor_bpp = 4;
- 		break;
- 
- 	case CURSOR_MODE_COLOR_64BIT_FP_PRE_MULTIPLIED:
- 	case CURSOR_MODE_COLOR_64BIT_FP_UN_PRE_MULTIPLIED:
- 		cursor_size *= 8;
--		cursor_bpp = 8;
- 		break;
- 	}
- 
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 12 of 18
-================================================
-
-Subject:
-[PATCH 11/12] drm/amd/display: Remove unused variable 'scl_enable'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn31/display_rq_dlg_calc_31.c: In function ‘dml_rq_dlg_get_dlg_params’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn31/display_rq_dlg_calc_31.c:905:14: warning: variable ‘scl_enable’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- .../gpu/drm/amd/display/dc/dml/dcn31/display_rq_dlg_calc_31.c   | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dml/dcn31/display_rq_dlg_calc_31.c b/drivers/gpu/drm/amd/display/dc/dml/dcn31/display_rq_dlg_calc_31.c
-index 35d10b4d018b..2244e4fb8c96 100644
---- a/drivers/gpu/drm/amd/display/dc/dml/dcn31/display_rq_dlg_calc_31.c
-+++ b/drivers/gpu/drm/amd/display/dc/dml/dcn31/display_rq_dlg_calc_31.c
-@@ -902,7 +902,6 @@ static void dml_rq_dlg_get_dlg_params(
- 	double hratio_c;
- 	double vratio_l;
- 	double vratio_c;
--	bool scl_enable;
- 
- 	unsigned int swath_width_ub_l;
- 	unsigned int dpte_groups_per_row_ub_l;
-@@ -1020,7 +1019,6 @@ static void dml_rq_dlg_get_dlg_params(
- 	hratio_c = scl->hscl_ratio_c;
- 	vratio_l = scl->vscl_ratio;
- 	vratio_c = scl->vscl_ratio_c;
--	scl_enable = scl->scl_enable;
- 
- 	swath_width_ub_l = rq_dlg_param->rq_l.swath_width_ub;
- 	dpte_groups_per_row_ub_l = rq_dlg_param->rq_l.dpte_groups_per_row_ub;
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 13 of 18
-================================================
-
-Subject:
-[PATCH 12/12] drm/amd/display: Remove two unused variables 'result_write_min_hblank' and 'hblank_size'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/link/protocols/link_dp_capability.c: In function ‘dpcd_set_source_specific_data’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/link/protocols/link_dp_capability.c:1290:32: warning: variable ‘result_write_min_hblank’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable 'result_write_min_hblank' and 'hblank_size'.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- .../drm/amd/display/dc/link/protocols/link_dp_capability.c | 7 -------
- 1 file changed, 7 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/link/protocols/link_dp_capability.c b/drivers/gpu/drm/amd/display/dc/link/protocols/link_dp_capability.c
-index d4370856f164..7392fcf17653 100644
---- a/drivers/gpu/drm/amd/display/dc/link/protocols/link_dp_capability.c
-+++ b/drivers/gpu/drm/amd/display/dc/link/protocols/link_dp_capability.c
-@@ -1287,7 +1287,6 @@ void dc_link_overwrite_extended_receiver_cap(
- void dpcd_set_source_specific_data(struct dc_link *link)
- {
- 	if (!link->dc->vendor_signature.is_valid) {
--		enum dc_status result_write_min_hblank = DC_NOT_SUPPORTED;
- 		struct dpcd_amd_signature amd_signature = {0};
- 		struct dpcd_amd_device_id amd_device_id = {0};
- 
-@@ -1324,16 +1323,10 @@ void dpcd_set_source_specific_data(struct dc_link *link)
- 		if (link->ctx->dce_version >= DCN_VERSION_2_0 &&
- 			link->dc->caps.min_horizontal_blanking_period != 0) {
- 
--			uint8_t hblank_size = (uint8_t)link->dc->caps.min_horizontal_blanking_period;
--
--			result_write_min_hblank = core_link_write_dpcd(link,
--				DP_SOURCE_MINIMUM_HBLANK_SUPPORTED, (uint8_t *)(&hblank_size),
--				sizeof(hblank_size));
- 		}
- 		DC_TRACE_LEVEL_MESSAGE(DAL_TRACE_LEVEL_INFORMATION,
- 							WPP_BIT_FLAG_DC_DETECTION_DP_CAPS,
- 							""result=%u link_index=%u enum dce_version=%d DPCD=0x%04X min_hblank=%u branch_dev_id=0x%x branch_dev_name='%c%c%c%c%c%c'"",
--							result_write_min_hblank,
- 							link->link_index,
- 							link->ctx->dce_version,
- 							DP_SOURCE_MINIMUM_HBLANK_SUPPORTED,
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 14 of 18
-================================================
-
-Subject:
-Re: [PATCH 01/12] drm/amd: Remove unused variable 'r'
-
-Email body:
-On Mon, Mar 27, 2023 at 7:34 PM Caio Novais <caionovais@usp.br> wrote:
->
-> Compiling AMD GPU drivers displays a warning:
->
-> drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c: In function ‘amdgpu_mes_ctx_alloc_meta_data’:
-> drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c:1099:13: warning: variable ‘r’ set but not used [-Wunused-but-set-variable]
->
-> Get rid of it by removing the variable.
->
-> Signed-off-by: Caio Novais <caionovais@usp.br>
-> ---
->  drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c | 8 --------
->  1 file changed, 8 deletions(-)
->
-> diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c
-> index 82e27bd4f038..e0130536f778 100644
-> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c
-> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c
-> @@ -1096,14 +1096,6 @@ uint32_t amdgpu_mes_get_aggregated_doorbell_index(struct amdgpu_device *adev,
->  int amdgpu_mes_ctx_alloc_meta_data(struct amdgpu_device *adev,
->                                    struct amdgpu_mes_ctx_data *ctx_data)
->  {
-> -       int r;
-> -
-> -       r = amdgpu_bo_create_kernel(adev,
-> -                           sizeof(struct amdgpu_mes_ctx_meta_data),
-> -                           PAGE_SIZE, AMDGPU_GEM_DOMAIN_GTT,
-> -                           &ctx_data->meta_data_obj,
-> -                           &ctx_data->meta_data_mc_addr,
-> -                           &ctx_data->meta_data_ptr);
-
-You can't just remove the buffer allocation here.  If you want to fix
-this then do something like
-if (r)
-    return r;
-
-Alex
-
->         if (!ctx_data->meta_data_obj)
->                 return -ENOMEM;
->
-> --
-> 2.40.0
->
-
-
-================================================
-MESSAGE 15 of 18
-================================================
-
-Subject:
-Re: [PATCH 02/12] drm/amd: Remove unused variable 'value0'
-
-Email body:
-On Mon, Mar 27, 2023 at 7:34 PM Caio Novais <caionovais@usp.br> wrote:
->
-> Compiling AMD GPU drivers displays a warning:
->
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dcn10/dcn10_link_encoder.c: In function ‘dcn10_link_encoder_update_mst_stream_allocation_table’:
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dcn10/dcn10_link_encoder.c:1222:18: warning: variable ‘value0’ set but not used [-Wunused-but-set-variable]
->
-> Get rid of it by removing the variable.
->
-> Signed-off-by: Caio Novais <caionovais@usp.br>
-> ---
->  drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c | 3 ---
->  1 file changed, 3 deletions(-)
->
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c b/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c
-> index c4287147b853..81aa1631945a 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_link_encoder.c
-> @@ -1219,7 +1219,6 @@ void dcn10_link_encoder_update_mst_stream_allocation_table(
->         const struct link_mst_stream_allocation_table *table)
->  {
->         struct dcn10_link_encoder *enc10 = TO_DCN10_LINK_ENC(enc);
-> -       uint32_t value0 = 0;
->         uint32_t value1 = 0;
->         uint32_t value2 = 0;
->         uint32_t slots = 0;
-> @@ -1321,8 +1320,6 @@ void dcn10_link_encoder_update_mst_stream_allocation_table(
->         do {
->                 udelay(10);
->
-> -               value0 = REG_READ(DP_MSE_SAT_UPDATE);
-
-This reads a register.  Removing it may adversely affect the
-programming sequence.  If you want to avoid the set but unused
-warning, just drop the assignment, but leave the REG_READ.
-
-Alex
-
-> -
->                 REG_GET(DP_MSE_SAT_UPDATE,
->                                 DP_MSE_SAT_UPDATE, &value1);
->
-> --
-> 2.40.0
->
-
-
-================================================
-MESSAGE 16 of 18
-================================================
-
-Subject:
-Re: [PATCH 09/12] drm/amd/display: Remove two unused variables 'is_pipe_split_expected' and 'state'
-
-Email body:
-On Mon, Mar 27, 2023 at 7:35 PM Caio Novais <caionovais@usp.br> wrote:
->
-> Compiling AMD GPU drivers displays two warnings:
->
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource.c: In function ‘dcn32_acquire_post_bldn_3dlut’:
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource.c:1614:31: warning: variable ‘state’ set but not used [-Wunused-but-set-variable]
-> and
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource.c: In function ‘dcn32_populate_dml_pipes_from_context’:
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dcn32/dcn32_resource.c:1916:17: warning: variable ‘is_pipe_split_expected’ set but not used [-Wunused-but-set-variable]
->
-> Get rid of them by removing the variables.
->
-> Signed-off-by: Caio Novais <caionovais@usp.br>
-> ---
->  drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c | 4 ----
->  1 file changed, 4 deletions(-)
->
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-> index 74e50c09bb62..3435d3294e0b 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-> @@ -1611,7 +1611,6 @@ bool dcn32_acquire_post_bldn_3dlut(
->                 struct dc_transfer_func **shaper)
->  {
->         bool ret = false;
-> -       union dc_3dlut_state *state;
->
->         ASSERT(*lut == NULL && *shaper == NULL);
->         *lut = NULL;
-> @@ -1620,7 +1619,6 @@ bool dcn32_acquire_post_bldn_3dlut(
->         if (!res_ctx->is_mpc_3dlut_acquired[mpcc_id]) {
->                 *lut = pool->mpc_lut[mpcc_id];
->                 *shaper = pool->mpc_shaper[mpcc_id];
-> -               state = &pool->mpc_lut[mpcc_id]->state;
->                 res_ctx->is_mpc_3dlut_acquired[mpcc_id] = true;
->                 ret = true;
->         }
-> @@ -1913,7 +1911,6 @@ int dcn32_populate_dml_pipes_from_context(
->         struct resource_context *res_ctx = &context->res_ctx;
->         struct pipe_ctx *pipe;
->         bool subvp_in_use = false;
-> -       uint8_t is_pipe_split_expected[MAX_PIPES] = {0};
->         struct dc_crtc_timing *timing;
->
->         dcn20_populate_dml_pipes_from_context(dc, context, pipes, fast_validate);
-> @@ -2002,7 +1999,6 @@ int dcn32_populate_dml_pipes_from_context(
->                 }
->
->                 DC_FP_START();
-> -               is_pipe_split_expected[i] = dcn32_predict_pipe_split(context, &pipes[pipe_cnt]);
->                 DC_FP_END();
-
-You can drop the DC_FP macros as well if you drop the function call.
-
-Alex
-
->
->                 pipe_cnt++;
-> --
-> 2.40.0
->
-
-
-================================================
-MESSAGE 17 of 18
-================================================
-
-Subject:
-Re: [PATCH 12/12] drm/amd/display: Remove two unused variables 'result_write_min_hblank' and 'hblank_size'
-
-Email body:
-On Mon, Mar 27, 2023 at 7:36 PM Caio Novais <caionovais@usp.br> wrote:
->
-> Compiling AMD GPU drivers displays a warning:
->
-> drivers/gpu/drm/amd/amdgpu/../display/dc/link/protocols/link_dp_capability.c: In function ‘dpcd_set_source_specific_data’:
-> drivers/gpu/drm/amd/amdgpu/../display/dc/link/protocols/link_dp_capability.c:1290:32: warning: variable ‘result_write_min_hblank’ set but not used [-Wunused-but-set-variable]
->
-> Get rid of it by removing the variable 'result_write_min_hblank' and 'hblank_size'.
->
-> Signed-off-by: Caio Novais <caionovais@usp.br>
-> ---
->  .../drm/amd/display/dc/link/protocols/link_dp_capability.c | 7 -------
->  1 file changed, 7 deletions(-)
->
-> diff --git a/drivers/gpu/drm/amd/display/dc/link/protocols/link_dp_capability.c b/drivers/gpu/drm/amd/display/dc/link/protocols/link_dp_capability.c
-> index d4370856f164..7392fcf17653 100644
-> --- a/drivers/gpu/drm/amd/display/dc/link/protocols/link_dp_capability.c
-> +++ b/drivers/gpu/drm/amd/display/dc/link/protocols/link_dp_capability.c
-> @@ -1287,7 +1287,6 @@ void dc_link_overwrite_extended_receiver_cap(
->  void dpcd_set_source_specific_data(struct dc_link *link)
->  {
->         if (!link->dc->vendor_signature.is_valid) {
-> -               enum dc_status result_write_min_hblank = DC_NOT_SUPPORTED;
->                 struct dpcd_amd_signature amd_signature = {0};
->                 struct dpcd_amd_device_id amd_device_id = {0};
->
-> @@ -1324,16 +1323,10 @@ void dpcd_set_source_specific_data(struct dc_link *link)
->                 if (link->ctx->dce_version >= DCN_VERSION_2_0 &&
->                         link->dc->caps.min_horizontal_blanking_period != 0) {
->
-> -                       uint8_t hblank_size = (uint8_t)link->dc->caps.min_horizontal_blanking_period;
-> -
-> -                       result_write_min_hblank = core_link_write_dpcd(link,
-> -                               DP_SOURCE_MINIMUM_HBLANK_SUPPORTED, (uint8_t *)(&hblank_size),
-> -                               sizeof(hblank_size));
-
-This writes to the monitor.  We shouldn't remove this.
-
->                 }
->                 DC_TRACE_LEVEL_MESSAGE(DAL_TRACE_LEVEL_INFORMATION,
->                                                         WPP_BIT_FLAG_DC_DETECTION_DP_CAPS,
->                                                         ""result=%u link_index=%u enum dce_version=%d DPCD=0x%04X min_hblank=%u branch_dev_id=0x%x branch_dev_name='%c%c%c%c%c%c'"",
-> -                                                       result_write_min_hblank,
-
-You are dropping information from the debug logging.  Maybe it would
-be better to just flag this as maybe unused.  Also, I'd suggest
-rebasing on the latest amdgpu -next branch, as I think a lot of these
-were already fixed last week or the week before.
-
-Alex
-
->                                                         link->link_index,
->                                                         link->ctx->dce_version,
->                                                         DP_SOURCE_MINIMUM_HBLANK_SUPPORTED,
-> --
-> 2.40.0
->
-
-
-================================================
-MESSAGE 18 of 18
-================================================
-
-Subject:
-Re: [PATCH 00/12] drm/amd: Remove unused variables
-
-Email body:
-On Mon, 27 Mar 2023, Caio Novais <caionovais@usp.br> wrote:
-> This patchset cleans the code removing unused variables and one unused
-> function.
->
-> Caio Novais (12):
->   Remove unused variable 'r'
->   Remove unused variable 'value0'
->   Remove unused variable 'pixel_width'
->   Remove unused variable 'hubp'
->   Remove unused variable 'speakers'
->   Remove unused variable 'mc_vm_apt_default'
->   Remove unused variable 'optc'
->   Remove two unused variables 'speakers' and 'channels' and remove
->     unused function 'speakers_to_channels'
->   Remove two unused variables 'is_pipe_split_expected' and 'state'
->   Remove unused variable 'cursor_bpp'
->   Remove unused variable 'scl_enable'
->   Remove two unused variables 'result_write_min_hblank' and
->     'hblank_size'
-
-Curious, how did you create this? It does not match the patches.
-
-BR,
-Jani.
-
->
->  drivers/gpu/drm/amd/amdgpu/amdgpu_mes.c       |  8 ----
->  .../amd/display/dc/dcn10/dcn10_link_encoder.c |  3 --
->  .../drm/amd/display/dc/dcn201/dcn201_dpp.c    |  6 ---
->  .../drm/amd/display/dc/dcn201/dcn201_hwseq.c  |  2 -
->  .../gpu/drm/amd/display/dc/dcn30/dcn30_afmt.c |  2 -
->  .../gpu/drm/amd/display/dc/dcn30/dcn30_hubp.c |  4 --
->  .../drm/amd/display/dc/dcn30/dcn30_hwseq.c    |  3 --
->  .../gpu/drm/amd/display/dc/dcn31/dcn31_apg.c  | 39 -------------------
->  .../drm/amd/display/dc/dcn32/dcn32_resource.c |  4 --
->  .../display/dc/dcn32/dcn32_resource_helpers.c |  4 --
->  .../dc/dml/dcn31/display_rq_dlg_calc_31.c     |  2 -
->  .../dc/link/protocols/link_dp_capability.c    |  7 ----
->  12 files changed, 84 deletions(-)
-
--- 
-Jani Nikula, Intel Open Source Graphics Center",no,
+>","copy-pasted,duplications",yes
 CADnq5_MGRpNE8Ge_5=w5mQDJivdS2Wt_2LD=dR-mrWH89Yc-0A@mail.gmail.com,amd,3,"['20260421200311.15624-1-leonardocesar@usp.br'
  '59b686c6-42f5-4cde-8199-dae64722bfd1@amd.com'
  'CADnq5_MGRpNE8Ge_5=w5mQDJivdS2Wt_2LD=dR-mrWH89Yc-0A@mail.gmail.com']",2026-04-21 20:03:00,[PATCH] drm/amdgpu: deduplicate ring preempt ib function,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -39336,7 +38171,7 @@ Alex
 > > --
 > > 2.43.0
 > >
->",yes,Patch merges identical ring preemption logic into a shared function to remove duplication.
+>","deduplicate,duplication",yes
 CADnq5_MbpE9AT8qZiLQkYZ7QZ2YWwmu2U8vj3+C+umR1dnJL9A@mail.gmail.com,amd,2,"['20260415164029.52537-1-leonardocesar@usp.br'
  'CADnq5_MbpE9AT8qZiLQkYZ7QZ2YWwmu2U8vj3+C+umR1dnJL9A@mail.gmail.com']",2026-04-15 16:40:23,[PATCH] drm/amdgpu: deduplicate ring preempt ib function,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -39772,7 +38607,7 @@ Alex
 >  static void gfx_v12_0_ring_emit_rreg(struct amdgpu_ring *ring, uint32_t reg,
 > --
 > 2.43.0
->",yes,Patch merges identical ring preemption logic into a shared function to remove duplication.
+>","deduplicate,duplication",yes
 CADnq5_Mi7jotv=ZYpEW1f1HOdOniUsJnXEqHqC2n38q=b42yxg@mail.gmail.com,amd,2,"['20250225015532.303032-1-luanicaro@usp.br'
  'CADnq5_Mi7jotv=ZYpEW1f1HOdOniUsJnXEqHqC2n38q=b42yxg@mail.gmail.com']",2025-02-25 01:55:29,[PATCH v4] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['Luan Arcanjo <luanicaro@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -41421,600 +40256,7 @@ On Mon, Feb 24, 2025 at 8:55 PM Luan Icaro Pinto Arcanjo
 >  {
 > --
 > 2.43.0
->",yes,Patch removes duplicate copy pasted functions shared across command table helpers.
-CADnq5_NU0SzNg9ogx_ebCk_wpaBoz_ZXW+h7UK6JnmZ-DspqXA@mail.gmail.com,amd,2,"['20230307191417.150823-1-davidbtadokoro@usp.br'
- 'CADnq5_NU0SzNg9ogx_ebCk_wpaBoz_ZXW+h7UK6JnmZ-DspqXA@mail.gmail.com']",2023-03-07 19:14:17,[PATCH] drm/amd/display: add prefix to amdgpu_dm_crtc.h functions,David Tadokoro <davidbtadokoro@usp.br>,"['David Tadokoro <davidbtadokoro@usp.br>'
- 'dri-devel@lists.freedesktop.org' 'amd-gfx@lists.freedesktop.org'
- 'linux-kernel@vger.kernel.org']","================================================
-MESSAGE 1 of 2
-================================================
-
-Subject:
-[PATCH] drm/amd/display: add prefix to amdgpu_dm_crtc.h functions
-
-Email body:
-Some amdgpu_dm_crtc.h functions didn't have names that indicated where
-they were declared.
-
-To better filter results in debug tools like ftrace, prefix these
-functions with 'amdgpu_dm_crtc_'.
-
-Signed-off-by: David Tadokoro <davidbtadokoro@usp.br>
----
- .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 32 +++++++++----------
- .../amd/display/amdgpu_dm/amdgpu_dm_crtc.c    | 26 +++++++--------
- .../amd/display/amdgpu_dm/amdgpu_dm_crtc.h    | 14 ++++----
- 3 files changed, 36 insertions(+), 36 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index b472931cb7ca..b3e874589617 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -342,7 +342,7 @@ static inline bool is_dc_timing_adjust_needed(struct dm_crtc_state *old_state,
- {
- 	if (new_state->freesync_config.state ==  VRR_STATE_ACTIVE_FIXED)
- 		return true;
--	else if (amdgpu_dm_vrr_active(old_state) != amdgpu_dm_vrr_active(new_state))
-+	else if (amdgpu_dm_crtc_vrr_active(old_state) != amdgpu_dm_crtc_vrr_active(new_state))
- 		return true;
- 	else
- 		return false;
-@@ -436,7 +436,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
- 
- 	WARN_ON(!e);
- 
--	vrr_active = amdgpu_dm_vrr_active_irq(amdgpu_crtc);
-+	vrr_active = amdgpu_dm_crtc_vrr_active_irq(amdgpu_crtc);
- 
- 	/* Fixed refresh rate, or VRR scanout position outside front-porch? */
- 	if (!vrr_active ||
-@@ -510,7 +510,7 @@ static void dm_vupdate_high_irq(void *interrupt_params)
- 	acrtc = get_crtc_by_otg_inst(adev, irq_params->irq_src - IRQ_TYPE_VUPDATE);
- 
- 	if (acrtc) {
--		vrr_active = amdgpu_dm_vrr_active_irq(acrtc);
-+		vrr_active = amdgpu_dm_crtc_vrr_active_irq(acrtc);
- 		drm_dev = acrtc->base.dev;
- 		vblank = &drm_dev->vblank[acrtc->base.index];
- 		previous_timestamp = atomic64_read(&irq_params->previous_timestamp);
-@@ -534,7 +534,7 @@ static void dm_vupdate_high_irq(void *interrupt_params)
- 		 * if a pageflip happened inside front-porch.
- 		 */
- 		if (vrr_active) {
--			dm_crtc_handle_vblank(acrtc);
-+			amdgpu_dm_crtc_handle_vblank(acrtc);
- 
- 			/* BTR processing for pre-DCE12 ASICs */
- 			if (acrtc->dm_irq_params.stream &&
-@@ -574,7 +574,7 @@ static void dm_crtc_high_irq(void *interrupt_params)
- 	if (!acrtc)
- 		return;
- 
--	vrr_active = amdgpu_dm_vrr_active_irq(acrtc);
-+	vrr_active = amdgpu_dm_crtc_vrr_active_irq(acrtc);
- 
- 	DC_LOG_VBLANK(""crtc:%d, vupdate-vrr:%d, planes:%d\n"", acrtc->crtc_id,
- 		      vrr_active, acrtc->dm_irq_params.active_planes);
-@@ -586,7 +586,7 @@ static void dm_crtc_high_irq(void *interrupt_params)
- 	 * to dm_vupdate_high_irq after end of front-porch.
- 	 */
- 	if (!vrr_active)
--		dm_crtc_handle_vblank(acrtc);
-+		amdgpu_dm_crtc_handle_vblank(acrtc);
- 
- 	/**
- 	 * Following stuff must happen at start of vblank, for crc
-@@ -2483,11 +2483,11 @@ static void dm_gpureset_toggle_interrupts(struct amdgpu_device *adev,
- 					 enable ? ""enable"" : ""disable"");
- 
- 			if (enable) {
--				rc = dm_enable_vblank(&acrtc->base);
-+				rc = amdgpu_dm_crtc_enable_vblank(&acrtc->base);
- 				if (rc)
- 					DRM_WARN(""Failed to enable vblank interrupts\n"");
- 			} else {
--				dm_disable_vblank(&acrtc->base);
-+				amdgpu_dm_crtc_disable_vblank(&acrtc->base);
- 			}
- 
- 		}
-@@ -7746,7 +7746,7 @@ static void update_freesync_state_on_stream(
- 			&vrr_params);
- 
- 		if (adev->family < AMDGPU_FAMILY_AI &&
--		    amdgpu_dm_vrr_active(new_crtc_state)) {
-+		    amdgpu_dm_crtc_vrr_active(new_crtc_state)) {
- 			mod_freesync_handle_v_update(dm->freesync_module,
- 						     new_stream, &vrr_params);
- 
-@@ -7864,8 +7864,8 @@ static void update_stream_irq_parameters(
- static void amdgpu_dm_handle_vrr_transition(struct dm_crtc_state *old_state,
- 					    struct dm_crtc_state *new_state)
- {
--	bool old_vrr_active = amdgpu_dm_vrr_active(old_state);
--	bool new_vrr_active = amdgpu_dm_vrr_active(new_state);
-+	bool old_vrr_active = amdgpu_dm_crtc_vrr_active(old_state);
-+	bool new_vrr_active = amdgpu_dm_crtc_vrr_active(new_state);
- 
- 	if (!old_vrr_active && new_vrr_active) {
- 		/* Transition VRR inactive -> active:
-@@ -7876,7 +7876,7 @@ static void amdgpu_dm_handle_vrr_transition(struct dm_crtc_state *old_state,
- 		 * We also need vupdate irq for the actual core vblank handling
- 		 * at end of vblank.
- 		 */
--		WARN_ON(dm_set_vupdate_irq(new_state->base.crtc, true) != 0);
-+		WARN_ON(amdgpu_dm_crtc_set_vupdate_irq(new_state->base.crtc, true) != 0);
- 		WARN_ON(drm_crtc_vblank_get(new_state->base.crtc) != 0);
- 		DRM_DEBUG_DRIVER(""%s: crtc=%u VRR off->on: Get vblank ref\n"",
- 				 __func__, new_state->base.crtc->base.id);
-@@ -7884,7 +7884,7 @@ static void amdgpu_dm_handle_vrr_transition(struct dm_crtc_state *old_state,
- 		/* Transition VRR active -> inactive:
- 		 * Allow vblank irq disable again for fixed refresh rate.
- 		 */
--		WARN_ON(dm_set_vupdate_irq(new_state->base.crtc, false) != 0);
-+		WARN_ON(amdgpu_dm_crtc_set_vupdate_irq(new_state->base.crtc, false) != 0);
- 		drm_crtc_vblank_put(new_state->base.crtc);
- 		DRM_DEBUG_DRIVER(""%s: crtc=%u VRR on->off: Drop vblank ref\n"",
- 				 __func__, new_state->base.crtc->base.id);
-@@ -7926,7 +7926,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
- 	int planes_count = 0, vpos, hpos;
- 	unsigned long flags;
- 	u32 target_vblank, last_flip_vblank;
--	bool vrr_active = amdgpu_dm_vrr_active(acrtc_state);
-+	bool vrr_active = amdgpu_dm_crtc_vrr_active(acrtc_state);
- 	bool cursor_update = false;
- 	bool pflip_present = false;
- 	bool dirty_rects_changed = false;
-@@ -8476,7 +8476,7 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
- 		 * aconnector as needed
- 		 */
- 
--		if (modeset_required(new_crtc_state, dm_new_crtc_state->stream, dm_old_crtc_state->stream)) {
-+		if (amdgpu_dm_crtc_modeset_required(new_crtc_state, dm_new_crtc_state->stream, dm_old_crtc_state->stream)) {
- 
- 			DRM_DEBUG_ATOMIC(""Atomic commit: SET crtc id %d: [%p]\n"", acrtc->crtc_id, acrtc);
- 
-@@ -9301,7 +9301,7 @@ static int dm_update_crtc_state(struct amdgpu_display_manager *dm,
- 		if (modereset_required(new_crtc_state))
- 			goto skip_modeset;
- 
--		if (modeset_required(new_crtc_state, new_stream,
-+		if (amdgpu_dm_crtc_modeset_required(new_crtc_state, new_stream,
- 				     dm_old_crtc_state->stream)) {
- 
- 			WARN_ON(dm_new_crtc_state->stream);
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-index dc4f37240beb..1d924dc51a3e 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-@@ -34,7 +34,7 @@
- #include ""amdgpu_dm_trace.h""
- #include ""amdgpu_dm_debugfs.h""
- 
--void dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc)
-+void amdgpu_dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc)
- {
- 	struct drm_crtc *crtc = &acrtc->base;
- 	struct drm_device *dev = crtc->dev;
-@@ -54,14 +54,14 @@ void dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc)
- 	spin_unlock_irqrestore(&dev->event_lock, flags);
- }
- 
--bool modeset_required(struct drm_crtc_state *crtc_state,
-+bool amdgpu_dm_crtc_modeset_required(struct drm_crtc_state *crtc_state,
- 			     struct dc_stream_state *new_stream,
- 			     struct dc_stream_state *old_stream)
- {
- 	return crtc_state->active && drm_atomic_crtc_needs_modeset(crtc_state);
- }
- 
--bool amdgpu_dm_vrr_active_irq(struct amdgpu_crtc *acrtc)
-+bool amdgpu_dm_crtc_vrr_active_irq(struct amdgpu_crtc *acrtc)
- 
- {
- 	return acrtc->dm_irq_params.freesync_config.state ==
-@@ -70,7 +70,7 @@ bool amdgpu_dm_vrr_active_irq(struct amdgpu_crtc *acrtc)
- 		       VRR_STATE_ACTIVE_FIXED;
- }
- 
--int dm_set_vupdate_irq(struct drm_crtc *crtc, bool enable)
-+int amdgpu_dm_crtc_set_vupdate_irq(struct drm_crtc *crtc, bool enable)
- {
- 	enum dc_irq_source irq_source;
- 	struct amdgpu_crtc *acrtc = to_amdgpu_crtc(crtc);
-@@ -89,7 +89,7 @@ int dm_set_vupdate_irq(struct drm_crtc *crtc, bool enable)
- 	return rc;
- }
- 
--bool amdgpu_dm_vrr_active(struct dm_crtc_state *dm_state)
-+bool amdgpu_dm_crtc_vrr_active(struct dm_crtc_state *dm_state)
- {
- 	return dm_state->freesync_config.state == VRR_STATE_ACTIVE_VARIABLE ||
- 	       dm_state->freesync_config.state == VRR_STATE_ACTIVE_FIXED;
-@@ -159,11 +159,11 @@ static inline int dm_set_vblank(struct drm_crtc *crtc, bool enable)
- 
- 	if (enable) {
- 		/* vblank irq on -> Only need vupdate irq in vrr mode */
--		if (amdgpu_dm_vrr_active(acrtc_state))
--			rc = dm_set_vupdate_irq(crtc, true);
-+		if (amdgpu_dm_crtc_vrr_active(acrtc_state))
-+			rc = amdgpu_dm_crtc_set_vupdate_irq(crtc, true);
- 	} else {
- 		/* vblank irq off -> vupdate irq off */
--		rc = dm_set_vupdate_irq(crtc, false);
-+		rc = amdgpu_dm_crtc_set_vupdate_irq(crtc, false);
- 	}
- 
- 	if (rc)
-@@ -199,12 +199,12 @@ static inline int dm_set_vblank(struct drm_crtc *crtc, bool enable)
- 	return 0;
- }
- 
--int dm_enable_vblank(struct drm_crtc *crtc)
-+int amdgpu_dm_crtc_enable_vblank(struct drm_crtc *crtc)
- {
- 	return dm_set_vblank(crtc, true);
- }
- 
--void dm_disable_vblank(struct drm_crtc *crtc)
-+void amdgpu_dm_crtc_disable_vblank(struct drm_crtc *crtc)
- {
- 	dm_set_vblank(crtc, false);
- }
-@@ -300,8 +300,8 @@ static const struct drm_crtc_funcs amdgpu_dm_crtc_funcs = {
- 	.verify_crc_source = amdgpu_dm_crtc_verify_crc_source,
- 	.get_crc_sources = amdgpu_dm_crtc_get_crc_sources,
- 	.get_vblank_counter = amdgpu_get_vblank_counter_kms,
--	.enable_vblank = dm_enable_vblank,
--	.disable_vblank = dm_disable_vblank,
-+	.enable_vblank = amdgpu_dm_crtc_enable_vblank,
-+	.disable_vblank = amdgpu_dm_crtc_disable_vblank,
- 	.get_vblank_timestamp = drm_crtc_vblank_helper_get_vblank_timestamp,
- #if defined(CONFIG_DEBUG_FS)
- 	.late_register = amdgpu_dm_crtc_late_register,
-@@ -381,7 +381,7 @@ static int dm_crtc_helper_atomic_check(struct drm_crtc *crtc,
- 	dm_update_crtc_active_planes(crtc, crtc_state);
- 
- 	if (WARN_ON(unlikely(!dm_crtc_state->stream &&
--			modeset_required(crtc_state, NULL, dm_crtc_state->stream)))) {
-+			amdgpu_dm_crtc_modeset_required(crtc_state, NULL, dm_crtc_state->stream)))) {
- 		return ret;
- 	}
- 
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.h b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.h
-index 1ac8692354cf..17e948753f59 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.h
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.h
-@@ -27,21 +27,21 @@
- #ifndef __AMDGPU_DM_CRTC_H__
- #define __AMDGPU_DM_CRTC_H__
- 
--void dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc);
-+void amdgpu_dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc);
- 
--bool modeset_required(struct drm_crtc_state *crtc_state,
-+bool amdgpu_dm_crtc_modeset_required(struct drm_crtc_state *crtc_state,
- 		      struct dc_stream_state *new_stream,
- 		      struct dc_stream_state *old_stream);
- 
--int dm_set_vupdate_irq(struct drm_crtc *crtc, bool enable);
-+int amdgpu_dm_crtc_set_vupdate_irq(struct drm_crtc *crtc, bool enable);
- 
--bool amdgpu_dm_vrr_active_irq(struct amdgpu_crtc *acrtc);
-+bool amdgpu_dm_crtc_vrr_active_irq(struct amdgpu_crtc *acrtc);
- 
--bool amdgpu_dm_vrr_active(struct dm_crtc_state *dm_state);
-+bool amdgpu_dm_crtc_vrr_active(struct dm_crtc_state *dm_state);
- 
--int dm_enable_vblank(struct drm_crtc *crtc);
-+int amdgpu_dm_crtc_enable_vblank(struct drm_crtc *crtc);
- 
--void dm_disable_vblank(struct drm_crtc *crtc);
-+void amdgpu_dm_crtc_disable_vblank(struct drm_crtc *crtc);
- 
- int amdgpu_dm_crtc_init(struct amdgpu_display_manager *dm,
- 			struct drm_plane *plane,
--- 
-2.39.2
-
-
-
-================================================
-MESSAGE 2 of 2
-================================================
-
-Subject:
-Re: [PATCH] drm/amd/display: add prefix to amdgpu_dm_crtc.h functions
-
-Email body:
-Applied.  Thanks!
-
-On Tue, Mar 7, 2023 at 2:34 PM David Tadokoro <davidbtadokoro@usp.br> wrote:
->
-> Some amdgpu_dm_crtc.h functions didn't have names that indicated where
-> they were declared.
->
-> To better filter results in debug tools like ftrace, prefix these
-> functions with 'amdgpu_dm_crtc_'.
->
-> Signed-off-by: David Tadokoro <davidbtadokoro@usp.br>
-> ---
->  .../gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c | 32 +++++++++----------
->  .../amd/display/amdgpu_dm/amdgpu_dm_crtc.c    | 26 +++++++--------
->  .../amd/display/amdgpu_dm/amdgpu_dm_crtc.h    | 14 ++++----
->  3 files changed, 36 insertions(+), 36 deletions(-)
->
-> diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-> index b472931cb7ca..b3e874589617 100644
-> --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-> +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-> @@ -342,7 +342,7 @@ static inline bool is_dc_timing_adjust_needed(struct dm_crtc_state *old_state,
->  {
->         if (new_state->freesync_config.state ==  VRR_STATE_ACTIVE_FIXED)
->                 return true;
-> -       else if (amdgpu_dm_vrr_active(old_state) != amdgpu_dm_vrr_active(new_state))
-> +       else if (amdgpu_dm_crtc_vrr_active(old_state) != amdgpu_dm_crtc_vrr_active(new_state))
->                 return true;
->         else
->                 return false;
-> @@ -436,7 +436,7 @@ static void dm_pflip_high_irq(void *interrupt_params)
->
->         WARN_ON(!e);
->
-> -       vrr_active = amdgpu_dm_vrr_active_irq(amdgpu_crtc);
-> +       vrr_active = amdgpu_dm_crtc_vrr_active_irq(amdgpu_crtc);
->
->         /* Fixed refresh rate, or VRR scanout position outside front-porch? */
->         if (!vrr_active ||
-> @@ -510,7 +510,7 @@ static void dm_vupdate_high_irq(void *interrupt_params)
->         acrtc = get_crtc_by_otg_inst(adev, irq_params->irq_src - IRQ_TYPE_VUPDATE);
->
->         if (acrtc) {
-> -               vrr_active = amdgpu_dm_vrr_active_irq(acrtc);
-> +               vrr_active = amdgpu_dm_crtc_vrr_active_irq(acrtc);
->                 drm_dev = acrtc->base.dev;
->                 vblank = &drm_dev->vblank[acrtc->base.index];
->                 previous_timestamp = atomic64_read(&irq_params->previous_timestamp);
-> @@ -534,7 +534,7 @@ static void dm_vupdate_high_irq(void *interrupt_params)
->                  * if a pageflip happened inside front-porch.
->                  */
->                 if (vrr_active) {
-> -                       dm_crtc_handle_vblank(acrtc);
-> +                       amdgpu_dm_crtc_handle_vblank(acrtc);
->
->                         /* BTR processing for pre-DCE12 ASICs */
->                         if (acrtc->dm_irq_params.stream &&
-> @@ -574,7 +574,7 @@ static void dm_crtc_high_irq(void *interrupt_params)
->         if (!acrtc)
->                 return;
->
-> -       vrr_active = amdgpu_dm_vrr_active_irq(acrtc);
-> +       vrr_active = amdgpu_dm_crtc_vrr_active_irq(acrtc);
->
->         DC_LOG_VBLANK(""crtc:%d, vupdate-vrr:%d, planes:%d\n"", acrtc->crtc_id,
->                       vrr_active, acrtc->dm_irq_params.active_planes);
-> @@ -586,7 +586,7 @@ static void dm_crtc_high_irq(void *interrupt_params)
->          * to dm_vupdate_high_irq after end of front-porch.
->          */
->         if (!vrr_active)
-> -               dm_crtc_handle_vblank(acrtc);
-> +               amdgpu_dm_crtc_handle_vblank(acrtc);
->
->         /**
->          * Following stuff must happen at start of vblank, for crc
-> @@ -2483,11 +2483,11 @@ static void dm_gpureset_toggle_interrupts(struct amdgpu_device *adev,
->                                          enable ? ""enable"" : ""disable"");
->
->                         if (enable) {
-> -                               rc = dm_enable_vblank(&acrtc->base);
-> +                               rc = amdgpu_dm_crtc_enable_vblank(&acrtc->base);
->                                 if (rc)
->                                         DRM_WARN(""Failed to enable vblank interrupts\n"");
->                         } else {
-> -                               dm_disable_vblank(&acrtc->base);
-> +                               amdgpu_dm_crtc_disable_vblank(&acrtc->base);
->                         }
->
->                 }
-> @@ -7746,7 +7746,7 @@ static void update_freesync_state_on_stream(
->                         &vrr_params);
->
->                 if (adev->family < AMDGPU_FAMILY_AI &&
-> -                   amdgpu_dm_vrr_active(new_crtc_state)) {
-> +                   amdgpu_dm_crtc_vrr_active(new_crtc_state)) {
->                         mod_freesync_handle_v_update(dm->freesync_module,
->                                                      new_stream, &vrr_params);
->
-> @@ -7864,8 +7864,8 @@ static void update_stream_irq_parameters(
->  static void amdgpu_dm_handle_vrr_transition(struct dm_crtc_state *old_state,
->                                             struct dm_crtc_state *new_state)
->  {
-> -       bool old_vrr_active = amdgpu_dm_vrr_active(old_state);
-> -       bool new_vrr_active = amdgpu_dm_vrr_active(new_state);
-> +       bool old_vrr_active = amdgpu_dm_crtc_vrr_active(old_state);
-> +       bool new_vrr_active = amdgpu_dm_crtc_vrr_active(new_state);
->
->         if (!old_vrr_active && new_vrr_active) {
->                 /* Transition VRR inactive -> active:
-> @@ -7876,7 +7876,7 @@ static void amdgpu_dm_handle_vrr_transition(struct dm_crtc_state *old_state,
->                  * We also need vupdate irq for the actual core vblank handling
->                  * at end of vblank.
->                  */
-> -               WARN_ON(dm_set_vupdate_irq(new_state->base.crtc, true) != 0);
-> +               WARN_ON(amdgpu_dm_crtc_set_vupdate_irq(new_state->base.crtc, true) != 0);
->                 WARN_ON(drm_crtc_vblank_get(new_state->base.crtc) != 0);
->                 DRM_DEBUG_DRIVER(""%s: crtc=%u VRR off->on: Get vblank ref\n"",
->                                  __func__, new_state->base.crtc->base.id);
-> @@ -7884,7 +7884,7 @@ static void amdgpu_dm_handle_vrr_transition(struct dm_crtc_state *old_state,
->                 /* Transition VRR active -> inactive:
->                  * Allow vblank irq disable again for fixed refresh rate.
->                  */
-> -               WARN_ON(dm_set_vupdate_irq(new_state->base.crtc, false) != 0);
-> +               WARN_ON(amdgpu_dm_crtc_set_vupdate_irq(new_state->base.crtc, false) != 0);
->                 drm_crtc_vblank_put(new_state->base.crtc);
->                 DRM_DEBUG_DRIVER(""%s: crtc=%u VRR on->off: Drop vblank ref\n"",
->                                  __func__, new_state->base.crtc->base.id);
-> @@ -7926,7 +7926,7 @@ static void amdgpu_dm_commit_planes(struct drm_atomic_state *state,
->         int planes_count = 0, vpos, hpos;
->         unsigned long flags;
->         u32 target_vblank, last_flip_vblank;
-> -       bool vrr_active = amdgpu_dm_vrr_active(acrtc_state);
-> +       bool vrr_active = amdgpu_dm_crtc_vrr_active(acrtc_state);
->         bool cursor_update = false;
->         bool pflip_present = false;
->         bool dirty_rects_changed = false;
-> @@ -8476,7 +8476,7 @@ static void amdgpu_dm_atomic_commit_tail(struct drm_atomic_state *state)
->                  * aconnector as needed
->                  */
->
-> -               if (modeset_required(new_crtc_state, dm_new_crtc_state->stream, dm_old_crtc_state->stream)) {
-> +               if (amdgpu_dm_crtc_modeset_required(new_crtc_state, dm_new_crtc_state->stream, dm_old_crtc_state->stream)) {
->
->                         DRM_DEBUG_ATOMIC(""Atomic commit: SET crtc id %d: [%p]\n"", acrtc->crtc_id, acrtc);
->
-> @@ -9301,7 +9301,7 @@ static int dm_update_crtc_state(struct amdgpu_display_manager *dm,
->                 if (modereset_required(new_crtc_state))
->                         goto skip_modeset;
->
-> -               if (modeset_required(new_crtc_state, new_stream,
-> +               if (amdgpu_dm_crtc_modeset_required(new_crtc_state, new_stream,
->                                      dm_old_crtc_state->stream)) {
->
->                         WARN_ON(dm_new_crtc_state->stream);
-> diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-> index dc4f37240beb..1d924dc51a3e 100644
-> --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-> +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.c
-> @@ -34,7 +34,7 @@
->  #include ""amdgpu_dm_trace.h""
->  #include ""amdgpu_dm_debugfs.h""
->
-> -void dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc)
-> +void amdgpu_dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc)
->  {
->         struct drm_crtc *crtc = &acrtc->base;
->         struct drm_device *dev = crtc->dev;
-> @@ -54,14 +54,14 @@ void dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc)
->         spin_unlock_irqrestore(&dev->event_lock, flags);
->  }
->
-> -bool modeset_required(struct drm_crtc_state *crtc_state,
-> +bool amdgpu_dm_crtc_modeset_required(struct drm_crtc_state *crtc_state,
->                              struct dc_stream_state *new_stream,
->                              struct dc_stream_state *old_stream)
->  {
->         return crtc_state->active && drm_atomic_crtc_needs_modeset(crtc_state);
->  }
->
-> -bool amdgpu_dm_vrr_active_irq(struct amdgpu_crtc *acrtc)
-> +bool amdgpu_dm_crtc_vrr_active_irq(struct amdgpu_crtc *acrtc)
->
->  {
->         return acrtc->dm_irq_params.freesync_config.state ==
-> @@ -70,7 +70,7 @@ bool amdgpu_dm_vrr_active_irq(struct amdgpu_crtc *acrtc)
->                        VRR_STATE_ACTIVE_FIXED;
->  }
->
-> -int dm_set_vupdate_irq(struct drm_crtc *crtc, bool enable)
-> +int amdgpu_dm_crtc_set_vupdate_irq(struct drm_crtc *crtc, bool enable)
->  {
->         enum dc_irq_source irq_source;
->         struct amdgpu_crtc *acrtc = to_amdgpu_crtc(crtc);
-> @@ -89,7 +89,7 @@ int dm_set_vupdate_irq(struct drm_crtc *crtc, bool enable)
->         return rc;
->  }
->
-> -bool amdgpu_dm_vrr_active(struct dm_crtc_state *dm_state)
-> +bool amdgpu_dm_crtc_vrr_active(struct dm_crtc_state *dm_state)
->  {
->         return dm_state->freesync_config.state == VRR_STATE_ACTIVE_VARIABLE ||
->                dm_state->freesync_config.state == VRR_STATE_ACTIVE_FIXED;
-> @@ -159,11 +159,11 @@ static inline int dm_set_vblank(struct drm_crtc *crtc, bool enable)
->
->         if (enable) {
->                 /* vblank irq on -> Only need vupdate irq in vrr mode */
-> -               if (amdgpu_dm_vrr_active(acrtc_state))
-> -                       rc = dm_set_vupdate_irq(crtc, true);
-> +               if (amdgpu_dm_crtc_vrr_active(acrtc_state))
-> +                       rc = amdgpu_dm_crtc_set_vupdate_irq(crtc, true);
->         } else {
->                 /* vblank irq off -> vupdate irq off */
-> -               rc = dm_set_vupdate_irq(crtc, false);
-> +               rc = amdgpu_dm_crtc_set_vupdate_irq(crtc, false);
->         }
->
->         if (rc)
-> @@ -199,12 +199,12 @@ static inline int dm_set_vblank(struct drm_crtc *crtc, bool enable)
->         return 0;
->  }
->
-> -int dm_enable_vblank(struct drm_crtc *crtc)
-> +int amdgpu_dm_crtc_enable_vblank(struct drm_crtc *crtc)
->  {
->         return dm_set_vblank(crtc, true);
->  }
->
-> -void dm_disable_vblank(struct drm_crtc *crtc)
-> +void amdgpu_dm_crtc_disable_vblank(struct drm_crtc *crtc)
->  {
->         dm_set_vblank(crtc, false);
->  }
-> @@ -300,8 +300,8 @@ static const struct drm_crtc_funcs amdgpu_dm_crtc_funcs = {
->         .verify_crc_source = amdgpu_dm_crtc_verify_crc_source,
->         .get_crc_sources = amdgpu_dm_crtc_get_crc_sources,
->         .get_vblank_counter = amdgpu_get_vblank_counter_kms,
-> -       .enable_vblank = dm_enable_vblank,
-> -       .disable_vblank = dm_disable_vblank,
-> +       .enable_vblank = amdgpu_dm_crtc_enable_vblank,
-> +       .disable_vblank = amdgpu_dm_crtc_disable_vblank,
->         .get_vblank_timestamp = drm_crtc_vblank_helper_get_vblank_timestamp,
->  #if defined(CONFIG_DEBUG_FS)
->         .late_register = amdgpu_dm_crtc_late_register,
-> @@ -381,7 +381,7 @@ static int dm_crtc_helper_atomic_check(struct drm_crtc *crtc,
->         dm_update_crtc_active_planes(crtc, crtc_state);
->
->         if (WARN_ON(unlikely(!dm_crtc_state->stream &&
-> -                       modeset_required(crtc_state, NULL, dm_crtc_state->stream)))) {
-> +                       amdgpu_dm_crtc_modeset_required(crtc_state, NULL, dm_crtc_state->stream)))) {
->                 return ret;
->         }
->
-> diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.h b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.h
-> index 1ac8692354cf..17e948753f59 100644
-> --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.h
-> +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_crtc.h
-> @@ -27,21 +27,21 @@
->  #ifndef __AMDGPU_DM_CRTC_H__
->  #define __AMDGPU_DM_CRTC_H__
->
-> -void dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc);
-> +void amdgpu_dm_crtc_handle_vblank(struct amdgpu_crtc *acrtc);
->
-> -bool modeset_required(struct drm_crtc_state *crtc_state,
-> +bool amdgpu_dm_crtc_modeset_required(struct drm_crtc_state *crtc_state,
->                       struct dc_stream_state *new_stream,
->                       struct dc_stream_state *old_stream);
->
-> -int dm_set_vupdate_irq(struct drm_crtc *crtc, bool enable);
-> +int amdgpu_dm_crtc_set_vupdate_irq(struct drm_crtc *crtc, bool enable);
->
-> -bool amdgpu_dm_vrr_active_irq(struct amdgpu_crtc *acrtc);
-> +bool amdgpu_dm_crtc_vrr_active_irq(struct amdgpu_crtc *acrtc);
->
-> -bool amdgpu_dm_vrr_active(struct dm_crtc_state *dm_state);
-> +bool amdgpu_dm_crtc_vrr_active(struct dm_crtc_state *dm_state);
->
-> -int dm_enable_vblank(struct drm_crtc *crtc);
-> +int amdgpu_dm_crtc_enable_vblank(struct drm_crtc *crtc);
->
-> -void dm_disable_vblank(struct drm_crtc *crtc);
-> +void amdgpu_dm_crtc_disable_vblank(struct drm_crtc *crtc);
->
->  int amdgpu_dm_crtc_init(struct amdgpu_display_manager *dm,
->                         struct drm_plane *plane,
-> --
-> 2.39.2
->",no,
+>","copy-pasted,duplications",yes
 CADnq5_Nvfj-WMc039YvjoWfYiXcQ5estN573dO1Y2LtwPMiNRA@mail.gmail.com,amd,3,"['20260428232009.10737-1-leonardocesar@usp.br'
  '38b716ff-fac9-4921-8121-4a76cf1cef18@amd.com'
  'CADnq5_Nvfj-WMc039YvjoWfYiXcQ5estN573dO1Y2LtwPMiNRA@mail.gmail.com']",2026-04-28 23:19:44,[PATCH v4] drm/amdgpu: deduplicate ring preempt ib function,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -42759,7 +41001,7 @@ On Wed, Apr 29, 2026 at 9:19 AM Christian König
 > >       .emit_wreg = gfx_v12_0_ring_emit_wreg,
 > >       .emit_reg_wait = gfx_v12_0_ring_emit_reg_wait,
 > >       .emit_reg_write_reg_wait = gfx_v12_0_ring_emit_reg_write_reg_wait,
->",yes,Patch merges identical ring preemption logic into a shared function to remove duplication.
+>","deduplicate,duplication",yes
 CADnq5_NyjsHsgN1f9G=E7ZM6Z9AhEX1cX5k51W+bZMBx1S1tqQ@mail.gmail.com,amd,2,"['20240221192812.23038-1-jppaulo11@usp.br'
  'CADnq5_NyjsHsgN1f9G=E7ZM6Z9AhEX1cX5k51W+bZMBx1S1tqQ@mail.gmail.com']",2024-02-21 19:27:19,[PATCH] drm/amd/display: Add prefix to functions inside dnc10_cm_common.h,Joao Paulo Pereira da Silva <jppaulo11@usp.br>,"['Joao Paulo Pereira da Silva <jppaulo11@usp.br>'
  'amd-gfx@lists.freedesktop.org' 'dri-devel@lists.freedesktop.org']","================================================
@@ -43708,7 +41950,7 @@ Alex
 >                         shaper_lut = &dpp_base->shaper_params;
 > --
 > 2.43.0
->",no,
+>",,no
 CADnq5_P7mGBw21FYTfZwaff+3G6Ddj1wkCTKOU=LRLaVgF4ZAg@mail.gmail.com,amd,6,"['20260420032858.10286-1-giovannauchoa@usp.br'
  'CADnq5_P2+OqDtmhwOAuM9QsOFi8D45QA+=XOCqJ1vbMbjVQJCg@mail.gmail.com'
  '7eb86bbd-d875-474c-a052-176f6d00ad79@amd.com'
@@ -45518,7 +43760,7 @@ Alex
 > >>>> 2.53.0
 > >>>>
 > >>
->",yes,Patch consolidates a shared interrupt handler but maintainers debate whether it truly removes duplication.
+>","duplicate,duplication",yes
 CADnq5_PrP7jVyyJ85TZyRnpFVb5rVzPJ2vY78ZZp+YVSoneJZQ@mail.gmail.com,amd,3,"['20240528131026.214773-1-brunolevilevi@usp.br'
  '20240528131026.214773-3-brunolevilevi@usp.br'
  'CADnq5_PrP7jVyyJ85TZyRnpFVb5rVzPJ2vY78ZZp+YVSoneJZQ@mail.gmail.com']",2024-05-28 13:10:49,[PATCH 0/2] Fix alignment in comment blocks,Bruno Rocha Levi <brunolevilevi@usp.br>,"['Bruno Rocha Levi <brunolevilevi@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -45626,7 +43868,7 @@ On Tue, May 28, 2024 at 10:47 AM Bruno Rocha Levi <brunolevilevi@usp.br> wrote
 >  #define _ACP_GFX_IF_H
 > --
 > 2.45.1
->",no,
+>",,no
 CAJgF-xswWgRGJGUDFRw+q4YOz1cVc5fqXumHBGxpLE_4736FQg@mail.gmail.com,amd,3,"['CAJgF-xs=3fbKQO5Mj=coPMXq0ecWmV0bJDNFN44coEHV3WS=wg@mail.gmail.com'
  '20260331015202.51017-1-guilherme.bozi@usp.br'
  'CAJgF-xswWgRGJGUDFRw+q4YOz1cVc5fqXumHBGxpLE_4736FQg@mail.gmail.com']",2026-02-17 22:35:51,[PATCH] drm/amd/display: Deduplicate DCN DDC register assignment,Guilherme Ivo Bozi <guilherme.bozi@usp.br>,"['siqueira@igalia.com' 'alexander.deucher@amd.com'
@@ -46724,7 +44966,7 @@ On Mon, Mar 30, 2026 at 10:52 PM Guilherme Ivo Bozi
 > +#endif /* __DAL_HW_FACTORY_DCN_DDC_H__ */
 > --
 > 2.47.3
->",yes,Patch introduces a shared helper to remove duplicate DCN DDC register assignment code.
+>","deduplicate,duplication",yes
 a51e328a-f6b4-4bde-bcae-4abcd5c983ec@amd.com,amd,4,"['20240213224339.379599-1-jppaulo11@usp.br'
  '20240213224339.379599-2-jppaulo11@usp.br'
  '20240213224339.379599-3-jppaulo11@usp.br'
@@ -46888,7 +45130,7 @@ part is already present)? Could you rebase your change and squash these
 two commits in a single one?
 
 Thanks
-Siqueira",no,
+Siqueira",,no
 a5f06933-3cbc-4b6d-99fc-23ee31b291ca@amd.com,amd,2,"['20240222141900.295254-1-davidbtadokoro@usp.br'
  'a5f06933-3cbc-4b6d-99fc-23ee31b291ca@amd.com']",2024-02-22 14:19:00,[PATCH] drm/amd/display: Remove duplicated function signature from dcn3.01 DCCG,David Tadokoro <davidbtadokoro@usp.br>,"['David Tadokoro <davidbtadokoro@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -46971,923 +45213,7 @@ Reviewed-by: Rodrigo Siqueira <Rodrigo.Siqueira@amd.com>
 I already merged your patch into the asdn.
 
 Thanks
-Siqueira",no,
-a848b681-0c24-2676-2f20-03b11fd8dd77@amd.com,amd,5,"['20230328220947.108188-1-caionovais@usp.br'
- '20230328220947.108188-2-caionovais@usp.br'
- '20230328220947.108188-3-caionovais@usp.br'
- 'a848b681-0c24-2676-2f20-03b11fd8dd77@amd.com'
- 'fba14fea-787b-c5b2-a72a-ab802f76b3f7@amd.com']",2023-03-28 22:09:45,[PATCH 0/2] drm/amd/display: Remove a unused variable and add a function prototype,Caio Novais <caionovais@usp.br>,"['Jiapeng Chong <jiapeng.chong@linux.alibaba.com>'
- 'Wesley Chalmers <Wesley.Chalmers@amd.com>'
- 'Gabe Teeger <gabe.teeger@amd.com>' 'Leo Li <sunpeng.li@amd.com>'
- 'David Airlie <airlied@gmail.com>'
- 'Qingqing Zhuo <qingqing.zhuo@amd.com>' 'Pan Xinhui <Xinhui.Pan@amd.com>'
- 'Rodrigo Siqueira <Rodrigo.Siqueira@amd.com>'
- 'Roman Li <roman.li@amd.com>'
- 'Nicholas Kazlauskas <Nicholas.Kazlauskas@amd.com>'
- 'Maíra Canal <mairacanal@riseup.net>'
- 'Hamza Mahfooz <hamza.mahfooz@amd.com>'
- 'Aurabindo Pillai <aurabindo.pillai@amd.com>'
- 'Deepak R Varma <drv@mailo.com>' 'Lee Alvin <Alvin.Lee2@amd.com>'
- 'Daniel Vetter <daniel@ffwll.ch>'
- 'Alex Deucher <alexander.deucher@amd.com>' 'Jun Lei <Jun.Lei@amd.com>'
- 'Harry Wentland <harry.wentland@amd.com>'
- 'Christian König <christian.koenig@amd.com>'
- 'Caio Novais <caionovais@usp.br>']","================================================
-MESSAGE 1 of 5
-================================================
-
-Subject:
-[PATCH 0/2] drm/amd/display: Remove a unused variable and add a function prototype
-
-Email body:
-This patchset removes one unused variable and adds a function prototype.
-
-Caio Novais (2):
-  drm/amd/display: Remove unused variable 'scl_enable'
-  drm/amd/display: Add previous prototype to
-    'optc3_wait_drr_doublebuffer_pending_clear'
-
- drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h               | 2 ++
- .../gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c | 2 --
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 2 of 5
-================================================
-
-Subject:
-[PATCH 1/2] drm/amd/display: Remove unused variable 'scl_enable'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn314/display_rq_dlg_calc_314.c: In function ‘dml_rq_dlg_get_dlg_params’:
-drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn314/display_rq_dlg_calc_314.c:991:14: warning: variable ‘scl_enable’ set but not used [-Wunused-but-set-variable]
-
-Get rid of it by removing the variable 'scl_enable'.
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- .../gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c b/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-index d1c2693a2e28..ea4eb66066c4 100644
---- a/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-+++ b/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-@@ -988,7 +988,6 @@ static void dml_rq_dlg_get_dlg_params(
- 	double hratio_c;
- 	double vratio_l;
- 	double vratio_c;
--	bool scl_enable;
- 
- 	unsigned int swath_width_ub_l;
- 	unsigned int dpte_groups_per_row_ub_l;
-@@ -1117,7 +1116,6 @@ static void dml_rq_dlg_get_dlg_params(
- 	hratio_c = scl->hscl_ratio_c;
- 	vratio_l = scl->vscl_ratio;
- 	vratio_c = scl->vscl_ratio_c;
--	scl_enable = scl->scl_enable;
- 
- 	swath_width_ub_l = rq_dlg_param->rq_l.swath_width_ub;
- 	dpte_groups_per_row_ub_l = rq_dlg_param->rq_l.dpte_groups_per_row_ub;
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 3 of 5
-================================================
-
-Subject:
-[PATCH 2/2] drm/amd/display: Add previous prototype to 'optc3_wait_drr_doublebuffer_pending_clear'
-
-Email body:
-Compiling AMD GPU drivers displays a warning:
-
-drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_optc.c:294:6: warning: no previous prototype for ‘optc3_wait_drr_doublebuffer_pending_clear’ [-Wmissing-prototypes]
-
-Get rid of it by adding a function prototype
-
-'optc3_wait_drr_doublebuffer_pending_clear(struct timing_generator *optc)' on drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h
-index fb06dc9a4893..2e3ba6e2f336 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h
-+++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h
-@@ -331,6 +331,8 @@ void optc3_lock_doublebuffer_enable(struct timing_generator *optc);
- 
- void optc3_lock_doublebuffer_disable(struct timing_generator *optc);
- 
-+void optc3_wait_drr_doublebuffer_pending_clear(struct timing_generator *optc);
-+
- void optc3_set_drr_trigger_window(struct timing_generator *optc,
- 		uint32_t window_start, uint32_t window_end);
- 
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 4 of 5
-================================================
-
-Subject:
-Re: [PATCH 1/2] drm/amd/display: Remove unused variable 'scl_enable'
-
-Email body:
-On 3/28/23 18:09, Caio Novais wrote:
-> Compiling AMD GPU drivers displays a warning:
-> 
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn314/display_rq_dlg_calc_314.c: In function ‘dml_rq_dlg_get_dlg_params’:
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dml/dcn314/display_rq_dlg_calc_314.c:991:14: warning: variable ‘scl_enable’ set but not used [-Wunused-but-set-variable]
-> 
-> Get rid of it by removing the variable 'scl_enable'.
-> 
-> Signed-off-by: Caio Novais <caionovais@usp.br>
-
-Applied, thanks!
-
-> ---
->   .../gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c | 2 --
->   1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c b/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-> index d1c2693a2e28..ea4eb66066c4 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dml/dcn314/display_rq_dlg_calc_314.c
-> @@ -988,7 +988,6 @@ static void dml_rq_dlg_get_dlg_params(
->   	double hratio_c;
->   	double vratio_l;
->   	double vratio_c;
-> -	bool scl_enable;
->   
->   	unsigned int swath_width_ub_l;
->   	unsigned int dpte_groups_per_row_ub_l;
-> @@ -1117,7 +1116,6 @@ static void dml_rq_dlg_get_dlg_params(
->   	hratio_c = scl->hscl_ratio_c;
->   	vratio_l = scl->vscl_ratio;
->   	vratio_c = scl->vscl_ratio_c;
-> -	scl_enable = scl->scl_enable;
->   
->   	swath_width_ub_l = rq_dlg_param->rq_l.swath_width_ub;
->   	dpte_groups_per_row_ub_l = rq_dlg_param->rq_l.dpte_groups_per_row_ub;
-
--- 
-Hamza
-
-
-
-================================================
-MESSAGE 5 of 5
-================================================
-
-Subject:
-Re: [PATCH 2/2] drm/amd/display: Add previous prototype to 'optc3_wait_drr_doublebuffer_pending_clear'
-
-Email body:
-
-On 3/28/23 18:09, Caio Novais wrote:
-> Compiling AMD GPU drivers displays a warning:
-> 
-> drivers/gpu/drm/amd/amdgpu/../display/dc/dcn30/dcn30_optc.c:294:6: warning: no previous prototype for ‘optc3_wait_drr_doublebuffer_pending_clear’ [-Wmissing-prototypes]
-> 
-> Get rid of it by adding a function prototype
-> 
-> 'optc3_wait_drr_doublebuffer_pending_clear(struct timing_generator *optc)' on drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h
-> 
-> Signed-off-by: Caio Novais <caionovais@usp.br>
-> ---
->   drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h | 2 ++
->   1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h
-> index fb06dc9a4893..2e3ba6e2f336 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_optc.h
-> @@ -331,6 +331,8 @@ void optc3_lock_doublebuffer_enable(struct timing_generator *optc);
->   
->   void optc3_lock_doublebuffer_disable(struct timing_generator *optc);
->   
-> +void optc3_wait_drr_doublebuffer_pending_clear(struct timing_generator *optc);
-
-I would prefer if you marked the function as static instead, since it is
-only used in dcn30_optc.c.
-
-> +
->   void optc3_set_drr_trigger_window(struct timing_generator *optc,
->   		uint32_t window_start, uint32_t window_end);
->   
-
--- 
-Hamza",no,
-ce68bf88-7b45-a11c-775d-36656b5b9ee3@amd.com,amd,3,"['20230325131532.6356-1-caionovais@usp.br'
- '17ac25df-1e06-ae3a-e04e-831e20f00323@amd.com'
- 'ce68bf88-7b45-a11c-775d-36656b5b9ee3@amd.com']",2023-03-25 13:15:32,[PATCH] drm/scheduler: Fix variable name in function description,Caio Novais <caionovais@usp.br>,"['luben.tuikov@amd.com' 'airlied@gmail.com'
- 'Caio Novais <caionovais@usp.br>' 'daniel@ffwll.ch']","================================================
-MESSAGE 1 of 3
-================================================
-
-Subject:
-[PATCH] drm/scheduler: Fix variable name in function description
-
-Email body:
-Compiling AMD GPU drivers displays two warnings:
-
-drivers/gpu/drm/scheduler/sched_main.c:738: warning: Function parameter or member 'file' not described in 'drm_sched_job_add_syncobj_dependency'
-drivers/gpu/drm/scheduler/sched_main.c:738: warning: Excess function
-parameter 'file_private' description in
-'drm_sched_job_add_syncobj_dependency'
-
-Get rid of them by renaming the variable name on the function description
-
-Signed-off-by: Caio Novais <caionovais@usp.br>
----
- drivers/gpu/drm/scheduler/sched_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/scheduler/sched_main.c b/drivers/gpu/drm/scheduler/sched_main.c
-index 214364fccb71..7db586e6fce6 100644
---- a/drivers/gpu/drm/scheduler/sched_main.c
-+++ b/drivers/gpu/drm/scheduler/sched_main.c
-@@ -722,7 +722,7 @@ EXPORT_SYMBOL(drm_sched_job_add_dependency);
- /**
-  * drm_sched_job_add_syncobj_dependency - adds a syncobj's fence as a job dependency
-  * @job: scheduler job to add the dependencies to
-- * @file_private: drm file private pointer
-+ * @file: drm file private pointer
-  * @handle: syncobj handle to lookup
-  * @point: timeline point
-  *
--- 
-2.40.0
-
-
-
-================================================
-MESSAGE 2 of 3
-================================================
-
-Subject:
-Re: [PATCH] drm/scheduler: Fix variable name in function description
-
-Email body:
-Thanks for the fix. I'll push this via amd-staging-drm-next.
-
-Reviewed-by: Luben Tuikov <luben.tuikov@amd.com>
-
-Regards,
-Luben
-
-On 2023-03-25 09:15, Caio Novais wrote:
-> Compiling AMD GPU drivers displays two warnings:
-> 
-> drivers/gpu/drm/scheduler/sched_main.c:738: warning: Function parameter or member 'file' not described in 'drm_sched_job_add_syncobj_dependency'
-> drivers/gpu/drm/scheduler/sched_main.c:738: warning: Excess function
-> parameter 'file_private' description in
-> 'drm_sched_job_add_syncobj_dependency'
-> 
-> Get rid of them by renaming the variable name on the function description
-> 
-> Signed-off-by: Caio Novais <caionovais@usp.br>
-> ---
->  drivers/gpu/drm/scheduler/sched_main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/scheduler/sched_main.c b/drivers/gpu/drm/scheduler/sched_main.c
-> index 214364fccb71..7db586e6fce6 100644
-> --- a/drivers/gpu/drm/scheduler/sched_main.c
-> +++ b/drivers/gpu/drm/scheduler/sched_main.c
-> @@ -722,7 +722,7 @@ EXPORT_SYMBOL(drm_sched_job_add_dependency);
->  /**
->   * drm_sched_job_add_syncobj_dependency - adds a syncobj's fence as a job dependency
->   * @job: scheduler job to add the dependencies to
-> - * @file_private: drm file private pointer
-> + * @file: drm file private pointer
->   * @handle: syncobj handle to lookup
->   * @point: timeline point
->   *
-
-
-
-================================================
-MESSAGE 3 of 3
-================================================
-
-Subject:
-Re: [PATCH] drm/scheduler: Fix variable name in function description
-
-Email body:
-Pushed through drm-misc-next.
-
-Regards,
-Luben
-
-On 2023-03-27 11:02, Luben Tuikov wrote:
-> Thanks for the fix. I'll push this via amd-staging-drm-next.
-> 
-> Reviewed-by: Luben Tuikov <luben.tuikov@amd.com>
-> 
-> Regards,
-> Luben
-> 
-> On 2023-03-25 09:15, Caio Novais wrote:
->> Compiling AMD GPU drivers displays two warnings:
->>
->> drivers/gpu/drm/scheduler/sched_main.c:738: warning: Function parameter or member 'file' not described in 'drm_sched_job_add_syncobj_dependency'
->> drivers/gpu/drm/scheduler/sched_main.c:738: warning: Excess function
->> parameter 'file_private' description in
->> 'drm_sched_job_add_syncobj_dependency'
->>
->> Get rid of them by renaming the variable name on the function description
->>
->> Signed-off-by: Caio Novais <caionovais@usp.br>
->> ---
->>  drivers/gpu/drm/scheduler/sched_main.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/gpu/drm/scheduler/sched_main.c b/drivers/gpu/drm/scheduler/sched_main.c
->> index 214364fccb71..7db586e6fce6 100644
->> --- a/drivers/gpu/drm/scheduler/sched_main.c
->> +++ b/drivers/gpu/drm/scheduler/sched_main.c
->> @@ -722,7 +722,7 @@ EXPORT_SYMBOL(drm_sched_job_add_dependency);
->>  /**
->>   * drm_sched_job_add_syncobj_dependency - adds a syncobj's fence as a job dependency
->>   * @job: scheduler job to add the dependencies to
->> - * @file_private: drm file private pointer
->> + * @file: drm file private pointer
->>   * @handle: syncobj handle to lookup
->>   * @point: timeline point
->>   *
->",no,
-e4de1a96-d669-1923-8677-026da2dc5585@amd.com,amd,2,"['20230307225341.246596-1-davidbtadokoro@usp.br'
- 'e4de1a96-d669-1923-8677-026da2dc5585@amd.com']",2023-03-07 22:53:41,[PATCH] drm/amd/display: remove legacy fields of dc_plane_cap struct,David Tadokoro <davidbtadokoro@usp.br>,"['David Tadokoro <davidbtadokoro@usp.br>'
- 'dri-devel@lists.freedesktop.org' 'amd-gfx@lists.freedesktop.org'
- 'linux-kernel@vger.kernel.org']","================================================
-MESSAGE 1 of 2
-================================================
-
-Subject:
-[PATCH] drm/amd/display: remove legacy fields of dc_plane_cap struct
-
-Email body:
-The fields blends_with_above and blends_with_below of struct
-dc_plane_cap (defined in dc/dc.h) are boolean and set to true by
-default. All instances of a dc_plane_cap maintain the default values of
-both. Also, there is only one if statement that checks those fields and
-there would be the same effect if it was deleted (assuming that those
-fields are always going to be true).
-
-For this reason, considering both fields as legacy ones, this commit
-removes them and the aforementioned if statement.
-
-Signed-off-by: David Tadokoro <davidbtadokoro@usp.br>
----
- drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c       | 3 ---
- drivers/gpu/drm/amd/display/dc/dc.h                     | 2 --
- drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c | 3 ---
- drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c   | 2 --
- drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c   | 2 --
- drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c | 2 --
- drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c   | 2 --
- drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c   | 2 --
- drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c | 2 --
- drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c | 2 --
- drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c | 2 --
- drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c   | 2 --
- drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c | 2 --
- drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c | 2 --
- drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c | 2 --
- drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c   | 2 --
- drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c | 2 --
- 17 files changed, 36 deletions(-)
-
-diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-index b472931cb7ca..fdcb375e908a 100644
---- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-+++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-@@ -4354,9 +4354,6 @@ static int amdgpu_dm_initialize_drm_device(struct amdgpu_device *adev)
- 		if (plane->type != DC_PLANE_TYPE_DCN_UNIVERSAL)
- 			continue;
- 
--		if (!plane->blends_with_above || !plane->blends_with_below)
--			continue;
--
- 		if (!plane->pixel_format_support.argb8888)
- 			continue;
- 
-diff --git a/drivers/gpu/drm/amd/display/dc/dc.h b/drivers/gpu/drm/amd/display/dc/dc.h
-index f0a1934ebf8c..ccc27d482640 100644
---- a/drivers/gpu/drm/amd/display/dc/dc.h
-+++ b/drivers/gpu/drm/amd/display/dc/dc.h
-@@ -82,8 +82,6 @@ enum det_size {
- 
- struct dc_plane_cap {
- 	enum dc_plane_type type;
--	uint32_t blends_with_above : 1;
--	uint32_t blends_with_below : 1;
- 	uint32_t per_pixel_alpha : 1;
- 	struct {
- 		uint32_t argb8888 : 1;
-diff --git a/drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c b/drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c
-index f808315b2835..a4a45a6ce61e 100644
---- a/drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c
-@@ -401,8 +401,6 @@ static const struct resource_caps stoney_resource_cap = {
- 
- static const struct dc_plane_cap plane_cap = {
- 		.type = DC_PLANE_TYPE_DCE_RGB,
--		.blends_with_below = true,
--		.blends_with_above = true,
- 		.per_pixel_alpha = 1,
- 
- 		.pixel_format_support = {
-@@ -428,7 +426,6 @@ static const struct dc_plane_cap plane_cap = {
- 
- static const struct dc_plane_cap underlay_plane_cap = {
- 		.type = DC_PLANE_TYPE_DCE_UNDERLAY,
--		.blends_with_above = true,
- 		.per_pixel_alpha = 1,
- 
- 		.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c b/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c
-index 6bfac8088ab0..2bb8e11f26e0 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c
-@@ -504,8 +504,6 @@ static const struct resource_caps rv2_res_cap = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c b/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c
-index 3af24ef9cb2d..00668df0938e 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c
-@@ -670,8 +670,6 @@ static const struct resource_caps res_cap_nv10 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c b/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c
-index cd46701398d9..6ea70da28aaa 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c
-@@ -571,8 +571,6 @@ static const struct resource_caps res_cap_dnc201 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c b/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c
-index 8f9244fe5c86..3ac8c0282589 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c
-@@ -609,8 +609,6 @@ static const struct resource_caps res_cap_rn_FPGA_2pipe_dsc = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c
-index b5b5320c7bef..d60c17d5a0d8 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c
-@@ -680,8 +680,6 @@ static const struct resource_caps res_cap_dcn3 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c b/drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c
-index ee62ae3eb98f..b93b4498dba4 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c
-@@ -651,8 +651,6 @@ static struct resource_caps res_cap_dcn301 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c b/drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c
-index 03ddf4f5f065..6ccad53f1e49 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c
-@@ -147,8 +147,6 @@ static const struct resource_caps res_cap_dcn302 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 		.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--		.blends_with_above = true,
--		.blends_with_below = true,
- 		.per_pixel_alpha = true,
- 		.pixel_format_support = {
- 				.argb8888 = true,
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c b/drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c
-index 727f458f6ee9..5c28f7151d13 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c
-@@ -126,8 +126,6 @@ static const struct resource_caps res_cap_dcn303 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 		.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--		.blends_with_above = true,
--		.blends_with_below = true,
- 		.per_pixel_alpha = true,
- 		.pixel_format_support = {
- 				.argb8888 = true,
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c b/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c
-index d3918a10773a..eaaa2e01f6d0 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c
-@@ -827,8 +827,6 @@ static const struct resource_caps res_cap_dcn31 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c b/drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c
-index f9dfbc7407ee..50ed7e09d5ba 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c
-@@ -855,8 +855,6 @@ static const struct resource_caps res_cap_dcn314 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c b/drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c
-index 7887078c5f64..41c972c8eb19 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c
-@@ -824,8 +824,6 @@ static const struct resource_caps res_cap_dcn31 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c b/drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c
-index dc0b49506275..9ead347a33e9 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c
-@@ -824,8 +824,6 @@ static const struct resource_caps res_cap_dcn31 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-index 87f7669e81d7..100b6df33b33 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-@@ -657,8 +657,6 @@ static const struct resource_caps res_cap_dcn32 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
-diff --git a/drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c b/drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c
-index deaa4769be10..0f477d50e935 100644
---- a/drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c
-+++ b/drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c
-@@ -655,8 +655,6 @@ static const struct resource_caps res_cap_dcn321 = {
- 
- static const struct dc_plane_cap plane_cap = {
- 	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
--	.blends_with_above = true,
--	.blends_with_below = true,
- 	.per_pixel_alpha = true,
- 
- 	.pixel_format_support = {
--- 
-2.39.2
-
-
-
-================================================
-MESSAGE 2 of 2
-================================================
-
-Subject:
-Re: [PATCH] drm/amd/display: remove legacy fields of dc_plane_cap struct
-
-Email body:
-
-
-On 3/7/23 15:53, David Tadokoro wrote:
-> The fields blends_with_above and blends_with_below of struct
-> dc_plane_cap (defined in dc/dc.h) are boolean and set to true by
-> default. All instances of a dc_plane_cap maintain the default values of
-> both. Also, there is only one if statement that checks those fields and
-> there would be the same effect if it was deleted (assuming that those
-> fields are always going to be true).
-> 
-> For this reason, considering both fields as legacy ones, this commit
-> removes them and the aforementioned if statement.
-> 
-> Signed-off-by: David Tadokoro <davidbtadokoro@usp.br>
-> ---
->   drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c       | 3 ---
->   drivers/gpu/drm/amd/display/dc/dc.h                     | 2 --
->   drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c | 3 ---
->   drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c   | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c   | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c   | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c   | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c   | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c   | 2 --
->   drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c | 2 --
->   17 files changed, 36 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-> index b472931cb7ca..fdcb375e908a 100644
-> --- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-> +++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
-> @@ -4354,9 +4354,6 @@ static int amdgpu_dm_initialize_drm_device(struct amdgpu_device *adev)
->   		if (plane->type != DC_PLANE_TYPE_DCN_UNIVERSAL)
->   			continue;
->   
-> -		if (!plane->blends_with_above || !plane->blends_with_below)
-> -			continue;
-> -
->   		if (!plane->pixel_format_support.argb8888)
->   			continue;
->   
-> diff --git a/drivers/gpu/drm/amd/display/dc/dc.h b/drivers/gpu/drm/amd/display/dc/dc.h
-> index f0a1934ebf8c..ccc27d482640 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dc.h
-> +++ b/drivers/gpu/drm/amd/display/dc/dc.h
-> @@ -82,8 +82,6 @@ enum det_size {
->   
->   struct dc_plane_cap {
->   	enum dc_plane_type type;
-> -	uint32_t blends_with_above : 1;
-> -	uint32_t blends_with_below : 1;
->   	uint32_t per_pixel_alpha : 1;
->   	struct {
->   		uint32_t argb8888 : 1;
-> diff --git a/drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c b/drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c
-> index f808315b2835..a4a45a6ce61e 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dce110/dce110_resource.c
-> @@ -401,8 +401,6 @@ static const struct resource_caps stoney_resource_cap = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   		.type = DC_PLANE_TYPE_DCE_RGB,
-> -		.blends_with_below = true,
-> -		.blends_with_above = true,
->   		.per_pixel_alpha = 1,
->   
->   		.pixel_format_support = {
-> @@ -428,7 +426,6 @@ static const struct dc_plane_cap plane_cap = {
->   
->   static const struct dc_plane_cap underlay_plane_cap = {
->   		.type = DC_PLANE_TYPE_DCE_UNDERLAY,
-> -		.blends_with_above = true,
->   		.per_pixel_alpha = 1,
->   
->   		.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c b/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c
-> index 6bfac8088ab0..2bb8e11f26e0 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn10/dcn10_resource.c
-> @@ -504,8 +504,6 @@ static const struct resource_caps rv2_res_cap = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c b/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c
-> index 3af24ef9cb2d..00668df0938e 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn20/dcn20_resource.c
-> @@ -670,8 +670,6 @@ static const struct resource_caps res_cap_nv10 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c b/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c
-> index cd46701398d9..6ea70da28aaa 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn201/dcn201_resource.c
-> @@ -571,8 +571,6 @@ static const struct resource_caps res_cap_dnc201 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c b/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c
-> index 8f9244fe5c86..3ac8c0282589 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn21/dcn21_resource.c
-> @@ -609,8 +609,6 @@ static const struct resource_caps res_cap_rn_FPGA_2pipe_dsc = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c
-> index b5b5320c7bef..d60c17d5a0d8 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn30/dcn30_resource.c
-> @@ -680,8 +680,6 @@ static const struct resource_caps res_cap_dcn3 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c b/drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c
-> index ee62ae3eb98f..b93b4498dba4 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn301/dcn301_resource.c
-> @@ -651,8 +651,6 @@ static struct resource_caps res_cap_dcn301 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c b/drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c
-> index 03ddf4f5f065..6ccad53f1e49 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn302/dcn302_resource.c
-> @@ -147,8 +147,6 @@ static const struct resource_caps res_cap_dcn302 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   		.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -		.blends_with_above = true,
-> -		.blends_with_below = true,
->   		.per_pixel_alpha = true,
->   		.pixel_format_support = {
->   				.argb8888 = true,
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c b/drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c
-> index 727f458f6ee9..5c28f7151d13 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn303/dcn303_resource.c
-> @@ -126,8 +126,6 @@ static const struct resource_caps res_cap_dcn303 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   		.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -		.blends_with_above = true,
-> -		.blends_with_below = true,
->   		.per_pixel_alpha = true,
->   		.pixel_format_support = {
->   				.argb8888 = true,
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c b/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c
-> index d3918a10773a..eaaa2e01f6d0 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn31/dcn31_resource.c
-> @@ -827,8 +827,6 @@ static const struct resource_caps res_cap_dcn31 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c b/drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c
-> index f9dfbc7407ee..50ed7e09d5ba 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn314/dcn314_resource.c
-> @@ -855,8 +855,6 @@ static const struct resource_caps res_cap_dcn314 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c b/drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c
-> index 7887078c5f64..41c972c8eb19 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn315/dcn315_resource.c
-> @@ -824,8 +824,6 @@ static const struct resource_caps res_cap_dcn31 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c b/drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c
-> index dc0b49506275..9ead347a33e9 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn316/dcn316_resource.c
-> @@ -824,8 +824,6 @@ static const struct resource_caps res_cap_dcn31 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-> index 87f7669e81d7..100b6df33b33 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn32/dcn32_resource.c
-> @@ -657,8 +657,6 @@ static const struct resource_caps res_cap_dcn32 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-> diff --git a/drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c b/drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c
-> index deaa4769be10..0f477d50e935 100644
-> --- a/drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c
-> +++ b/drivers/gpu/drm/amd/display/dc/dcn321/dcn321_resource.c
-> @@ -655,8 +655,6 @@ static const struct resource_caps res_cap_dcn321 = {
->   
->   static const struct dc_plane_cap plane_cap = {
->   	.type = DC_PLANE_TYPE_DCN_UNIVERSAL,
-> -	.blends_with_above = true,
-> -	.blends_with_below = true,
->   	.per_pixel_alpha = true,
->   
->   	.pixel_format_support = {
-
-Reviewed-by: Rodrigo Siqueira <Rodrigo.Siqueira@amd.com>
-
-I also applied your change to amd-staging-drm-next.
-
-Thanks!
-Siqueira",no,
+Siqueira","duplicated,duplication",no
 f57eb557-4725-42ac-a157-742304e2344b@amd.com,amd,7,"['20260429173646.7653-1-ulissespaixao@usp.br'
  'dda47c3b-1303-4f10-b375-1f3eab032ee5@amd.com'
  '20260505021417.32520-1-ulissespaixao@usp.br'
@@ -49199,7 +46525,7 @@ cleanup could be applied there as well.
 
 --
 Kind regards,
-Guilherme Ivo",yes,Patch replaces identical gfx v11 and v12 code with a single shared implementation.
+Guilherme Ivo","duplicated,duplication",yes
 03a2d7e2-7feb-4b36-bd48-7a83a75cf118@amd.com,iio,4,"['20240424225302.47004-1-pedro.mariano@usp.br'
  'ZizBndYiU5GVUtmQ@debian-BULLSEYE-live-builder-AMD64'
  '20240428171725.5c24b858@jic23-huawei'
@@ -49483,7 +46809,7 @@ On 4/28/24 18:17, Jonathan Cameron wrote:
 That's correct. We are using this driver on DT system.
 
 Thanks,
-Michal",no,
+Michal",,no
 20240421184323.68b710e2@jic23-huawei,iio,6,"['20240420182744.153184-1-lorenzobs@usp.br'
  '20240420182744.153184-2-lorenzobs@usp.br'
  '20240420182744.153184-3-lorenzobs@usp.br'
@@ -49790,7 +47116,7 @@ Jonathan
 > -	return ret;
 >  }
 >  
->  static void ads131e08_regulator_disable(void *data)",no,
+>  static void ads131e08_regulator_disable(void *data)",,no
 20240426012313.2295067-2-gustavenrique01@gmail.com,iio,5,"['20240426012313.2295067-1-gustavenrique01@gmail.com'
  '20240426012313.2295067-2-gustavenrique01@gmail.com'
  '20240426012313.2295067-3-gustavenrique01@gmail.com'
@@ -49988,7 +47314,7 @@ On 04/25, Gustavo wrote:
 > -- 
 > 2.34.1
 > 
->",no,
+>",,no
 20240428020247.50114-1-otavio.ols@usp.br,iio,3,"['20240420233836.24971-1-otavio.ols@usp.br'
  '20240421183820.4e2c0133@jic23-huawei'
  '20240428020247.50114-1-otavio.ols@usp.br']",2024-04-20 23:34:11,[PATCH] iio: adc: use sign_extend32 to provide negative numbers conversion,Otávio Silva <otavio.ols@usp.br>,"['Otávio Silva <otavio.ols@usp.br>'
@@ -50104,7 +47430,7 @@ so it does not require 2’s complement as we first thought.
 
 We are sorry for the misunderstanding (and for the wrong emails), and
 thankful for your attention,
-Otávio Silva",no,
+Otávio Silva",,no
 20240428123911.73f54c08@jic23-huawei,iio,2,"['20240427121055.5639-1-lincolnyuji@usp.br'
  '20240428123911.73f54c08@jic23-huawei']",2024-04-27 12:10:55,[PATCH] iio: adc: ti-ads1015: use device_for_each_child_node_scoped(),Lincoln Yuji <lincolnyuji@usp.br>,"['Luiza Soezima <lbrsoezima@usp.br>'
  'Sabrina Araujo <sabrinaaraujo@usp.br>'
@@ -50241,7 +47567,7 @@ Jonathan
 > -				fwnode_handle_put(node);
 >  				return -EINVAL;
 >  			}
->  		}",no,
+>  		}",,no
 20240428164149.3d4b160b@jic23-huawei,iio,4,"['20240426131953.14933-1-lincolnyuji@usp.br'
  'ZizeKo_E7Z5DOR9C@debian-BULLSEYE-live-builder-AMD64'
  '20240428163652.7da552d1@jic23-huawei'
@@ -50554,7 +47880,7 @@ Jonathan
 > > > 2.34.1
 > > > 
 > > >     
->",no,
+>",,no
 20240428194326.2836387-2-ogustavo@usp.br,iio,6,"['20240428194326.2836387-1-ogustavo@usp.br'
  '20240428194326.2836387-2-ogustavo@usp.br'
  '20240428194326.2836387-3-ogustavo@usp.br'
@@ -50787,7 +48113,7 @@ out as testing for the autobuilders to see if we missed anything,
 
 Thanks,
 
-Jonathan",no,
+Jonathan",,no
 20240501084519.7fc7f982@jic23-huawei,iio,2,"['20240429132233.6266-1-lincolnyuji@usp.br'
  '20240501084519.7fc7f982@jic23-huawei']",2024-04-29 13:22:33,[PATCH v3] iio: adc: ti-ads1015: use device_for_each_child_node_scoped(),Lincoln Yuji <lincolnyuji@usp.br>,"['Lincoln Yuji <lincolnyuji@usp.br>' 'Luiza Soezima <lbrsoezima@usp.br>'
  'Sabrina Araujo <sabrinaaraujo@usp.br>'
@@ -50914,7 +48240,7 @@ Applied.
 > -				fwnode_handle_put(node);
 >  				return -EINVAL;
 >  			}
->  		}",no,
+>  		}",,no
 20240504123443.46949690@jic23-huawei,iio,6,"['20240501215724.26655-1-jorge.harrisonn@usp.br'
  '20240501215724.26655-2-jorge.harrisonn@usp.br'
  '20240501215724.26655-3-jorge.harrisonn@usp.br'
@@ -51251,7 +48577,7 @@ Email body:
 
 
 Regards,
-Markus",no,
+Markus",,no
 20240523173930.00005eb3@Huawei.com,iio,2,"['20240523162437.3823-1-viniciusflima@usp.br'
  '20240523173930.00005eb3@Huawei.com']",2024-05-23 16:24:35,[PATCH] iio: adc: mcp3564.c: Use device_for_each_child_node_scoped() to simplify error paths,Vinícius Lima <viniciusflima@usp.br>,"['Vinícius Henrique Ferraz Lima <viniciusflima@usp.br>'
  'Lucas Quaresma <lucasqml08@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -51385,7 +48711,7 @@ Jonathan
 > -			fwnode_handle_put(child);
 >  			return dev_err_probe(&indio_dev->dev, -EINVAL,
 >  					     ""Channel index > %d, for %s\n"",
->  					     MCP3564_INTERNAL_VCM + 1,",no,
+>  					     MCP3564_INTERNAL_VCM + 1,",,no
 20240602140940.7dc4fe94@jic23-huawei,iio,2,"['20240527091942.53616-1-gustavofukunaga@usp.br'
  '20240602140940.7dc4fe94@jic23-huawei']",2024-05-27 09:19:40,[PATCH] iio: adc: ti-adc161s626: make use of iio_device_claim_direct_scoped(),Gustavo Ueti Fukunaga <gustavofukunaga@usp.br>,"['Gustavo Ueti Fukunaga <gustavofukunaga@usp.br>' 'caiodantas@usp.br'
  'linux-iio@vger.kernel.org']","================================================
@@ -51496,7 +48822,7 @@ Jonathan
 > +		unreachable();
 >  	case IIO_CHAN_INFO_SCALE:
 >  		ret = regulator_get_voltage(data->ref);
->  		if (ret < 0)",no,
+>  		if (ret < 0)",,no
 20240615115238.2ecadd28@jic23-huawei,iio,7,"['20240613153920.14647-1-hagisf@usp.br'
  '20240613153920.14647-2-hagisf@usp.br'
  '20240613153920.14647-3-hagisf@usp.br'
@@ -51845,7 +49171,7 @@ is never needed!
 
 >  			if (ret < 0)
 >  				return ret;
->  			*val = (*val >> 2) & 0xfff;",no,
+>  			*val = (*val >> 2) & 0xfff;",,no
 20250426153307.59689da0@jic23-huawei,iio,2,"['20250423204631.16460-1-gustavo.vaz@usp.br'
  '20250426153307.59689da0@jic23-huawei']",2025-04-23 20:46:31,[PATCH v1] iio: accel: kxcjk-1013: Deduplicate setup interrupt functions,Gustavo Vaz <gustavo.vaz@usp.br>,"['linux-iio@vger.kernel.org' 'gustavo.vaz@usp.br'
  'franciscolealhenriques@usp.br']","================================================
@@ -52030,7 +49356,7 @@ Applied to the togreg branch of iio.git.
 
 Thanks,
 
-Jonathan",yes,Patch merges two nearly identical interrupt setup functions to remove duplication.
+Jonathan",deduplicate,yes
 20260420190139.37377770@jic23-huawei,iio,4,"['20260405213725.25426-2-guilherme.bozi@usp.br'
  'adQOnSHRS3baSTLv@ashevche-desk.local'
  'adujgV4nfAwiJPjA@debian-BULLSEYE-live-builder-AMD64'
@@ -52231,7 +49557,7 @@ Applied.
 
 Thanks,
 
-J",yes,Patch replaces a duplicated switch statement with a lookup table.
+J","duplicate,duplication",yes
 20260420212405.11789-1-gustavo.pagnotta@ime.usp.br,iio,1,['20260420212405.11789-1-gustavo.pagnotta@ime.usp.br'],2026-04-20 21:23:47,[PATCH] iio: adc: mcp320x: refactor driver to use bitfield API,Gustavo Pagnotta Faria <gustavo.pagnotta@ime.usp.br>,"['Gustavo Pagnotta Faria <gustavo.pangotta@ime.usp.br>'
  'Eduardo Augusto <eduardoaugustoabc@ime.usp.br>'
  'Christian Barry <christian.barry@ime.usp.br>'
@@ -52382,7 +49708,7 @@ index 57cff3772ebe..b7523e5ea903 100644
  
  		*val = (s32)raw;
 -- 
-2.43.0",no,
+2.43.0",,no
 20260421011540.555773-1-rafasales@usp.br,iio,3,"['20260415203345.195557-1-rafasales@usp.br'
  'aeHrF5HsRoWqazzR@ashevche-desk.local'
  '20260421011540.555773-1-rafasales@usp.br']",2026-04-15 20:33:30,[PATCH] iio: light: ltr501: Use automatic cleanup of locks,"""Rafael B. Sales"" <rafasales@usp.br>","['Rafael B. Sales <rafasales@usp.br>'
@@ -52698,7 +50024,7 @@ cases below).
 > this compiles and behaves well.
 
 You are right that guards in switch cases can lead to undesirable behavior.
-I will switch to using `scoped_guard()` here on v2 which will address this.",no,
+I will switch to using `scoped_guard()` here on v2 which will address this.",,no
 20260421153214.755c40be@jic23-huawei,iio,4,"['20260420215021.14112-1-gustavo.pagnotta@ime.usp.br'
  '20260421153214.755c40be@jic23-huawei'
  '20260421165134.0235b764@jic23-huawei'
@@ -53210,7 +50536,7 @@ purpose or refactor to avoid foo = bar(foo); cases.
 
 -- 
 With Best Regards,
-Andy Shevchenko",yes,Reviewer comments that part of the code looks like duplication during a bitfield refactor.
+Andy Shevchenko",duplication,yes
 20260423012011.41001-2-felipers@ime.usp.br,iio,6,"['20260423012011.41001-1-felipers@ime.usp.br'
  '20260423012011.41001-2-felipers@ime.usp.br'
  '20260423012011.41001-3-felipers@ime.usp.br'
@@ -53696,7 +51022,7 @@ index 5622b62840e6..a4d5d139af5f 100644
 Separate change anyway so I'm fine with that as a follow up.
 
 
->",no,
+>",,no
 20260424123719.64022c30@jic23-huawei,iio,9,"['20260422222553.67660-1-gustavo.pagnotta@ime.usp.br'
  '20260422222553.67660-2-gustavo.pagnotta@ime.usp.br'
  '20260422222553.67660-3-gustavo.pagnotta@ime.usp.br'
@@ -54275,7 +51601,7 @@ Jonathan
 		
 > >  		return 0;
 > > +		}  
->",no,
+>",,no
 20260427105102.6e5a92a9@jic23-huawei,iio,4,"['20260421040313.21029-1-pedro.pbg@usp.br'
  '20260421105834.0d6ebd98@jic23-huawei'
  'CAN+tGO-pX-BkZNiSsTjwk4ZWWBoiDSq43G=K1a1ba0nJLUAk2w@mail.gmail.com'
@@ -55156,7 +52482,7 @@ Yes.
 > --
 > Thanks,
 > 
-> Pedro",no,
+> Pedro",redundant,no
 20260428160533.47e4e820@jic23-huawei,iio,4,"['20260428134205.1137419-1-rafael.guimaraes.dias@usp.br'
  'CALoEA-wd9jo_bPCGF0GqLH9SX7vWsCN7oyvkN3Q86R0F=WTjog@mail.gmail.com'
  '20260428160533.47e4e820@jic23-huawei'
@@ -55426,7 +52752,7 @@ Depends. If we use something from linux/sysfs.h it's still needed.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 20260429013640.26870-2-pedro.pbg@usp.br,iio,5,"['20260429013640.26870-1-pedro.pbg@usp.br'
  '20260429013640.26870-2-pedro.pbg@usp.br'
  '20260429013640.26870-3-pedro.pbg@usp.br'
@@ -55851,7 +53177,7 @@ backlog and the bots have finished poking at it.
 
 Thanks,
 
-Jonathan",no,
+Jonathan",redundant,no
 20260429224401.11818-2-marcelomlage@usp.br,iio,7,"['20260429224401.11818-1-marcelomlage@usp.br'
  '20260429224401.11818-2-marcelomlage@usp.br'
  '20260429224401.11818-3-marcelomlage@usp.br'
@@ -56290,7 +53616,7 @@ No problem if you decide it's too time consuming or tricky though!
 Jonathan
  
 > Best regards,
-> Marcelo",no,
+> Marcelo",,no
 20260504162632.24f46f74@jic23-huawei,iio,9,"['20260428161339.1187956-1-rafael.guimaraes.dias@usp.br'
  '20260428161339.1187956-2-rafael.guimaraes.dias@usp.br'
  'CALoEA-yYG5hFrwOpJTEPiD9_KG38aXkg3r7dBSvyYACFGMU-Ow@mail.gmail.com'
@@ -56780,7 +54106,7 @@ I dropped that as well as it's all simple -EINVAL/ -ENOMEM
 > >  #include <linux/regmap.h>
 > > +#include <linux/sprintf.h>
 > > +#include <linux/types.h>  
->",no,
+>",,no
 20260505172526.087ad783@jic23-huawei,iio,4,"['20260429202304.25308-1-educg550@usp.br'
  'afLwqYt_XUjeroGJ@ashevche-desk.local'
  '20260505172507.71dbf4f7@jic23-huawei'
@@ -57153,7 +54479,7 @@ FWIW I prefer this option.
 > >  	}
 > >  
 > >  	return NOTIFY_OK;  
->",no,
+>",,no
 20260506022454.128169-2-felipers@ime.usp.br,iio,7,"['20260506022454.128169-1-felipers@ime.usp.br'
  '20260506022454.128169-2-felipers@ime.usp.br'
  '20260506022454.128169-3-felipers@ime.usp.br'
@@ -57608,7 +54934,7 @@ Applied to the testing branch of iio.git
 
 thanks
 
-Jonathan",no,
+Jonathan",,no
 20260507173654.3c52f58f@jic23-huawei,iio,2,"['20260506210616.313636-1-raffaelraiel@usp.br'
  '20260507173654.3c52f58f@jic23-huawei']",2026-05-06 21:05:33,[PATCH v4] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -58124,7 +55450,7 @@ it can be usefully applied.
 > -	mutex_unlock(&data->vcnl4000_lock);
 > -	return ret;
 > +	return i2c_smbus_write_word_data(data->client, VCNL4200_PS_CONF3, regval);
->  }",no,
+>  }",,no
 20260512012302.20883-2-natalia.andre@ime.usp.br,iio,15,"['20260512012302.20883-1-natalia.andre@ime.usp.br'
  '20260512012302.20883-2-natalia.andre@ime.usp.br'
  '20260512012302.20883-3-natalia.andre@ime.usp.br'
@@ -59114,7 +56440,7 @@ sense!)
 > >  	}
 > >  	dev_dbg(&pdev->dev, ""gyro_3d %x:%x, %x:%x, %x:%x\n"",
 > >  			st->gyro[0].index,  
->",no,
+>",redundant,no
 20260513003503.339418-2-guilherme.bozi@usp.br,iio,6,"['20260513003503.339418-1-guilherme.bozi@usp.br'
  '20260513003503.339418-2-guilherme.bozi@usp.br'
  '20260513003503.339418-3-guilherme.bozi@usp.br'
@@ -59644,7 +56970,7 @@ Thanks,
 Jonathan
 
 > Salih
->",yes,Patch series removes duplicated alarm handling logic using a table driven design.
+>","duplicated,duplication,repeated",yes
 20260515152414.5c8dfebb@jic23-huawei,iio,2,"['20260514201312.678131-1-raffaelraiel@usp.br'
  '20260515152414.5c8dfebb@jic23-huawei']",2026-05-14 20:11:49,[PATCH v6] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -60055,7 +57381,7 @@ Applied to the testing branch of iio.git.
 
 Thanks
 
-Jonathan",no,
+Jonathan",,no
 20260516132218.073c7548@jic23-huawei,iio,5,"['20260512172538.101383-1-aline.nakazawa@ime.usp.br'
  'CAKqfh0FxvJh2VXH_Q0FBZxYBeCmw8r2XTiwErtfSQm-g-YtT9w@mail.gmail.com'
  'agOJhr9lj6hKnX4q@ashevche-desk.local'
@@ -61226,7 +58552,7 @@ Jonathan
 > > --
 > > 2.51.0
 > >
-> >",no,
+> >",,no
 20260519234752.23911-2-natalia.andre@ime.usp.br,iio,8,"['20260519234752.23911-1-natalia.andre@ime.usp.br'
  '20260519234752.23911-2-natalia.andre@ime.usp.br'
  '20260519234752.23911-3-natalia.andre@ime.usp.br'
@@ -61826,7 +59152,7 @@ Jonathan
 >  drivers/iio/magnetometer/hid-sensor-magn-3d.c | 20 +++++---------
 >  drivers/iio/pressure/hid-sensor-press.c       | 19 +++++--------
 >  6 files changed, 42 insertions(+), 88 deletions(-)
->",no,
+>",redundant,no
 20260526141527.2be50ce5@jic23-huawei,iio,3,"['20260522182058.199762-1-matheus.feitosa@usp.br'
  'ahHt0BgZimUSuJDQ@debian-BULLSEYE-live-builder-AMD64'
  '20260526141527.2be50ce5@jic23-huawei']",2026-05-22 18:12:57,[PATCH v3] iio: light: tsl2591: simplify tsl2591_persist functions via lookup table,Matheus Silveira <matheus.feitosa@usp.br>,"['matheus.feitosa@usp.br' 'LucasRabaquim <lucas.rabaquim@usp.br>'
@@ -62123,7 +59449,7 @@ perhaps use TSL2591_PRST_ALS_INT_CYCLE_ANY rather than the numeric value 1?
 > >  }  
 > 
 > With the above nit and double check of tag names,
-> Reviewed-by: Marcelo Schmitt <marcelo.schmitt1@gmail.com>",yes,Patch reduces duplicated switch case logic using a lookup table.
+> Reviewed-by: Marcelo Schmitt <marcelo.schmitt1@gmail.com>","duplication,redundant",yes
 223817b7-8f6a-47d2-8362-19669815f48e@amd.com,iio,16,"['20260414224245.8493-1-guilherme.bozi@usp.br'
  '20260414224245.8493-2-guilherme.bozi@usp.br'
  '20260414224245.8493-3-guilherme.bozi@usp.br'
@@ -63144,7 +60470,7 @@ Salih
 >>
 >> --
 >> Guilherme Ivo
->",yes,Patch series removes duplicated alarm handling logic using a table driven design.
+>","duplicated,duplication,repeated",yes
 2412f5b041f89557c238164065e7f8d704579c58.camel@crapouillou.net,iio,5,"['20260416011815.9140-1-felipers@ime.usp.br'
  '2412f5b041f89557c238164065e7f8d704579c58.camel@crapouillou.net'
  'd47618d58e88a65f5b28f1a8e3474819894b2f9b.camel@oss.cipunited.com'
@@ -63652,7 +60978,7 @@ enough as then you could handle the clk_disable() as well.
 > commit message.
 > 
 > >  	return ret;  
->",no,
+>",,no
 26330121-79bd-4273-b8e4-17efa19454eb@baylibre.com,iio,2,"['20260420201441.18055-1-gabrielblo@ime.usp.br'
  '26330121-79bd-4273-b8e4-17efa19454eb@baylibre.com']",2026-04-20 20:14:23,[PATCH] iio: light: veml6030: Generalize hw_init for veml6030 and veml6035,Gabriel Braga Lagrotaria <gabrielblo@ime.usp.br>,"['Ricardo H H Kojo <ricardo.kojo@ime.usp.br>'
  'Ellian Carlos <elliancarlos@gmail.com>' 'linux-iio@vger.kernel.org']","================================================
@@ -63950,7 +61276,7 @@ are defined.
 > +	return veml603x_hw_init(indio_dev, dev, &veml6035_hw_init_config);
 >  }
 >  
->  static int veml6030_probe(struct i2c_client *client)",yes,Patch merges two similar hardware init functions to remove duplication.
+>  static int veml6030_probe(struct i2c_client *client)","deduplicate,duplication",yes
 2d880cda-1baf-3b12-f79f-44b7eae74e77@linux.intel.com,iio,3,"['20260512173058.14858-1-jplinaris@usp.br'
  '2d880cda-1baf-3b12-f79f-44b7eae74e77@linux.intel.com'
  '177882592263.340324.11974519291675351329.b4-ty@kernel.org']",2026-05-12 17:30:57,[PATCH v3] counter: intel-qep: Replace manual mutex logic with lock guards,Joao Paulo Menezes Linaris <jplinaris@usp.br>,"['Joao Paulo Menezes Linaris <jplinaris@usp.br>'
@@ -64289,7 +61615,7 @@ Applied, thanks!
 
 Best regards,
 -- 
-William Breathitt Gray <wbg@kernel.org>",no,
+William Breathitt Gray <wbg@kernel.org>",,no
 363f9a39-e535-42ba-ab5d-faaf9920a8ae@baylibre.com,iio,2,"['20260418185422.166542-1-lucas.rabaquim@usp.br'
  '363f9a39-e535-42ba-ab5d-faaf9920a8ae@baylibre.com']",2026-04-18 18:54:09,[PATCH] iio: light: tsl2591: reduce code duplication in tsl2591_persist_* functions,LucasRabaquim <lucas.rabaquim@usp.br>,"['LucasRabaquim <lucas.rabaquim@usp.br>'
  'Matheus Feitosa <matheus.feitosa@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -64499,7 +61825,7 @@ Seems like the advantage is rather the reduction in verbosity.
 Why not u8 for both?
 
 > +};
-> +",yes,Patch reduces duplicated switch case logic using a lookup table.
+> +",duplication,yes
 5e974f6d-2e08-4db5-bab4-2ebefc050e1e@baylibre.com,iio,5,"['20260419003557.45287-1-lucas.rabaquim@usp.br'
  '20260419123604.591dc3ec@jic23-huawei'
  'aeXZY2Nj71Em7Z6y@ashevche-desk.local'
@@ -65396,7 +62722,7 @@ relevant previous discussion above and the new discussion below.
 > 
 
 Personally, I would go with looping over the lookup array since there
-isn't a simple formula that works for all values.",yes,Patch reduces duplicated switch case logic using a lookup table.
+isn't a simple formula that works for all values.","duplication,redundant",yes
 CABAASXN_FzGLqojm-Bq8qLC8fnbbKnjzPvtRi6Q_-_Wk3HmJUw@mail.gmail.com,iio,3,"['20260422210537.12127-1-jplinaris@usp.br'
  '3ab73ef5-0a3a-66b4-a763-398f0921c289@linux.intel.com'
  'CABAASXN_FzGLqojm-Bq8qLC8fnbbKnjzPvtRi6Q_-_Wk3HmJUw@mail.gmail.com']",2026-04-22 21:05:37,[PATCH] counter: intel-qep: Replace manual mutex logic with lock guards,Joao Paulo Menezes Linaris <jplinaris@usp.br>,"['Joao Paulo Menezes Linaris <jplinaris@usp.br>'
@@ -66068,7 +63394,7 @@ keep all the added guards?
 >
 --
 Best regards,
-Joao Paulo Menezes Linaris",no,
+Joao Paulo Menezes Linaris",,no
 CAC46vBch9QooNOA6hgLd9NN_954DR+V-r06ZW0EdW4MfDudCbw@mail.gmail.com,iio,3,"['20250429093923.347370-1-mikhael_abdallah@usp.br'
  '20250429160710.00004a1b@huawei.com'
  'CAC46vBch9QooNOA6hgLd9NN_954DR+V-r06ZW0EdW4MfDudCbw@mail.gmail.com']",2025-04-29 09:39:23,[PATCH] iio: proximity: sx9500: Deduplicate buffer managing functions,Mikhael Abdallah de Oliveira Pinto <mikhael_abdallah@usp.br>,"['Mikhael Abdallah de Oliveira Pinto <mikhael_abdallah@usp.br>'
@@ -66401,7 +63727,7 @@ Em ter., 29 de abr. de 2025 às 12:07, Jonathan Cameron
 > >  }
 > >
 > >  static const struct iio_buffer_setup_ops sx9500_buffer_setup_ops = {
->",yes,Patch merges duplicate buffer managing functions into shared logic.
+>",deduplicate,yes
 CAHp75Vc9nUsduW2Fzq6EqgmT7gjeFgrOrw9a-aUgy4fXddR7bg@mail.gmail.com,iio,8,"['20260430200515.7915-1-guilhermeabreu200105@usp.br'
  'CALoEA-woSsD3+oEo-4xWLY+pQt5B=SaaUX4xPFoB46WPnFbwrA@mail.gmail.com'
  'CAHp75Vc9nUsduW2Fzq6EqgmT7gjeFgrOrw9a-aUgy4fXddR7bg@mail.gmail.com'
@@ -66906,7 +64232,7 @@ relying on transient dependencies.
 -- 
 Kind regards
 
-CJD",no,
+CJD",,no
 CAHp75VeYU_GXrOZL4SkpddgAfibd0NUtxZxa5ELAb=y_2+JzVQ@mail.gmail.com,iio,7,"['20260421021023.563290-1-rafasales@usp.br'
  '20260421021023.563290-2-rafasales@usp.br'
  '20260421021023.563290-3-rafasales@usp.br'
@@ -67704,7 +65030,7 @@ I meant ""but linux/errno.h"" (that includes Linux specific codes >= 512.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 CAHp75VeZ40W6Q2Q-4P29nDjq8s1ziH9NFKR2qH-RoNK_V8O3aA@mail.gmail.com,iio,10,"['20260501011548.15369-1-santanarl@usp.br'
  'CAHp75VeZ40W6Q2Q-4P29nDjq8s1ziH9NFKR2qH-RoNK_V8O3aA@mail.gmail.com'
  'CALoEA-wzsykL5V675HFYNn-xZpuCa+XEOa-LbJ0KqrVSR=ZUnA@mail.gmail.com'
@@ -68223,7 +65549,7 @@ to deal with all the process stuff others have highlighted.
 > >>    
 > >   
 > 
->",no,
+>",,no
 CALSmcyMRpiqHjryq5+GU9vXsZt0qJZbvjGhyW-Ho6Rm_Ly8kbA@mail.gmail.com,iio,5,"['20260420200047.102159-1-raffaelraiel@usp.br'
  'aeaKP2vARF-Bv1-2@ashevche-desk.local'
  'aeaL9ZvMEFF2OK0n@ashevche-desk.local'
@@ -68598,7 +65924,7 @@ and drop the intialization of ret.
 > -	return ret;
 >  }
 >  
->  static irqreturn_t vcnl4040_irq_thread(int irq, void *p)",no,
+>  static irqreturn_t vcnl4040_irq_thread(int irq, void *p)",,no
 CALoEA-xav-k064qsrNN8DumvggadWAPcV9HP82Uiem4VwgSs+w@mail.gmail.com,iio,3,"['20260506144359.16744-1-educg550@usp.br'
  'CALoEA-xav-k064qsrNN8DumvggadWAPcV9HP82Uiem4VwgSs+w@mail.gmail.com'
  '20260507172420.527469b8@jic23-huawei']",2026-05-06 14:43:59,[PATCH] iio: frequency: adf4377: replace mutex_lock/unlock with guard and scoped_guard,Educg550 <educg550@usp.br>,"['educg550@usp.br' 'Lucca Ciriac <luccaciriac@usp.br>'
@@ -68958,7 +66284,7 @@ for closely associating lock and action as we did with the original code.
 > +		return notifier_from_errno(adf4377_init(st));
 >  	}
 >  
->  	return NOTIFY_OK;",no,
+>  	return NOTIFY_OK;",,no
 CALoEA-z7jwCkPaapNp+y71NE2zgx-kdMSM_p9Cje4AhW+rhLsg@mail.gmail.com,iio,8,"['20260502234348.131563-1-gabrielblo@ime.usp.br'
  '20260502234348.131563-2-gabrielblo@ime.usp.br'
  '20260502234348.131563-3-gabrielblo@ime.usp.br'
@@ -69574,7 +66900,7 @@ Please proofread your own patches for stuff like this.  It's very
 easy to introduce stray changes as you develop your code so only
 way to catch them is too look at the end result before sending it out.
 
-Jonathan",yes,Patch merges two similar hardware init functions to remove duplication.
+Jonathan","deduplicate,redundant",yes
 CALoEA-zgYuPM667fm4XPcxqbsXkQ8G5t09aj=ZHmsx89UFYKSw@mail.gmail.com,iio,12,"['20260426211834.3318306-1-caiomorais@usp.br'
  '20260426211834.3318306-2-caiomorais@usp.br'
  '20260426211834.3318306-3-caiomorais@usp.br'
@@ -70096,7 +67422,7 @@ questions like this.
 > +#include <linux/iio/iio.h>
 >  
 >  #include <linux/iio/common/st_sensors_spi.h>
->",no,
+>",,no
 CAPBn40g33v0z6ki8P4iE1eZz-QTfWA2REEMN3Zghmt-TiiQL1w@mail.gmail.com,iio,1,['CAPBn40g33v0z6ki8P4iE1eZz-QTfWA2REEMN3Zghmt-TiiQL1w@mail.gmail.com'],2026-04-29 19:18:22,Re: [PATCH v2 2/2] iio: light: stk3310: Update includes to match IWYU,Rafael Guimaraes Dias <rafael.guimaraes.dias@usp.br>,"['Joshua Crofts <joshua.crofts1@gmail.com>' 'dlechner@baylibre.com'
  'nuno.sa@analog.com' 'andy@kernel.org' 'linux-iio@vger.kernel.org'
  'Felipe Khoury Dayoub <felipedayoub@usp.br>']","================================================
@@ -70218,7 +67544,7 @@ Em qua., 29 de abr. de 2026 às 15:55, Rafael Guimaraes Dias
 >> >
 >> > Reviewed-by: Joshua Crofts <joshua.crofts1@gmail.com>
 >> >
->>",no,
+>>",duplicate,no
 DIABH47DS3A6.J29LEHJY7CIW@gmail.com,iio,4,"['20260504190455.9841-1-guilhermeabreu200105@usp.br'
  'DIABH47DS3A6.J29LEHJY7CIW@gmail.com'
  'afmvD1EB159V498L@ashevche-desk.local'
@@ -70505,7 +67831,7 @@ Applied to the testing branch of iio.git
 
 Thanks for the patch and thanks to all those involved in review!
 
-Jonathan",no,
+Jonathan",,no
 DID1HLASZ0VS.359G8NOYVYG0W@gmail.com,iio,2,"['20260508034057.23595-1-jplinaris@usp.br'
  'DID1HLASZ0VS.359G8NOYVYG0W@gmail.com']",2026-05-08 03:40:57,[PATCH] counter: intel-qep: Replace manual mutex logic with lock guards,Joao Paulo Menezes Linaris <jplinaris@usp.br>,"['jplinaris@usp.br' 'Guilherme Dias <guilhermeabreu200105@usp.br>'
  'linux-iio@vger.kernel.org']","================================================
@@ -70720,7 +68046,7 @@ code, Andy usually treats the guard()()s as separate things.
 Again (and so on and so forth).
 
 best regards,
-max",no,
+max",,no
 Zizi89AJVo2MhWbc@debian-BULLSEYE-live-builder-AMD64,iio,4,"['20240426200118.20900-1-gschwartz@usp.br'
  'Zizi89AJVo2MhWbc@debian-BULLSEYE-live-builder-AMD64'
  '20240428125129.1605a09d@jic23-huawei'
@@ -71040,7 +68366,7 @@ Reviewed-by: ChiYuan Huang <cy_huang@richtek.com>
 > >  }
 > >  
 > >  static const char *rtq6056_channel_labels[RTQ6056_MAX_CHANNEL] = {
->",no,
+>",,no
 Zj7xCMU9cJodgR03@debian-BULLSEYE-live-builder-AMD64,iio,11,"['20240508155435.183850-1-hagisf@usp.br'
  'Zj7xCMU9cJodgR03@debian-BULLSEYE-live-builder-AMD64'
  '20240511143048.53df0ca4@jic23-huawei'
@@ -71704,7 +69030,7 @@ backlog this weekend...
 > +			return ret;
 >  		*val = (*val >> 2) & 0xfff;
 >  		if (chan->scan_type.sign == 's')
->  			*val = sign_extend32(*val,",no,
+>  			*val = sign_extend32(*val,",,no
 ad4Px0Aghm2gHzRV@ashevche-desk.local,iio,14,"['20260414093018.7153-1-guilherme.bozi@usp.br'
  '20260414093018.7153-2-guilherme.bozi@usp.br'
  '20260414093018.7153-3-guilherme.bozi@usp.br'
@@ -72875,7 +70201,7 @@ semantically a terminator entry.
 
 -- 
 With Best Regards,
-Andy Shevchenko",yes,Patch series removes duplicated alarm handling logic using a table driven design.
+Andy Shevchenko","duplicated,duplication,repeated",yes
 ad9mfuQ0wZpqiZTT@ashevche-desk.local,iio,12,"['20260414233912.662606-1-erick.henrique.rodrigues@usp.br'
  'ad9mfuQ0wZpqiZTT@ashevche-desk.local'
  '20260415230119.17512-1-erick.henrique.rodrigues@usp.br'
@@ -73528,7 +70854,7 @@ J
 > -	return res;
 >  }
 >  
->  static int m62332_read_raw(struct iio_dev *indio_dev,",no,
+>  static int m62332_read_raw(struct iio_dev *indio_dev,",,no
 ae8uwmF6nQanmEux@ashevche-desk.local,iio,27,"['20260421222210.16016-1-natalia.andre@ime.usp.br'
  '20260421222210.16016-2-natalia.andre@ime.usp.br'
  '20260421222210.16016-3-natalia.andre@ime.usp.br'
@@ -74960,7 +72286,7 @@ Ha-ha :-)
 
 -- 
 With Best Regards,
-Andy Shevchenko",yes,Patch introduces a shared helper because multiple drivers implement identical logic.
+Andy Shevchenko",deduplicate,yes
 aeHtInsmJeapbJyo@ashevche-desk.local,iio,2,"['20260416211651.9625-1-raffaelraiel@usp.br'
  'aeHtInsmJeapbJyo@ashevche-desk.local']",2026-04-16 21:16:48,[PATCH] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -75137,7 +72463,7 @@ Ditto for other similar cases below.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 aeHvcCcQ1Xv5PuiC@ashevche-desk.local,iio,3,"['20260417005041.484742-1-marcelomlage@usp.br'
  'aeHvcCcQ1Xv5PuiC@ashevche-desk.local'
  '20260417142629.00000270@huawei.com']",2026-04-17 00:50:40,[PATCH] iio: adc: mcp3422: write bit operations with bitfield macros,Marcelo Machado Lage <marcelomlage@usp.br>,"['Marcelo Machado Lage <marcelomlage@usp.br>'
@@ -75418,7 +72744,7 @@ Drop these 3 macros and use FIELD_GET() inline instead just as you've done for t
 > +		| FIELD_PREP(MCP3422_SRATE_MASK, MCP3422_SRATE_240));
 >  	err = mcp3422_update_config(adc, config);
 >  	if (err < 0)
->  		return err;",no,
+>  		return err;",,no
 aeXXiWGJIvdhdBMQ@ashevche-desk.local,iio,12,"['20260417225959.16688-1-natalia.andre@ime.usp.br'
  '20260417225959.16688-2-natalia.andre@ime.usp.br'
  '20260417225959.16688-3-natalia.andre@ime.usp.br'
@@ -76040,7 +73366,7 @@ FWIW, we have BYTES_TO_BITS().
 
 -- 
 With Best Regards,
-Andy Shevchenko",yes,Patch introduces a shared helper because multiple drivers implement identical logic.
+Andy Shevchenko",deduplicate,yes
 aeXl5BO91iRUqNWp@ashevche-desk.local,iio,2,"['20260419152917.8984-1-felipers@ime.usp.br'
  'aeXl5BO91iRUqNWp@ashevche-desk.local']",2026-04-19 15:27:34,[PATCH v2] iio: adc: ingenic-adc: use guard(mutex)(&lock) to handle synchronisation,Felipe Ribeiro de Souza <felipers@ime.usp.br>,"['Felipe Ribeiro de Souza <felipers@ime.usp.br>'
  'Lucas Ivars Cadima Ciziks <lucas@ciziks.com>'
@@ -76318,7 +73644,7 @@ Alternatively, propose the respective ACQUIRE*() macros to CCF.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 aeXnujb9-aui4ArO@ashevche-desk.local,iio,2,"['20260419213202.68356-1-pedro.pbg@usp.br'
  'aeXnujb9-aui4ArO@ashevche-desk.local']",2026-04-19 21:31:23,[PATCH] iio: light: iqs621-als: use lock guards,Pedro Barletta Gennari <pedro.pbg@usp.br>,['pedro.pbg@usp.br' 'linux-iio@vger.kernel.org'],"================================================
 MESSAGE 1 of 2
@@ -76650,7 +73976,7 @@ Drop it, use the value explicitly inline in each of the cases below.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",redundant,no
 aeZnwBmq67YZaHbQ@ashevche-desk.local,iio,3,"['20260420141512.196932-1-luizmugnaini@usp.br'
  'aeZnwBmq67YZaHbQ@ashevche-desk.local'
  '20260421153802.7a5426d5@jic23-huawei']",2026-04-20 14:14:29,[PATCH v2] iio: temperature: mlx90614: use guard(mutex) for EEPROM access locking,Luiz Mugnaini <luizmugnaini@usp.br>,['Luiz Mugnaini <luizmugnaini@usp.br>' 'linux-iio@vger.kernel.org'],"================================================
@@ -77002,7 +74328,7 @@ Jonathan
 > -	return ret;
 >  }
 >  
->  static int mlx90614_wakeup(struct mlx90614_data *data)",no,
+>  static int mlx90614_wakeup(struct mlx90614_data *data)",,no
 aeZy0ERXjO2697R7@ashevche-desk.local,iio,2,"['20260420180454.90611-1-raffaelraiel@usp.br'
  'aeZy0ERXjO2697R7@ashevche-desk.local']",2026-04-20 18:00:31,[PATCH v2] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -77201,7 +74527,7 @@ Here and in all similar case the indentation went off-by-one.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 aehxdS5MePTLkekJ@ashevche-desk.local,iio,4,"['20260416032351.224072-1-giovannaluisahirata@usp.br'
  'aeHv0DEEc2bS4YB8@ashevche-desk.local'
  'CANhRbNwOtJo1BBj2gP7yYD=Tmy3EeGmwGET5ggeSSNBSLrb1gg@mail.gmail.com'
@@ -77466,7 +74792,7 @@ first one. This will train more on the process, and other useful skills.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 aeiRMWNgCbJ-NYN6@ashevche-desk.local,iio,2,"['20260422030846.45317-1-gustavo.pagnotta@ime.usp.br'
  'aeiRMWNgCbJ-NYN6@ashevche-desk.local']",2026-04-22 02:56:54,[PATCH v3] iio: adc: mcp320x: refactor driver to use bitfield API,Gustavo Pagnotta Faria <gustavo.pagnotta@ime.usp.br>,"['Gustavo Pagnotta Faria <gustavo.pagnotta@ime.usp.br>'
  'Eduardo Augusto <eduardoaugustoabc@ime.usp.br>'
@@ -77713,7 +75039,7 @@ I already commented on this.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 aekwcosBXRXgRsPn@ashevche-desk.local,iio,7,"['20260421221629.70401-1-felipers@ime.usp.br'
  '20260421221629.70401-2-felipers@ime.usp.br'
  '20260421221629.70401-3-felipers@ime.usp.br'
@@ -78148,7 +75474,7 @@ clearly says 80 and IIO tries to follow this.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 aekxqlop8d2htRDY@ashevche-desk.local,iio,3,"['20260422192521.7472-1-guilhermeabreu200105@usp.br'
  'aekxNBLWOXqkqXi_@ashevche-desk.local'
  'aekxqlop8d2htRDY@ashevche-desk.local']",2026-04-22 19:24:36,[PATCH] iio: gyro: adxrs290: Use guard(mutex) in lieu of manual lock+unlock,Guilherme Dias <guilhermeabreu200105@usp.br>,"['Guilherme Dias <guilhermeabreu200105@usp.br>'
@@ -78405,7 +75731,7 @@ this patch and none of them even compiled?!
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 aenTwHN57ltcqcP9@ashevche-desk.local,iio,2,"['20260423020922.4057-1-joaovictor.fernandes@usp.br'
  'aenTwHN57ltcqcP9@ashevche-desk.local']",2026-04-23 02:09:20,[PATCH] iio: imu: inv_icm42600: refactor sensors config,João Fernandes <joaovictor.fernandes@usp.br>,['Otavio Capobianco <gcotavio@usp.br>' 'linux-iio@vger.kernel.org'],"================================================
 MESSAGE 1 of 2
@@ -78655,7 +75981,7 @@ You see, this has to stay in the wrapper.
 
 -- 
 With Best Regards,
-Andy Shevchenko",yes,Patch reduces duplication in sensor config but maintainer questions if it is worth doing.
+Andy Shevchenko",duplication,yes
 aeoI977TRD08FB32@ashevche-desk.local,iio,3,"['20260422211105.48158-1-eduardoaugustoabc@ime.usp.br'
  'aeoI977TRD08FB32@ashevche-desk.local'
  '20260424124823.443b3c23@jic23-huawei']",2026-04-22 21:11:05,[PATCH] iio: adc: mcp320x: Use guard(mutex) for lock handling,Eduardo Augusto <eduardoaugustoabc@ime.usp.br>,"['Eduardo Augusto <eduardoaugustoabc@ime.usp.br>'
@@ -78862,7 +76188,7 @@ maybe when things calm down a bit...
 Jonathan
 
 >  }
->",no,
+>",,no
 aes3hLTjW3VEzMha@ashevche-desk.local,iio,8,"['20260422231305.677778-1-rafasales@usp.br'
  '20260422231305.677778-2-rafasales@usp.br'
  '20260422231305.677778-3-rafasales@usp.br'
@@ -79638,7 +76964,7 @@ the bracket here:
 > +		}
 >  	default:
 >  		return -EINVAL;
->  	}",no,
+>  	}",redundant,no
 aes7wGq2NYmtfMgs@ashevche-desk.local,iio,3,"['20260423183349.636757-1-caiomorais@usp.br'
  'a9307e04-3754-465e-a610-92c6e83cc3e6@baylibre.com'
  'aes7wGq2NYmtfMgs@ashevche-desk.local']",2026-04-23 18:33:41,[PATCH] iio: fix header includes across multiple drivers,Caio Morais <caiomorais@usp.br>,"['Caio Morais <caiomorais@usp.br>' 'linux-iio@vger.kernel.org'
@@ -79896,7 +77222,7 @@ linux/_whatever_driver_specific_
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 aesvPuRfJk2tE6Ro@ashevche-desk.local,iio,8,"['20260420191455.529923-1-marcelomlage@usp.br'
  '20260420191455.529923-2-marcelomlage@usp.br'
  '20260420191455.529923-3-marcelomlage@usp.br'
@@ -80391,7 +77717,7 @@ Exempli gratia: 'rewrite mask macros with help of bits.h APIs'.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 afBpWD4YXew6cVrx@ashevche-desk.local,iio,5,"['20260423223958.100487-1-guilhermeabreu200105@usp.br'
  'aes2tzgfXbuD6ccQ@ashevche-desk.local'
  '20260424113901.0508dbc2@jic23-huawei'
@@ -80875,7 +78201,7 @@ Yes, with proper indentation made.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 afJjH1Mn_ZqKWN7L@ashevche-desk.local,iio,2,"['20260429195214.22374-1-guilhermeabreu200105@usp.br'
  'afJjH1Mn_ZqKWN7L@ashevche-desk.local']",2026-04-29 19:51:05,[PATCH v3] iio: gyro: adxrs290: Use guard(mutex) in lieu of manual lock+unlock,Guilherme Dias <guilhermeabreu200105@usp.br>,"['Guilherme Dias <guilhermeabreu200105@usp.br>'
  'João Paulo Menezes Linaris <jplinaris@usp.br>'
@@ -81107,7 +78433,7 @@ gets better as the split will become more logical.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 afiqYP8PrVpGs0Bq@ashevche-desk.local,iio,4,"['20260503031703.33330-1-joaovictor.fernandes@usp.br'
  'CALoEA-x7kEXYNzGWJ-6dxJzBoShnx+26Y-VhDP4wFz99VsxiWQ@mail.gmail.com'
  'afiqYP8PrVpGs0Bq@ashevche-desk.local'
@@ -81770,7 +79096,7 @@ static void inv_icm42600_sanitize_conf(struct inv_icm42600_sensor_conf *conf,
 > +					    config0_val, sleep_ms);
 >  }
 >  
->  int inv_icm42600_set_temp_conf(struct inv_icm42600_state *st, bool enable,",yes,Patch reduces duplication in sensor config but maintainer questions if it is worth doing.
+>  int inv_icm42600_set_temp_conf(struct inv_icm42600_state *st, bool enable,","deduplication,duplicated",yes
 agOMqrKEb02MV358@ashevche-desk.local,iio,2,"['20260512184728.298680-1-raffaelraiel@usp.br'
  'agOMqrKEb02MV358@ashevche-desk.local']",2026-05-12 18:46:43,[PATCH v5] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -82192,7 +79518,7 @@ will do the job.
 
 -- 
 With Best Regards,
-Andy Shevchenko",no,
+Andy Shevchenko",,no
 b4a1f829-f953-4d2a-a8ac-2e828ef56d4b@usp.br,iio,5,"['20260418205151.172046-1-luizmugnaini@usp.br'
  '20260419124341.465353af@jic23-huawei'
  'aeXc8o94OiDRFy0b@ashevche-desk.local'
@@ -82710,7 +80036,7 @@ On 20/04/2026 04:59, Andy Shevchenko wrote:
 > ?
 >
 > How did you test this, please?
->",yes,Maintainer suggests a shared helper and author discusses whether real duplication exists.
+>",duplication,yes
 e75d7791-7a60-4c4f-b81a-7013fd0068c6@baylibre.com,iio,6,"['20260417165747.507487-1-marcelomlage@usp.br'
  '20260417165747.507487-2-marcelomlage@usp.br'
  '20260417165747.507487-3-marcelomlage@usp.br'
@@ -83151,4 +80477,4 @@ Delete it whilst you are here to avoid future confusion.
 > +#define MCP3422_CONT_SAMPLING	BIT(4)
 >  
 >  #define MCP3422_CHANNEL(config)	(((config) & MCP3422_CHANNEL_MASK) >> 5)
->  #define MCP3422_PGA(config)	((config) & MCP3422_PGA_MASK)",no,
+>  #define MCP3422_PGA(config)	((config) & MCP3422_PGA_MASK)",,no

@@ -21,8 +21,22 @@ polars==1.44.2
 # libgit2 (patch-ids) em commit/commit_to_message_id_by_patch_id.py.
 pygit2==1.20.1
 
-# Barra de progresso usada em build_threads/build_threads.py.
+# Barra de progresso usada em build_threads/build_threads.py e classify/*/classify_threads.py.
 tqdm==4.68.3
+
+# Cliente da API da OpenAI usado por classify/openai_classifier/classify_threads.py.
+openai==2.44.0
+
+# SDK da API do Jev (TypeSafe) usado por classify/jev_classifier/classify_threads.py.
+typesafe-sdk==0.7.1
+
+# OpenJev (motor aberto no estilo do Jev), usado por classify/openjev_classifier/classify_threads.py,
+# fica fora desta lista: o pacote declara torch e transformers, que só servem para rodar modelos
+# locais, e o script só usa a parte que chama o OpenRouter. Instale-o à parte, sem dependências:
+#   .venv/bin/pip install --no-deps "openjev @ git+https://github.com/lookski/openjev@3e97d9cd934a1bb573e4da41200bf4615760d2db"
+
+# Leitura do .env (OPENAI_API_KEY, TYPESAFE_API_KEY, OPENROUTER_API_KEY) usada por classify/*/classify_threads.py.
+python-dotenv==1.2.2
 
 # Testes unitarios
 pytest==9.1.1
