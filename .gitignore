@@ -29,11 +29,11 @@ patchwork/*-duplicated-status.parquet
 # Cache de respostas do Patchwork (add_accepted_status.py)
 patchwork/.patchwork_cache.json
 
-# Dados gerados pela classificação por LLM (classify_threads.py)
-classify/*/classify_output/
-
 # Cache de respostas do LLM (classify_threads.py)
-classify/*/llm_cache.json
+classify/*/llm_cache.jsonl
 
 # Respostas dos classificadores para o sample rotulado
 classify/evaluation_output/
+
+# Dados baixados e extraídos pelo fetch (fetch/fetch.py)
+data/

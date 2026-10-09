@@ -1,9 +1,8 @@
 """Unit tests for the regex pre-filter in pre_filter_threads.py."""
 
-import pandas as pd
 import pytest
 
-from pre_filter_threads import QUOTE_PLACEHOLDER, filter_file, matches, replace_quotes
+from pre_filter_threads import QUOTE_PLACEHOLDER, is_candidate, matches, replace_quotes
 
 
 # Each term in the regex matches, and a thread lists every term it hit.
@@ -98,27 +97,12 @@ def test_from_lines_that_are_not_outlook_quotes_are_kept():
     assert matches(replace_quotes(content)) == ["duplicated"]
 
 
-def make_thread(thread_id, thread_content):
-    return {"_thread_id": thread_id, "list": "testlist", "thread_content": thread_content}
-
-
-# filter_file keeps only the matching threads, with their other columns,
-# the quotes replaced and the matched terms joined.
-def test_filter_file_keeps_only_matching_threads(tmp_path):
-    input_path = tmp_path / "list_data_testlist.parquet"
-    output_dir = tmp_path / "output"
-    output_dir.mkdir()
-    pd.DataFrame([
-        make_thread("a", "Fix off-by-one in the checksum loop."),
-        make_thread("b", "> old text\nRemove the duplicated code and the repeated logic."),
-        make_thread("c", "Drop the redundant check."),
-    ]).to_parquet(input_path, index=False)
-
-    filter_file(str(input_path), str(output_dir))
-    result = pd.read_parquet(output_dir / input_path.name)
-
-    assert result["_thread_id"].tolist() == ["b"]
-    row = result.iloc[0]
-    assert row["list"] == "testlist"
-    assert row["matched_terms"] == "duplicated,repeated"
-    assert row["thread_content"].startswith(QUOTE_PLACEHOLDER)
+# A message is a candidate only if a term matches outside its quoted lines.
+@pytest.mark.parametrize("text, expected", [
+    ("Remove the duplicated code and the repeated logic.", True),
+    ("> Remove the duplicated code.\nApplied, thanks.", False),
+    ("Drop the redundant check.", False),
+    ("Fix off-by-one in the checksum loop.", False),
+])
+def test_is_candidate(text, expected):
+    assert is_candidate(text) is expected

@@ -1,0 +1,36 @@
+zenodo:
+  api_url: https://zenodo.org/api
+  record_id: "17567225"
+  doi: 10.5281/zenodo.17567225
+  version: v1.0.0
+
+# Listas já descompactadas (fetch.py --source rcpassos).
+rcpassos:
+  url: https://files.rcpassos.me/public/Academic/Datasets/LKML5Ws_uncompressed_lists/
+
+# MAINTAINERS do kernel em todas as releases entre estas tags, de onde o fetch
+# tira a allow-list. A v2.6.30 (2009-06) é a primeira release em que o campo F: é
+# usado; a v7.2 (2026-08-16) era a última estável em 2026-10.
+maintainers:
+  first_tag: v2.6.30
+  last_tag: v7.2
+  # A comparação ignora o domínio do endereço; estas listas casam assim com
+  # outra lista do MAINTAINERS e ficam de fora.
+  exclude:
+    - dpdk-dev        # dev@dpdk.org casa com dev@openvswitch.org
+    - linux-patches   # patches@lists.linux.dev casa com patches@opensource.cirrus.com
+
+# Caminhos relativos à raiz do repositório.
+paths:
+  raw_dir: data/raw
+  source_dir: data/source
+  output_dir: data/output
+  archive_index: config/archive_index.csv
+
+# Backup do cache dos classificadores (classify/*/llm_cache.jsonl) num rascunho
+# não publicado do Zenodo, atualizado a cada `every` respostas novas. O id vem de
+# classify/zenodo_backup.py create; o token, de ZENODO_CLASSIFY_TOKEN no .env.
+classify_backup:
+  api_url: https://zenodo.org/api
+  deposition_id: "23253397"
+  every: 5000

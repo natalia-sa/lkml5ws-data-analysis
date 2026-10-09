@@ -1,54 +1,86 @@
 #!/usr/bin/env python3
-"""
-Builds email threads from raw LKML parquet files.
+"""Builds the threads of each list in <source_dir>/LKML5Ws/list=<name>/ into
+<output_dir>/list=<name>.parquet, one row per thread, skipping lists already built.
 
-Input: a folder of parquet files with raw LKML messages (needs `message_id`,
-`in_reply_to`, `references` and `date`).
+Messages are linked by In-Reply-To/References. Pull requests and bots
+(`BOT_SENDER_RE`) are left out. A thread is a candidate if any message matches
+the pre-filter, and only candidates get `thread_content`.
 
-Output: one parquet per input file in `build_threads_output/`, with the input
-columns plus `_thread_id` and `list`. Messages linked through the
-`In-Reply-To`/`References` headers (via union-find) share a `_thread_id`;
-`list` comes from the `list_data_<name>.parquet` filename.
-
-With `--collapse`, the output has one row per thread instead of one per
-message, aggregating each thread into `thread_content` -- subject, sender and
-body of every message in chronological order, in the same per-message block
-format as `classify/classify_threads.py`'s LLM prompt.
+Run:
+    .venv/bin/python build_threads/build_threads.py [--lists a,b]
 """
 
 import argparse
-import glob
 import os
 import re
+import sys
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+import yaml
 from tqdm import tqdm
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(HERE)
-OUTPUT_DIR = os.path.join(PROJECT_ROOT, "build_threads_output")
+CONFIG_FILE = os.path.join(PROJECT_ROOT, "config", "pipeline.yaml")
+
+sys.path.insert(0, PROJECT_ROOT)
+from pre_filter.pre_filter_threads import is_candidate, replace_quotes  # noqa: E402
+
+LISTS_DIRNAME = "LKML5Ws"
+LIST_FILE = "list_data.parquet"
 
 THREAD_BUILD_COLUMNS = ["message_id", "in_reply_to", "references", "date"]
 
-COLLAPSE_COLUMNS = ["message_id", "subject", "raw_body", "date", "from", "cc"]
+METADATA_COLUMNS = ["message_id", "subject", "date", "from", "cc"]
+
+BATCH_SIZE = 50_000
+
+WRITE_BATCH_THREADS = 5_000
+
+# Candidate bodies kept in memory at once, in characters; threads are written
+# in chunks of up to this much body text, one `raw_body` read per chunk.
+BODY_CHUNK_CHARS = 2_000_000_000
 
 MESSAGE_ID_RE = re.compile(r"<?([^<>\s]+@[^<>\s]+)>?")
 
-LIST_DATA_PREFIX = "list_data_"
+# Pull request subjects ("[GIT PULL]", "pull-request: bpf ..."), left out of
+# `thread_content` since they only summarize patches discussed elsewhere.
+PULL_TAG_RE = re.compile(
+    r"\[(?![^\]]*\bnot\b)[^\[\]]*\bpull\b(?!-(?:up|down)\b)[^\[\]]*\]", re.IGNORECASE
+)
+PULL_PREFIX_RE = re.compile(
+    r"^(?:\s*(?:re|fwd?)\s*:|\s*\[[^\]]*\])*\s*pull[- ]request\b", re.IGNORECASE
+)
+
+# "[was: [GIT PULL] ...]" starts a new discussion that only quotes the old subject.
+WAS_CLAUSE_RE = re.compile(r"[\[(]\s*was\b.*", re.IGNORECASE | re.DOTALL)
+
+# Bots, by name or address, whose templates match the pre-filter. Code review bots are kept.
+BOT_SENDER_RE = re.compile("|".join([
+    r"patchwork@\w+\.freedesktop\.org",
+    r"\bsyzbot\b",
+    r"bugzilla-daemon|bugme-daemon@",
+    r"\b(?:kernel|kbuild) test robot\b",
+    r"bot@kernelci\.org",
+    r"patchwork-bot\+",
+    r"^\s*regzbot\b",
+    r"\btip-?bot",
+    r"pr-tracker-bot@",
+    r"^\s*osstest service\b|regression test user",
+    r"no-reply@patchew\.org|^\s*MPTCP CI\b|bluez\.test\.bot@|BluezTestBot",
+    r"jenkins@linuxtv\.org|@buildbot\.|\bbuild bot\b|noreply@ellerman\.id\.au|cronjob"
+    r"|^\s*GitLab\b|nobody@ceph\.com|ci_notify@linaro\.org",
+    r"coverity-bot|scan-admin@coverity\.com",
+]), re.IGNORECASE)
 
 
-def list_name_from_path(input_path):
-    """Derive the list name from a `list_data_<name>.parquet` filename,
-    falling back to the filename stem.
-    """
-    stem = os.path.splitext(os.path.basename(input_path))[0]
-
-    if stem.startswith(LIST_DATA_PREFIX):
-        return stem[len(LIST_DATA_PREFIX):]
-
-    return stem
+def load_paths(config_file=CONFIG_FILE):
+    with open(config_file, encoding="utf-8") as fh:
+        paths = yaml.safe_load(fh)["paths"]
+    return {key: os.path.join(PROJECT_ROOT, path) for key, path in paths.items()}
 
 
 def is_missing(x):
@@ -144,12 +176,24 @@ class UnionFind:
             self.parent[rb] = ra
 
 
+def read_columns(input_path, columns):
+    """Read `columns` batch by batch, so the whole Arrow table and its Python
+    copy are never in memory together. to_pylist() instead of pandas: pandas
+    can't convert the `string_view` list columns (e.g. references) some files use.
+    """
+    data = {col: [] for col in columns}
+    parquet_file = pq.ParquetFile(input_path)
+    for batch in parquet_file.iter_batches(batch_size=BATCH_SIZE, columns=columns):
+        for col in columns:
+            data[col].extend(batch.column(col).to_pylist())
+    return pd.DataFrame(data)
+
+
 def build_thread_order(light_df):
     """Assign `_thread_id` to each row and return the row order to sort by
     (_thread_id, date, original row order), plus the `_thread_id` values in
-    that same sorted order.
+    that same sorted order. Adds helper columns to `light_df`.
     """
-    light_df = light_df.copy()
     light_df["_row_order"] = range(len(light_df))
     light_df["_msg_id"] = light_df["message_id"].apply(clean_msg_id)
 
@@ -229,25 +273,25 @@ def _view_type_replacement(t):
     return None
 
 
-def normalize_view_types(table):
-    """Cast away `string_view`/`binary_view` columns: several pyarrow kernels
-    (e.g. `take`) don't support them yet. No-op for files without them.
-    """
-    changed = False
-    new_fields = []
-    for field in table.schema:
-        new_type = _view_type_replacement(field.type)
-        if new_type is not None:
-            changed = True
-            new_fields.append(field.with_type(new_type))
-        else:
-            new_fields.append(field)
-
-    return table.cast(pa.schema(new_fields)) if changed else table
-
-
 def _text(x):
     return "" if is_missing(x) else str(x)
+
+
+def is_pull_request(subject):
+    subject = WAS_CLAUSE_RE.sub("", _text(subject))
+    return bool(PULL_TAG_RE.search(subject) or PULL_PREFIX_RE.match(subject))
+
+
+def is_bot(sender):
+    return bool(BOT_SENDER_RE.search(_text(sender)))
+
+
+def is_left_out(subject, sender):
+    return is_pull_request(subject) or is_bot(sender)
+
+
+def message_block(subject, sender, body):
+    return f"\nSubject:\n{_text(subject)}\n\nFrom:\n{_text(sender)}\n\nEmail body:\n{_text(body)}\n"
 
 
 def build_thread_content(thread_df):
@@ -262,103 +306,182 @@ def build_thread_content(thread_df):
             "================================================\n"
             f"MESSAGE {position} of {total}\n"
             "================================================\n"
-            f"\nSubject:\n{_text(row['subject'])}\n"
-            f"\nFrom:\n{_text(row['from'])}\n"
-            f"\nEmail body:\n{_text(row['raw_body'])}\n"
+            + message_block(row["subject"], row["from"], row["raw_body"])
         )
 
     return "".join(parts).strip()
 
 
-def build_collapsed_frame(input_path, sorted_positions, thread_ids_sorted, list_name):
-    """One row per thread. Relies on `build_thread_order`'s sort, so messages
-    come out chronologically and each thread's `date` is its earliest one.
-    """
-    content_table = pq.read_table(input_path, columns=COLLAPSE_COLUMNS)
-    content_df = pd.DataFrame({
-        col: content_table.column(col).to_pylist() for col in COLLAPSE_COLUMNS
-    })
-    del content_table
+def iter_rows(input_path, columns):
+    parquet_file = pq.ParquetFile(input_path)
+    for batch in parquet_file.iter_batches(batch_size=BATCH_SIZE, columns=columns):
+        yield from zip(*(batch.column(col).to_pylist() for col in columns))
 
-    content_df = content_df.iloc[sorted_positions].reset_index(drop=True)
-    content_df["_thread_id"] = thread_ids_sorted
 
-    rows = []
-    for thread_id, group in content_df.groupby("_thread_id", sort=False):
-        rows.append({
+def candidate_threads(input_path, thread_of):
+    """Pre-filters message by message: a thread is a candidate if any of its
+    messages, pull requests and bots aside, matches. Gives the same threads as
+    pre-filtering the whole `thread_content`, without building it. Also
+    returns each message's body length."""
+    candidates = set()
+    body_sizes = np.zeros(len(thread_of), dtype=np.int64)
+    rows = iter_rows(input_path, ["subject", "from", "raw_body"])
+    for position, (thread_id, (subject, sender, body)) in enumerate(zip(thread_of, rows)):
+        body_sizes[position] = len(body or "")
+        if (
+            thread_id not in candidates
+            and not is_left_out(subject, sender)
+            and is_candidate(message_block(subject, sender, body))
+        ):
+            candidates.add(thread_id)
+    return candidates, body_sizes
+
+
+def body_chunks(thread_ids_sorted, sizes_sorted):
+    """Splits the sorted rows into chunks of whole threads with up to
+    `BODY_CHUNK_CHARS` of body each (a larger thread is a chunk of its own).
+    Returns each row's chunk number, in increasing order."""
+    chars_before = np.cumsum(sizes_sorted) - sizes_sorted
+    thread_start = np.ones(len(thread_ids_sorted), dtype=bool)
+    thread_start[1:] = thread_ids_sorted[1:] != thread_ids_sorted[:-1]
+    return np.maximum.accumulate(np.where(thread_start, chars_before // BODY_CHUNK_CHARS, 0))
+
+
+def read_bodies(input_path, positions):
+    """`raw_body` of the rows at `positions` (sorted), converting only those."""
+    bodies = []
+    start = 0
+    for batch in pq.ParquetFile(input_path).iter_batches(batch_size=BATCH_SIZE, columns=["raw_body"]):
+        end = start + batch.num_rows
+        lo, hi = np.searchsorted(positions, [start, end])
+        bodies.extend(batch.column(0).take(positions[lo:hi] - start).to_pylist())
+        start = end
+    return bodies
+
+
+def output_schema(input_path):
+    date_type = pq.read_schema(input_path).field("date").type
+    return pa.schema([
+        ("_thread_id", pa.large_string()),
+        ("list", pa.large_string()),
+        ("n_messages", pa.int64()),
+        ("message_ids", pa.list_(pa.string())),
+        ("date", _view_type_replacement(date_type) or date_type),
+        ("subject", pa.large_string()),
+        ("from", pa.large_string()),
+        ("cc", pa.list_(pa.string())),
+        ("is_candidate", pa.large_string()),
+        ("thread_content", pa.large_string()),
+    ])
+
+
+def thread_rows(messages_df, list_name, candidates):
+    """Relies on `build_thread_order`'s sort, so messages come out
+    chronologically and each thread's `date` is its earliest one."""
+    for thread_id, group in messages_df.groupby("_thread_id", sort=False):
+        group = group[[not is_left_out(s, f) for s, f in zip(group["subject"], group["from"])]]
+        if group.empty:
+            continue
+
+        candidate = thread_id in candidates
+        date = group["date"].iloc[0]
+        yield {
             "_thread_id": thread_id,
             "list": list_name,
             "n_messages": len(group),
             "message_ids": group["message_id"].tolist(),
-            "date": group["date"].iloc[0],
+            "date": None if pd.isna(date) else date,
             "subject": group["subject"].iloc[0],
             "from": group["from"].iloc[0],
             "cc": group["cc"].iloc[0],
-            "thread_content": build_thread_content(group),
-        })
+            "is_candidate": "yes" if candidate else "no",
+            "thread_content": replace_quotes(build_thread_content(group)) if candidate else None,
+        }
 
-    return pd.DataFrame(rows)
+
+def write_rows(output_path, schema, rows):
+    """Writes every `WRITE_BATCH_THREADS` rows, to a .tmp renamed at the end,
+    so an existing output file is always complete."""
+    tmp_path = output_path + ".tmp"
+    with pq.ParquetWriter(tmp_path, schema) as writer:
+        batch = []
+        for row in rows:
+            batch.append(row)
+            if len(batch) == WRITE_BATCH_THREADS:
+                writer.write_table(pa.Table.from_pylist(batch, schema=schema))
+                batch = []
+        writer.write_table(pa.Table.from_pylist(batch, schema=schema))
+    os.replace(tmp_path, output_path)
 
 
-def build_threads_for_file(input_path, output_path, collapse=False):
-    list_name = list_name_from_path(input_path)
-
-    # to_pylist() instead of pd.read_parquet(): pandas can't convert the
-    # `string_view` list columns (e.g. references) some files use.
-    light_table = pq.read_table(input_path, columns=THREAD_BUILD_COLUMNS)
-    light_df = pd.DataFrame({
-        col: light_table.column(col).to_pylist() for col in THREAD_BUILD_COLUMNS
-    })
-    del light_table
-
+def build_threads_for_file(input_path, output_path, list_name):
+    light_df = read_columns(input_path, THREAD_BUILD_COLUMNS)
     sorted_positions, thread_ids_sorted = build_thread_order(light_df)
     del light_df
 
-    if collapse:
-        collapsed_df = build_collapsed_frame(
-            input_path, sorted_positions, thread_ids_sorted, list_name
-        )
-        collapsed_df.to_parquet(output_path, index=False)
-        return
+    thread_of = pd.Series(thread_ids_sorted, index=sorted_positions).sort_index().to_numpy()
+    candidates, body_sizes = candidate_threads(input_path, thread_of)
 
-    table = pq.read_table(input_path)
-    table = normalize_view_types(table)
-    table = table.take(pa.array(sorted_positions))
-    table = table.append_column("_thread_id", pa.array(thread_ids_sorted))
-    table = table.append_column("list", pa.array([list_name] * table.num_rows))
+    messages_df = read_columns(input_path, METADATA_COLUMNS)
+    messages_df = messages_df.iloc[sorted_positions].reset_index(drop=True)
+    messages_df["_thread_id"] = thread_ids_sorted
 
-    pq.write_table(table, output_path)
+    # Only candidates' bodies are read, a chunk of threads at a time.
+    is_candidate_sorted = np.fromiter((t in candidates for t in thread_ids_sorted), bool, len(thread_ids_sorted))
+    chunk_of = body_chunks(thread_ids_sorted, np.where(is_candidate_sorted, body_sizes[sorted_positions], 0))
+
+    def rows():
+        for chunk in np.unique(chunk_of):
+            in_chunk = np.flatnonzero(chunk_of == chunk)
+            chunk_df = messages_df.iloc[in_chunk[0]:in_chunk[-1] + 1].copy()
+            wanted = in_chunk[is_candidate_sorted[in_chunk]]
+            order = np.argsort(sorted_positions[wanted])
+            bodies = np.empty(len(chunk_df), dtype=object)
+            bodies[wanted[order] - in_chunk[0]] = read_bodies(input_path, sorted_positions[wanted][order]) if len(wanted) else []
+            chunk_df["raw_body"] = bodies
+            yield from thread_rows(chunk_df, list_name, candidates)
+
+    write_rows(output_path, output_schema(input_path), rows())
+
+
+def available_lists(lists_dir):
+    if not os.path.isdir(lists_dir):
+        return []
+    return sorted(
+        entry.removeprefix("list=") for entry in os.listdir(lists_dir)
+        if entry.startswith("list=") and os.path.isfile(os.path.join(lists_dir, entry, LIST_FILE))
+    )
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("path", help="Folder containing input parquet files")
-    parser.add_argument(
-        "--collapse",
-        action="store_true",
-        help=(
-            "Write one row per thread instead of one row per message: each "
-            "row's `thread_content` concatenates the subject and body of "
-            "every message in the thread, in chronological order."
-        ),
-    )
+    parser = argparse.ArgumentParser(description="Build the threads of each list and pre-filter them.")
+    parser.add_argument("--lists", help="Comma-separated lists to build (default: every fetched list)")
     args = parser.parse_args()
 
-    input_files = sorted(glob.glob(os.path.join(args.path, "*.parquet")))
-    if not input_files:
-        print(f"No .parquet files found in: {args.path}")
-        return
+    paths = load_paths()
+    lists_dir = os.path.join(paths["source_dir"], LISTS_DIRNAME)
+    available = available_lists(lists_dir)
+    names = [name.strip() for name in args.lists.split(",")] if args.lists else available
 
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    missing = sorted(set(names) - set(available))
+    if missing:
+        print(f"error: not in {lists_dir}: {missing}", file=sys.stderr)
+        return 1
 
-    with tqdm(input_files, unit="file") as pbar:
-        for input_path in pbar:
-            filename = os.path.basename(input_path)
-            pbar.set_description(filename)
+    os.makedirs(paths["output_dir"], exist_ok=True)
+    output_paths = {name: os.path.join(paths["output_dir"], f"list={name}.parquet") for name in names}
+    todo = [name for name in names if not os.path.exists(output_paths[name])]
+    print(f"{len(names)} lists: {len(names) - len(todo)} already built, {len(todo)} to build")
 
-            output_path = os.path.join(OUTPUT_DIR, filename)
-            build_threads_for_file(input_path, output_path, collapse=args.collapse)
+    with tqdm(todo, unit="list") as pbar:
+        for name in pbar:
+            pbar.set_description(name)
+            input_path = os.path.join(lists_dir, f"list={name}", LIST_FILE)
+            build_threads_for_file(input_path, output_paths[name], name)
+
+    print(f"Saved to: {paths['output_dir']}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

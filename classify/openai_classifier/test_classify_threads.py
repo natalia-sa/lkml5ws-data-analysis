@@ -3,7 +3,6 @@ API calls)."""
 
 import json
 import re
-import threading
 
 import httpx
 import pandas as pd
@@ -15,9 +14,7 @@ from classify_threads import (
     CATEGORIES,
     QUOTE_PLACEHOLDER,
     SYSTEM_PROMPT,
-    THREAD_ID_COLUMN,
     cache_key,
-    classify_file,
     parse_response,
     truncate_thread_content,
 )
@@ -100,9 +97,6 @@ def test_prompt_matches_pre_filter_and_has_valid_examples():
 
 @pytest.mark.parametrize("categories", [(category,) for category in CATEGORIES] + [
     ("clone_refactoring", "preventive_reuse"),
-    ("clone_refactoring", "satd"),
-    ("duplication_discussion", "satd"),
-    ("clone_refactoring", "preventive_reuse", "satd"),
 ])
 def test_parse_response_keeps_allowed_combinations(categories):
     result = parse_response(response_json(*categories, reasoning="step by step"))
@@ -114,10 +108,10 @@ def test_parse_response_keeps_allowed_combinations(categories):
 # classifier fixes its nouls, and put in CATEGORIES order.
 @pytest.mark.parametrize("categories, expected", [
     ((), ["not_duplication"]),
-    (("not_duplication", "satd"), ["satd"]),
+    (("not_duplication", "duplication_discussion"), ["duplication_discussion"]),
     (("duplication_discussion", "clone_refactoring"), ["clone_refactoring"]),
-    (("satd", "preventive_reuse", "duplication_discussion"), ["preventive_reuse", "satd"]),
-    (("satd", "satd"), ["satd"]),
+    (("preventive_reuse", "clone_refactoring"), ["clone_refactoring", "preventive_reuse"]),
+    (("clone_refactoring", "clone_refactoring"), ["clone_refactoring"]),
 ])
 def test_parse_response_applies_combination_rules(categories, expected):
     assert parse_response(response_json(*categories))["categories"] == expected
@@ -129,7 +123,7 @@ def test_cache_key_includes_model_and_prompt_version():
     assert cache_key("t1") == f"t1:{classify_threads.MODEL}:{classify_threads.PROMPT_VERSION}"
 
 
-# classify_file
+# classify
 
 class FakeClient:
     """Answers each call with the next queued output, or raises it if it is
@@ -148,51 +142,21 @@ class FakeClient:
         return type("Response", (), {"output_text": output})
 
 
-def run_classify(tmp_path, thread_ids, client, cache, **kwargs):
-    input_path = tmp_path / "list_data_testlist.parquet"
-    pd.DataFrame([
-        {THREAD_ID_COLUMN: thread_id, "thread_content": "content", "list": "testlist"}
-        for thread_id in thread_ids
-    ]).to_parquet(input_path, index=False)
-    output_dir = tmp_path / "output"
-    output_dir.mkdir()
+# Candidates get the categories in the category column, in place; the cache
+# keeps the reasoning.
+def test_classify_adds_the_category_column(tmp_path):
+    path = tmp_path / "list=testlist.parquet"
+    pd.DataFrame({"_thread_id": ["t1", "t2"], "is_candidate": ["yes", "no"],
+                  "thread_content": ["content", None]}).to_parquet(path, index=False)
+    cache_file = tmp_path / "cache.jsonl"
 
-    classify_file(str(input_path), str(output_dir), cache=cache, cache_lock=threading.Lock(),
-                  client=client, workers=1, cache_file=str(tmp_path / "llm_cache.json"), **kwargs)
+    classify_threads.classify([str(path)], FakeClient([response_json("clone_refactoring", reasoning="r1")]),
+                              workers=1, cache_file=str(cache_file))
 
-    return pd.read_parquet(output_dir / input_path.name).set_index(THREAD_ID_COLUMN)
-
-
-# Each thread gets its reasoning, categories and model, the original
-# columns are kept, and --limit classifies only the first N threads.
-def test_classify_file_writes_results(tmp_path):
-    client = FakeClient([response_json("clone_refactoring", reasoning="r1"),
-                         response_json("not_duplication", reasoning="r2")])
-
-    result = run_classify(tmp_path, ["t1", "t2", "t3"], client, cache={}, limit=2)
-
-    assert list(result.index) == ["t1", "t2"]
-    assert result.loc["t1", "llm_reasoning"] == "r1"
-    assert json.loads(result.loc["t1", "llm_categories"]) == ["clone_refactoring"]
-    assert json.loads(result.loc["t2", "llm_categories"]) == ["not_duplication"]
-    assert result["llm_error"].isna().all()
-    assert result["llm_model"].notna().all()
-    assert set(result["list"]) == {"testlist"}
-
-
-# A cached thread doesn't call the API; a failing thread is left blank,
-# with the reason in llm_error, and isn't cached so a rerun retries it.
-def test_classify_file_uses_cache_and_skips_failures(tmp_path):
-    cache = {cache_key("cached"): json.loads(response_json("satd"))}
-    client = FakeClient([RuntimeError("boom")])
-
-    result = run_classify(tmp_path, ["cached", "failing"], client, cache)
-
-    assert client.calls == 1
-    assert json.loads(result.loc["cached", "llm_categories"]) == ["satd"]
-    assert result.loc["failing", "llm_error"] == "boom"
-    assert pd.isna(result.loc["failing", "llm_categories"])
-    assert cache_key("failing") not in cache
+    result = pd.read_parquet(path).set_index("_thread_id")
+    assert result.loc["t1", "category"] == "clone_refactoring"
+    assert pd.isna(result.loc["t2", "category"])
+    assert json.loads(cache_file.read_text())["result"]["reasoning"] == "r1"
 
 
 def rate_limit_error():
@@ -201,14 +165,14 @@ def rate_limit_error():
 
 
 # A rate limit waits and retries, up to RATE_LIMIT_RETRIES times, before the
-# thread is left blank.
+# thread fails.
 @pytest.mark.parametrize("failures, classified", [(3, True), (4, False)])
-def test_classify_file_waits_and_retries_rate_limits(tmp_path, monkeypatch, failures, classified):
+def test_rate_limits_are_waited_and_retried(monkeypatch, failures, classified):
     monkeypatch.setattr(classify_threads, "RATE_LIMIT_RETRIES", 3)
     monkeypatch.setattr(classify_threads.time, "sleep", lambda _: None)
-    client = FakeClient([rate_limit_error()] * failures + [response_json("satd")])
+    client = FakeClient([rate_limit_error()] * failures + [response_json("duplication_discussion")])
 
-    result = run_classify(tmp_path, ["t1"], client, cache={})
+    result = classify_threads.classify_with_retries("content", client)
 
     assert client.calls == min(failures + 1, 4)
-    assert pd.isna(result.loc["t1", "llm_error"]) == classified
+    assert ("error" not in result) == classified
