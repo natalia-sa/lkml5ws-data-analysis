@@ -389,7 +389,7 @@ def test_reply_with_rewritten_in_reply_to_links_via_references(tmp_path):
     assert (result["list"] == "testlist").all()
 
 
-def message(message_id, body, in_reply_to=None, subject="[PATCH] fix thing"):
+def message(message_id, body, in_reply_to=None, subject="[PATCH] fix thing", sender="author@example.com"):
     return {
         "message_id": message_id,
         "in_reply_to": in_reply_to,
@@ -397,7 +397,7 @@ def message(message_id, body, in_reply_to=None, subject="[PATCH] fix thing"):
         "date": "2026-06-01 12:00:00",
         "subject": subject,
         "raw_body": body,
-        "from": "author@example.com",
+        "from": sender,
         "cc": None,
     }
 
@@ -500,3 +500,24 @@ def test_output_is_the_same_with_any_body_chunk_size(tmp_path, monkeypatch):
 
     pd.testing.assert_frame_equal(whole, chunked)
     assert (whole["is_candidate"] == "yes").sum() == 2
+
+
+# Bot messages are left out like pull requests: they don't match and aren't in the
+# thread. Code review bots are kept.
+def test_bot_messages_are_left_out_of_the_thread(tmp_path):
+    df = pd.DataFrame([
+        message("1@example.com", "Add the driver."),
+        message("2@example.com", "[PASSED] conflict-duplicate", "1@example.com",
+                sender="Patchwork <patchwork@emeril.freedesktop.org>"),
+        message("3@example.com", "Looks good.", "1@example.com", sender="sashiko-bot@kernel.org"),
+        message("4@example.com", "*** Bug 7 has been marked as a duplicate of this bug. ***",
+                sender="bugzilla-daemon@bugzilla.kernel.org"),
+    ])
+
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
+
+    assert len(result) == 1
+    row = result.iloc[0]
+    assert list(row["message_ids"]) == ["1@example.com", "3@example.com"]
+    assert row["is_candidate"] == "no"
+    assert "4@example.com" not in thread_ids

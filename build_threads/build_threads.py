@@ -1,22 +1,10 @@
 #!/usr/bin/env python3
-"""
-Builds the email threads of each list in `<source_dir>/LKML5Ws/list=<name>/`
-(written by fetch/fetch.py) into `<output_dir>/list=<name>.parquet`, one row
-per thread. Paths come from config/pipeline.yaml.
+"""Builds the threads of each list in <source_dir>/LKML5Ws/list=<name>/ into
+<output_dir>/list=<name>.parquet, one row per thread, skipping lists already built.
 
-Messages linked through the `In-Reply-To`/`References` headers (via
-union-find) share a `_thread_id`. Each thread is then pre-filtered message by
-message (pre_filter/pre_filter_threads.py): `is_candidate` is "yes" if any of
-its messages matches, and only candidates get `thread_content` -- subject,
-sender and body of every message in chronological order, in the same block
-format as the classifiers' LLM prompt, with quoted replies replaced. Pull
-request emails are left out of the thread, and a thread made only of them is
-dropped.
-
-Candidate bodies are loaded in chunks of threads (`BODY_CHUNK_CHARS`), so
-large lists like lkml fit in memory.
-
-Lists that already have an output file are skipped; delete it to rebuild.
+Messages are linked by In-Reply-To/References. Pull requests and bots
+(`BOT_SENDER_RE`) are left out. A thread is a candidate if any message matches
+the pre-filter, and only candidates get `thread_content`.
 
 Run:
     .venv/bin/python build_threads/build_threads.py [--lists a,b]
@@ -69,6 +57,24 @@ PULL_PREFIX_RE = re.compile(
 
 # "[was: [GIT PULL] ...]" starts a new discussion that only quotes the old subject.
 WAS_CLAUSE_RE = re.compile(r"[\[(]\s*was\b.*", re.IGNORECASE | re.DOTALL)
+
+# Bots, by name or address, whose templates match the pre-filter. Code review bots are kept.
+BOT_SENDER_RE = re.compile("|".join([
+    r"patchwork@\w+\.freedesktop\.org",
+    r"\bsyzbot\b",
+    r"bugzilla-daemon|bugme-daemon@",
+    r"\b(?:kernel|kbuild) test robot\b",
+    r"bot@kernelci\.org",
+    r"patchwork-bot\+",
+    r"^\s*regzbot\b",
+    r"\btip-?bot",
+    r"pr-tracker-bot@",
+    r"^\s*osstest service\b|regression test user",
+    r"no-reply@patchew\.org|^\s*MPTCP CI\b|bluez\.test\.bot@|BluezTestBot",
+    r"jenkins@linuxtv\.org|@buildbot\.|\bbuild bot\b|noreply@ellerman\.id\.au|cronjob"
+    r"|^\s*GitLab\b|nobody@ceph\.com|ci_notify@linaro\.org",
+    r"coverity-bot|scan-admin@coverity\.com",
+]), re.IGNORECASE)
 
 
 def load_paths(config_file=CONFIG_FILE):
@@ -276,6 +282,14 @@ def is_pull_request(subject):
     return bool(PULL_TAG_RE.search(subject) or PULL_PREFIX_RE.match(subject))
 
 
+def is_bot(sender):
+    return bool(BOT_SENDER_RE.search(_text(sender)))
+
+
+def is_left_out(subject, sender):
+    return is_pull_request(subject) or is_bot(sender)
+
+
 def message_block(subject, sender, body):
     return f"\nSubject:\n{_text(subject)}\n\nFrom:\n{_text(sender)}\n\nEmail body:\n{_text(body)}\n"
 
@@ -306,7 +320,7 @@ def iter_rows(input_path, columns):
 
 def candidate_threads(input_path, thread_of):
     """Pre-filters message by message: a thread is a candidate if any of its
-    messages, pull requests aside, matches. Gives the same threads as
+    messages, pull requests and bots aside, matches. Gives the same threads as
     pre-filtering the whole `thread_content`, without building it. Also
     returns each message's body length."""
     candidates = set()
@@ -316,7 +330,7 @@ def candidate_threads(input_path, thread_of):
         body_sizes[position] = len(body or "")
         if (
             thread_id not in candidates
-            and not is_pull_request(subject)
+            and not is_left_out(subject, sender)
             and is_candidate(message_block(subject, sender, body))
         ):
             candidates.add(thread_id)
@@ -365,7 +379,7 @@ def thread_rows(messages_df, list_name, candidates):
     """Relies on `build_thread_order`'s sort, so messages come out
     chronologically and each thread's `date` is its earliest one."""
     for thread_id, group in messages_df.groupby("_thread_id", sort=False):
-        group = group[~group["subject"].map(is_pull_request)]
+        group = group[[not is_left_out(s, f) for s, f in zip(group["subject"], group["from"])]]
         if group.empty:
             continue
 
