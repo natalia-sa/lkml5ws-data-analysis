@@ -178,14 +178,14 @@ def candidate_threads(path):
         yield from zip(batch.column("_thread_id").to_pylist(), batch.column("thread_content").to_pylist())
 
 
-def write_column(path, column, values):
+def write_column(path, column, values, column_type=pa.large_string()):
     """Rewrites path with column set to values[thread_id] (None if absent),
     through a .tmp renamed at the end, so the file is always complete."""
     parquet_file = pq.ParquetFile(path)
     schema = parquet_file.schema_arrow
     if column in schema.names:
         schema = schema.remove(schema.get_field_index(column))
-    schema = schema.append(pa.field(column, pa.large_string()))
+    schema = schema.append(pa.field(column, column_type))
 
     tmp_path = path + ".tmp"
     with pq.ParquetWriter(tmp_path, schema) as writer:
@@ -193,7 +193,7 @@ def write_column(path, column, values):
             if column in batch.schema.names:
                 batch = batch.drop_columns([column])
             ids = batch.column("_thread_id").to_pylist()
-            new = pa.array([values.get(thread_id) for thread_id in ids], pa.large_string())
+            new = pa.array([values.get(thread_id) for thread_id in ids], column_type)
             writer.write_batch(pa.RecordBatch.from_arrays([*batch.columns, new], schema=schema))
     os.replace(tmp_path, path)
 
