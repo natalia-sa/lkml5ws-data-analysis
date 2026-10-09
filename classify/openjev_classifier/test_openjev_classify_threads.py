@@ -4,7 +4,6 @@ over a fake chat completions endpoint (no real API calls)."""
 import importlib.util
 import json
 import math
-import threading
 from pathlib import Path
 
 import pandas as pd
@@ -58,7 +57,7 @@ def engine():
 
 
 NO_NOULS = {"clone_refactoring": 0.1, "preventive_reuse": 0.1,
-            "duplication_discussion": 0.1, "satd": 0.1}
+            "duplication_discussion": 0.1}
 
 
 def test_noul_criteria_carry_every_jev_case():
@@ -89,37 +88,13 @@ def test_requests_go_only_to_providers_with_logprobs(monkeypatch):
     assert sent == [{"model": openjev.MODEL, "provider": {"require_parameters": True}}]
 
 
-def test_models_that_can_think_are_asked_not_to(monkeypatch):
-    sent = []
-    monkeypatch.setattr("openjev.easy.OpenAICompatJev._chat",
-                        lambda self, payload: sent.append(payload) or yes(0.5))
-
-    openjev.OpenRouterJev(base_url=openjev.OPENROUTER_URL, model="deepseek/x", api_key="test",
-                          disable_reasoning=True)._chat({})
-
-    assert sent[0]["reasoning"] == {"enabled": False}
-
-
-def test_provider_pins_every_request_without_fallback(monkeypatch):
-    sent = []
-    monkeypatch.setattr("openjev.easy.OpenAICompatJev._chat",
-                        lambda self, payload: sent.append(payload) or yes(0.5))
-
-    openjev.OpenRouterJev(base_url=openjev.OPENROUTER_URL, model="m", api_key="test",
-                          provider="streamlake")._chat({})
-
-    assert sent[0]["provider"] == {"require_parameters": True, "order": ["streamlake"],
-                                   "allow_fallbacks": False}
-    assert openjev.cache_key("t1", "choice", "m", "streamlake") != openjev.cache_key("t1", "choice", "m")
-
-
 def test_state_is_the_jev_state(monkeypatch):
     requests = []
     fake_endpoint(monkeypatch, nouls=NO_NOULS, requests=requests)
 
     openjev.classify_thread("thread text", engine(), style="noul")
 
-    assert len(requests) == 4
+    assert len(requests) == 3
     for payload in requests:
         assert openjev.build_state("thread text") in payload["messages"][1]["content"]
         assert payload["model"] == openjev.MODEL
@@ -129,7 +104,7 @@ def test_state_is_the_jev_state(monkeypatch):
 @pytest.mark.parametrize("nouls, categories", [
     (NO_NOULS, ["not_duplication"]),
     ({**NO_NOULS, "clone_refactoring": 0.8, "duplication_discussion": 0.9}, ["clone_refactoring"]),
-    ({**NO_NOULS, "duplication_discussion": 0.7, "satd": 0.6}, ["duplication_discussion", "satd"]),
+    ({**NO_NOULS, "duplication_discussion": 0.7}, ["duplication_discussion"]),
 ])
 def test_noul_style_categories(monkeypatch, nouls, categories):
     fake_endpoint(monkeypatch, nouls=nouls)
@@ -141,44 +116,43 @@ def test_noul_style_categories(monkeypatch, nouls, categories):
     assert result["model"] == f"openai-compat/{openjev.MODEL}"
 
 
-@pytest.mark.parametrize("choice, satd, categories", [
-    ("not_duplication", 0.1, ["not_duplication"]),
-    ("clone_and_reuse", 0.1, ["clone_refactoring", "preventive_reuse"]),
-    ("clone_refactoring", 0.8, ["clone_refactoring", "satd"]),
-    ("not_duplication", 0.8, ["satd"]),
+@pytest.mark.parametrize("choice, categories", [
+    ("not_duplication", ["not_duplication"]),
+    ("clone_and_reuse", ["clone_refactoring", "preventive_reuse"]),
+    ("clone_refactoring", ["clone_refactoring"]),
+    ("duplication_discussion", ["duplication_discussion"]),
 ])
-def test_choice_style_categories(monkeypatch, choice, satd, categories):
+def test_choice_style_categories(monkeypatch, choice, categories):
     requests = []
-    fake_endpoint(monkeypatch, nouls={"satd": satd}, choice=choice, requests=requests)
+    fake_endpoint(monkeypatch, choice=choice, requests=requests)
 
     result = openjev.classify_thread("thread", engine(), style="choice")
 
-    assert len(requests) == 2
+    assert len(requests) == 1
     assert result["categories"] == categories
     assert result["scores"][choice] == pytest.approx(0.9, abs=1e-3)
-    assert result["scores"]["satd"] == pytest.approx(satd, abs=1e-3)
 
 
 def test_labels_missing_from_the_logprobs_fail_the_thread(monkeypatch):
     monkeypatch.setattr(OpenAICompatJev, "_chat", lambda self, payload: completion({"A": 1.0}))
 
-    result = openjev._result_for_thread("t1", "thread", {}, threading.Lock(), engine(), "choice")
-
-    assert "error" in result
+    with pytest.raises(Exception):
+        openjev.classify_thread("thread", engine(), "choice")
 
 
 def test_cache_key_includes_model_style_and_questions_version():
     assert openjev.cache_key("t1", "noul") != openjev.cache_key("t1", "choice")
     assert openjev.MODEL in openjev.cache_key("t1")
-    assert openjev.cache_key("t1", "choice", "other/model") != openjev.cache_key("t1", "choice")
     assert openjev.QUESTIONS_VERSION["choice"] in openjev.cache_key("t1", "choice")
 
 
-def test_classify_file_writes_results_and_skips_caching_failures(tmp_path, monkeypatch):
-    fake_endpoint(monkeypatch, nouls={"satd": 0.1}, choice="clone_refactoring")
-    path = tmp_path / "threads.parquet"
-    pd.DataFrame({"_thread_id": ["ok", "failed"],
-                  "thread_content": ["good thread", "bad thread"]}).to_parquet(path)
+# Candidates get the categories in the category column, in place; a failed
+# thread is left blank and isn't cached, so a rerun retries it.
+def test_classify_adds_the_column_and_skips_caching_failures(tmp_path, monkeypatch):
+    fake_endpoint(monkeypatch, choice="clone_refactoring")
+    path = tmp_path / "list=testlist.parquet"
+    pd.DataFrame({"_thread_id": ["ok", "failed", "other"], "is_candidate": ["yes", "yes", "no"],
+                  "thread_content": ["good thread", "bad thread", None]}).to_parquet(path)
     real_classify = openjev.classify_thread
 
     def classify_thread(thread_content, engine, style):
@@ -187,14 +161,12 @@ def test_classify_file_writes_results_and_skips_caching_failures(tmp_path, monke
         return real_classify(thread_content, engine, style)
 
     monkeypatch.setattr(openjev, "classify_thread", classify_thread)
-    cache = {}
-    output_dir = tmp_path / "out"
-    output_dir.mkdir()
+    cache_file = tmp_path / "cache.jsonl"
 
-    openjev.classify_file(str(path), str(output_dir), cache, threading.Lock(), engine(), workers=1,
-                          cache_file=str(tmp_path / "cache.json"), style="choice")
+    openjev.classify([str(path)], engine(), workers=1, cache_file=str(cache_file), style="choice")
 
-    out = pd.read_parquet(output_dir / "threads.parquet").set_index("_thread_id")
-    assert json.loads(out.loc["ok", "llm_categories"]) == ["clone_refactoring"]
-    assert out.loc["failed", "llm_error"] == "no logprobs"
-    assert list(cache) == [openjev.cache_key("ok", "choice")]
+    out = pd.read_parquet(path).set_index("_thread_id")
+    assert out.loc["ok", "category"] == "clone_refactoring"
+    assert out["category"].drop("ok").isna().all()
+    assert [json.loads(line)["key"] for line in cache_file.read_text().splitlines()] == \
+        [openjev.cache_key("ok", "choice")]

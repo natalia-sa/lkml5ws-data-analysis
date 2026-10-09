@@ -26,3 +26,11 @@ paths:
   source_dir: data/source
   output_dir: data/output
   archive_index: config/archive_index.csv
+
+# Backup do cache dos classificadores (classify/*/llm_cache.jsonl) num rascunho
+# não publicado do Zenodo, atualizado a cada `every` respostas novas. O id vem de
+# classify/zenodo_backup.py create; o token, de ZENODO_CLASSIFY_TOKEN no .env.
+classify_backup:
+  api_url: https://zenodo.org/api
+  deposition_id: "23253397"
+  every: 5000

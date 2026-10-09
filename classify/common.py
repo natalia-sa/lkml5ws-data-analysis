@@ -1,11 +1,27 @@
 """What the classifiers in classify/ share, so their answers can be compared
 with each other and with the manual labels: the categories of
-LABELING_CRITERIA.md, their combination rules and the cut of long threads,
-so every model receives the same thread content."""
+LABELING_CRITERIA.md, their combination rules, the cut of long threads, so
+every model receives the same thread content, and the run over the
+build_threads output, which adds the classifier's column to each list in
+place and resumes from its cache."""
 
+import glob
+import json
+import os
 import re
+from concurrent.futures import ThreadPoolExecutor
+from itertools import batched
+
+import pyarrow as pa
+import pyarrow.compute as pc
+import pyarrow.parquet as pq
+import yaml
+from tqdm import tqdm
 
 from pre_filter.pre_filter_threads import match_spans
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CONFIG_FILE = os.path.join(PROJECT_ROOT, "config", "pipeline.yaml")
 
 # In the order LABELING_CRITERIA.md lists them, which is also the order of
 # the `category` column of the consolidated sample.
@@ -13,7 +29,6 @@ CATEGORIES = (
     "clone_refactoring",
     "preventive_reuse",
     "duplication_discussion",
-    "satd",
     "not_duplication",
 )
 
@@ -104,3 +119,144 @@ def truncate_thread_content(text, max_chars=MAX_THREAD_CONTENT_CHARS):
             return first_message + _fit_to_budget(rest, max_chars - len(first_message))
 
     return _fit_to_budget(text, max_chars)
+
+
+def output_dir(config_file=CONFIG_FILE):
+    """The build_threads output, from config/pipeline.yaml."""
+    with open(config_file, encoding="utf-8") as fh:
+        return os.path.join(PROJECT_ROOT, yaml.safe_load(fh)["paths"]["output_dir"])
+
+
+def load_cache(cache_file):
+    """{key: result} from the JSON lines of cache_file. A last line cut by
+    an interruption is ignored."""
+    cache = {}
+    if os.path.exists(cache_file):
+        with open(cache_file, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                cache[entry["key"]] = entry["result"]
+    return cache
+
+
+def open_cache(cache_file):
+    """cache_file opened for appending, after ending a line cut by an
+    interruption, so the next answer starts its own line."""
+    if os.path.exists(cache_file) and os.path.getsize(cache_file):
+        with open(cache_file, "rb") as fh:
+            fh.seek(-1, os.SEEK_END)
+            cut = fh.read() != b"\n"
+        if cut:
+            with open(cache_file, "a", encoding="utf-8") as fh:
+                fh.write("\n")
+    return open(cache_file, "a", encoding="utf-8")
+
+
+def append_lines(cache_file, lines):
+    with open_cache(cache_file) as fh:
+        fh.writelines(line + "\n" for line in lines)
+
+
+# The column every classifier fills with its categories: the last one run
+# on a list is the one it holds.
+CATEGORY_COLUMN = "category"
+
+# Candidate threads read and classified at a time, so a long list is never
+# held in memory.
+CHUNK_THREADS = 200
+READ_BATCH_ROWS = 5_000
+
+
+def candidate_threads(path):
+    """(thread_id, thread_content) of the candidate threads, in file order."""
+    columns = ["_thread_id", "is_candidate", "thread_content"]
+    for batch in pq.ParquetFile(path).iter_batches(batch_size=READ_BATCH_ROWS, columns=columns):
+        batch = batch.filter(pc.equal(batch.column("is_candidate"), "yes"))
+        yield from zip(batch.column("_thread_id").to_pylist(), batch.column("thread_content").to_pylist())
+
+
+def write_column(path, column, values):
+    """Rewrites path with column set to values[thread_id] (None if absent),
+    through a .tmp renamed at the end, so the file is always complete."""
+    parquet_file = pq.ParquetFile(path)
+    schema = parquet_file.schema_arrow
+    if column in schema.names:
+        schema = schema.remove(schema.get_field_index(column))
+    schema = schema.append(pa.field(column, pa.large_string()))
+
+    tmp_path = path + ".tmp"
+    with pq.ParquetWriter(tmp_path, schema) as writer:
+        for batch in parquet_file.iter_batches(batch_size=READ_BATCH_ROWS):
+            if column in batch.schema.names:
+                batch = batch.drop_columns([column])
+            ids = batch.column("_thread_id").to_pylist()
+            new = pa.array([values.get(thread_id) for thread_id in ids], pa.large_string())
+            writer.write_batch(pa.RecordBatch.from_arrays([*batch.columns, new], schema=schema))
+    os.replace(tmp_path, path)
+
+
+def classify_list(path, cache, cache_file, key, classify, workers, backup=None, column=CATEGORY_COLUMN):
+    """Classifies the candidate threads of one list not yet in the cache,
+    appending each answer to cache_file as it arrives, then writes column:
+    the comma-joined categories, None for threads not candidate or failed.
+    classify(thread_id, thread_content) returns a result with "categories",
+    or {"error": ...}, which isn't cached, so a rerun retries the thread.
+    backup.added(cache_file) is called after each answer cached."""
+    columns = ["_thread_id", "is_candidate"] + ([column] if column in pq.read_schema(path).names else [])
+    table = pq.read_table(path, columns=columns)
+    candidates = table.filter(pc.equal(table.column("is_candidate"), "yes")).column("_thread_id").to_pylist()
+    pending = [thread_id for thread_id in candidates if key(thread_id) not in cache]
+    pending_set = set(pending)
+
+    classified = failed = 0
+    if pending:
+        rows = ((tid, content) for tid, content in candidate_threads(path) if tid in pending_set)
+        progress = tqdm(total=len(candidates), initial=len(candidates) - len(pending),
+                        desc=f"{os.path.basename(path)} (x{workers})")
+        with open_cache(cache_file) as fh, ThreadPoolExecutor(workers) as executor:
+            for chunk in batched(rows, CHUNK_THREADS):
+                for (thread_id, _), result in zip(chunk, executor.map(lambda row: classify(*row), chunk)):
+                    if "error" in result:
+                        failed += 1
+                    else:
+                        classified += 1
+                        cache[key(thread_id)] = result
+                        fh.write(json.dumps({"key": key(thread_id), "result": result}, ensure_ascii=False) + "\n")
+                        fh.flush()
+                        if backup:
+                            backup.added(cache_file)
+                    progress.update()
+        progress.close()
+
+    values = {tid: ",".join(cache[key(tid)]["categories"]) for tid in candidates if key(tid) in cache}
+    current = dict(zip(table.column("_thread_id").to_pylist(), table.column(column).to_pylist())) \
+        if column in table.schema.names else None
+    # Rewritten only when the column changes, so a thread that always fails
+    # doesn't make every rerun rewrite the list.
+    if current is None or any(current.get(tid) != values.get(tid) for tid in candidates):
+        write_column(path, column, values)
+    print(f"{os.path.basename(path)}: {len(candidates)} candidates, {classified} classified now, "
+          f"{failed} failed")
+
+
+def classify_lists(paths, cache_file, key, classify, workers, backup=None):
+    """classify_list over paths, with the cache restored from the backup
+    first and backed up again at the end, even after an interruption."""
+    if backup:
+        backup.restore(cache_file)
+    cache = load_cache(cache_file)
+    try:
+        for path in paths:
+            classify_list(path, cache, cache_file, key, classify, workers, backup)
+    finally:
+        if backup:
+            backup.safe_upload(cache_file)
+
+
+def list_paths(directory, lists=None):
+    if lists:
+        return [os.path.join(directory, f"list={name}.parquet") for name in lists]
+    return sorted(glob.glob(os.path.join(directory, "list=*.parquet")))

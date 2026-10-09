@@ -7646,7 +7646,7 @@ index fed7b11..8277950 100644
  
  /* Event code number extraction depends on which type of event we have.
 -- 
-1.7.3.4",duplicated,yes,yes,yes,"clone_refactoring,satd",Both reviewers agreed.
+1.7.3.4",duplicated,yes,yes,yes,clone_refactoring,Both reviewers agreed.
 1317133794-16397-7-git-send-email-jic23@cam.ac.uk,iio,8,"['1317133794-16397-2-git-send-email-jic23@cam.ac.uk'
  '1317133794-16397-3-git-send-email-jic23@cam.ac.uk'
  '1317133794-16397-7-git-send-email-jic23@cam.ac.uk'
@@ -210179,7 +210179,7 @@ dcdb10ccc89293 Aryan Srivastava 2024-10-07  533
 
 -- 
 0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki",common-helper,yes,yes,yes,clone_refactoring,Both reviewers agreed.
+https://github.com/intel/lkp-tests/wiki",common-helper,yes,yes,yes,"clone_refactoring,preventive_reuse",Both reviewers agreed.
 20241028142000.1058149-2-aren@peacevolution.org,iio,16,"['20241028142000.1058149-1-aren@peacevolution.org'
  '20241028142000.1058149-2-aren@peacevolution.org'
  '20241028142000.1058149-3-aren@peacevolution.org'
@@ -270411,7 +270411,7 @@ IIRC, that was me trying to get a merge-message or something like it.
 
 
 [quoted text removed]
-","copy-paste,redundantly,repeated",yes,yes,yes,"clone_refactoring,satd",Both reviewers agreed.
+","copy-paste,redundantly,repeated",yes,yes,yes,clone_refactoring,Both reviewers agreed.
 4bac4087-77d8-45c1-852a-1c6a37044431@intel.com,linux-iommu,102,"['20240412082121.33382-1-yi.l.liu@intel.com'
  '20240412082121.33382-2-yi.l.liu@intel.com'
  '20240412082121.33382-3-yi.l.liu@intel.com'
@@ -332063,7 +332063,7 @@ As noted in the cover letter for this series, if this isn't the
 approved mechanism, then please let me know what is.
 
 Many thanks
-  Dave","duplicate,duplicated",yes,yes,yes,"clone_refactoring,satd",Both reviewers agreed.
+  Dave","duplicate,duplicated",yes,yes,yes,clone_refactoring,Both reviewers agreed.
 CAPb7_ms36YnT2VVkhngCEonwihtgHSMWO0uQQxsr58rUCgRPLA@mail.gmail.com,iio,9,"['1374059564-6872-1-git-send-email-oleksandr.kozaruk@ti.com'
  '1374059564-6872-2-git-send-email-oleksandr.kozaruk@ti.com'
  '1374059564-6872-3-git-send-email-oleksandr.kozaruk@ti.com'
@@ -343551,7 +343551,7 @@ blocking behavior, if they have a failure from that point they can
 leave the device blocking. When the core code asks for blocking during
 the error handling it is NOP.
 
-Jason","duplicate,duplication",yes,yes,yes,"clone_refactoring,satd",Both reviewers agreed.
+Jason","duplicate,duplication",yes,yes,yes,clone_refactoring,Both reviewers agreed.
 ZO3wMlze3HRkkoMY@smile.fi.intel.com,iio,9,"['20230815154027.12468-1-andriy.shevchenko@linux.intel.com'
  '20230815154027.12468-2-andriy.shevchenko@linux.intel.com'
  '20230815154027.12468-3-andriy.shevchenko@linux.intel.com'

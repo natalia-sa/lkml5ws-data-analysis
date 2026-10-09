@@ -1,65 +1,72 @@
 #!/usr/bin/env python3
-"""Classifies the pre-filtered threads into the categories of
-LABELING_CRITERIA.md with Jev (TypeSafe), one API call per thread.
+"""Classifies the candidate threads of the build_threads output into the
+categories of LABELING_CRITERIA.md with Jev (TypeSafe), one API call per
+thread.
 
 Two ways of asking (--question-style):
-- noul (default): each category except not_duplication is a Jev "noul"
+- noul: each category except not_duplication is a Jev "noul"
   question (is this true? 0-1), with criteria for what makes it true and
   false; a category applies when its noul reaches NOUL_THRESHOLD, and the
   combination rules are applied here, not by the model;
-- choice: one Jev "choice" question picks the main category among
-  mutually exclusive options, whose probabilities add up to 1, plus the
-  satd noul, since satd can occur with any category.
+- choice (default): one Jev "choice" question picks the main category among
+  mutually exclusive options, whose probabilities add up to 1.
 
-Reads the parquets from pre_filter_threads.py and writes them to
-classify_output/<style>/ with four new columns: llm_categories (JSON list),
-llm_scores (JSON noul or probability per option), llm_model (the version Jev
-answered with) and llm_error (None unless the thread failed). The categories,
-their combination rules and the cut of long threads come from
-classify/common.py, shared with the OpenAI classifier, so the outputs can be
-compared column for column.
+Fills the column `category` (the comma-joined categories; None for threads
+that aren't candidates or failed), shared by every classifier, in each list of
+<output_dir>/list=<name>.parquet, in place. The categories, their
+combination rules and the cut of long threads come from classify/common.py,
+shared with the other classifiers.
 
-A cache (llm_cache.json) and periodic checkpoints let a run be resumed
-without paying again for threads already classified; failed threads are
-not cached, so a rerun retries them.
+Each answer, with its scores and model version, is appended to a cache
+(llm_cache.jsonl), so an interrupted run resumes where it stopped; failed
+threads aren't cached, so a rerun retries them. The cache is backed up to a
+Zenodo draft as it grows (classify/zenodo_backup.py; --no-backup to skip).
+
+Run:
+    .venv/bin/python classify/jev_classifier/classify_threads.py [--lists a,b]
 """
 
 import argparse
-import glob
 import hashlib
 import json
 import os
 import sys
-import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import pandas as pd
 from dotenv import load_dotenv
-from tqdm import tqdm
-from typesafe_sdk import Choice, Noul, NoulCriteria, RetryPolicy, TypeSafeClient, TypeSafeRateLimitError
+from typesafe_sdk import (
+    Choice,
+    Noul,
+    NoulCriteria,
+    RetryPolicy,
+    TypeSafeBadRequestError,
+    TypeSafeClient,
+    TypeSafeRateLimitError,
+)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, PROJECT_ROOT)
 
-from classify.common import normalize_categories, truncate_thread_content  # noqa: E402
+from classify import zenodo_backup  # noqa: E402
+from classify.common import (  # noqa: E402
+    MAX_THREAD_CONTENT_CHARS,
+    classify_lists,
+    list_paths,
+    normalize_categories,
+    output_dir,
+    truncate_thread_content,
+)
 from pre_filter.pre_filter_threads import QUOTE_PLACEHOLDER  # noqa: E402
 
-PRE_FILTER_DIR = os.path.join(PROJECT_ROOT, "pre_filter", "pre_filter_output")
-OUTPUT_DIR = os.path.join(HERE, "classify_output")
-CACHE_FILE = os.path.join(HERE, "llm_cache.json")
+CACHE_FILE = os.path.join(HERE, "llm_cache.jsonl")
 
 # A pinned version, not the jev-latest alias, so the model can't change mid-study.
 MODEL = "jev-1.13.0"
 
-THREAD_ID_COLUMN = "_thread_id"
-CONTENT_COLUMN = "thread_content"
-
 # A category applies when Jev's noul for its statement reaches this value.
 NOUL_THRESHOLD = 0.5
 
-SAVE_EVERY = 50
 REQUEST_DELAY = 0.2
 DEFAULT_WORKERS = 3
 REQUEST_TIMEOUT_SECONDS = 120
@@ -69,6 +76,11 @@ API_MAX_RETRIES = 4
 # many times.
 RATE_LIMIT_WAIT_SECONDS = 60
 RATE_LIMIT_RETRIES = 3
+# Chars per token vary with the thread (diffs, hex dumps), so a thread cut to
+# MAX_THREAD_CONTENT_CHARS can still exceed Jev's context: it is then sent
+# again cut to SHRINK_FACTOR of the previous size, down to MIN_THREAD_CONTENT_CHARS.
+SHRINK_FACTOR = 0.75
+MIN_THREAD_CONTENT_CHARS = 20_000
 
 # Jev only receives the state and the questions, so the context the OpenAI
 # prompt gives in its instructions goes at the top of the state.
@@ -109,11 +121,13 @@ NOUL_QUESTIONS = {
                 "Clone size does not matter: a local variable introduced to avoid repeating "
                 "the same expression (e.g. &pdev->dev), or two constants for the same value "
                 "unified into one, also count.",
-                "In a pull request without diffs, only if the maintainer's own prose states "
-                "the deduplication purpose.",
+                "The copies already exist in the kernel tree the patch applies to, and a diff "
+                "in the thread shows them being removed.",
             ],
             false=[
                 "No patch merges copies of code that exist in the tree.",
+                "No diff in the thread shows the copies being removed: text alone is not "
+                "enough.",
                 "The copy only existed in an earlier version of the same series (v1, v2) and "
                 "is merged away in the current one: it never reached the tree.",
                 "The merge is only suggested by a reviewer, even with a diff or code snippet "
@@ -125,7 +139,6 @@ NOUL_QUESTIONS = {
                 "simply doesn't need to exist, it is redundancy.",
                 "Removing a duplicate include, table entry or declaration.",
                 "Deleting dead code left behind by an earlier refactor, as a bug fix.",
-                "A pull request where only a commit title in the shortlog mentions dedup.",
             ],
         ),
     ),
@@ -134,7 +147,8 @@ NOUL_QUESTIONS = {
             "Does a patch avoid writing a copy, either by putting code in a common place "
             "with the stated purpose of letting another user share it, or by deliberately "
             "extending or reusing existing code instead of duplicating it? The diff must "
-            "show that the reuse was done."
+            "show that code was created, moved or changed so that other places can use it; "
+            "those other users don't need to appear in the thread."
         ),
         criteria=NoulCriteria(
             true=[
@@ -182,6 +196,16 @@ NOUL_QUESTIONS = {
                 "and the other was not).",
                 "A reviewer suggests a deduplication with a diff or code snippet inside the "
                 "email, without a patch in the thread doing it.",
+                "A duplication is admitted as technical debt in a code comment anywhere in "
+                "the diff, e.g. '/* FIXME: duplicated from foo_x1_setup(), should be shared "
+                "*/'. No TODO/FIXME tag is needed, and an unchanged context line or a removed "
+                "line also counts.",
+                "A duplication is admitted as technical debt in an email, e.g. 'For now the "
+                "setup code is copied from foo_x1_setup(); the two will be merged in a "
+                "follow-up', 'copying for now, will dedup later', 'ok, I'll unify this in a "
+                "follow-up', or the author calls a copy the patch introduces a 'hack'. The "
+                "duplication may be named implicitly ('need to flatten these together' about "
+                "two sets of definitions called duplicated).",
             ],
             false=[
                 "Duplicate, redundant or repeated appear only in another sense: a duplicate "
@@ -192,38 +216,9 @@ NOUL_QUESTIONS = {
                 "The only remark is about copies in the binary: a function defined once in "
                 "the source but compiled into several objects (a static function in a header).",
                 "Code is copied without anyone mentioning it.",
-                "A pull request where only a commit title in the shortlog mentions dedup.",
-            ],
-        ),
-    ),
-    "satd": Noul(
-        instructions=(
-            "Is a code duplication admitted as technical debt in this thread, in a code "
-            "comment anywhere in the diff or in the discussion?"
-        ),
-        criteria=NoulCriteria(
-            true=[
-                "A comment in the diff admits the duplication, e.g. '/* FIXME: duplicated "
-                "from foo_x1_setup(), should be shared */'. No TODO/FIXME tag is needed, and "
-                "an unchanged context line or a removed line also counts.",
-                "Someone admits it in the discussion, e.g. 'For now the setup code is copied "
-                "from foo_x1_setup(); the two will be merged in a follow-up', 'copying for "
-                "now, will dedup later', 'ok, I'll unify this in a follow-up'.",
-                "The author admits that a copy the patch introduces is a stopgap: calls it a "
-                "'hack', or says such code is not wanted in the proper place.",
-                "It counts even when the same thread pays the debt, and the duplication may "
-                "be named implicitly ('need to flatten these together' about two sets of "
-                "definitions called duplicated).",
-            ],
-            false=[
-                "No one admits a duplication as debt.",
-                "A copy is only stated ('copied from foo.c'), with no admission that it is "
-                "a problem.",
                 "A TODO that only asks to move code ('TODO: move this into a common "
-                "header') without naming the duplication.",
-                "Code said to 'go away' later or kept 'for now', without intent to "
-                "deduplicate it.",
-                "A TODO or FIXME unrelated to duplication.",
+                "header') without naming the duplication, or code said to 'go away' later "
+                "or kept 'for now', without intent to deduplicate it.",
             ],
         ),
     ),
@@ -251,14 +246,12 @@ NOT_DUPLICATION_CASES = [
     "several objects (a static function in a header).",
     "Code moved or renamed without a stated reuse motive, including a TODO such as 'move "
     "this into a common header' that doesn't say why.",
-    "A pull request where only a commit title in the shortlog mentions dedup.",
     "Code copied without anyone mentioning it.",
     "Dead code left behind by an earlier refactor, deleted as a bug fix.",
 ]
 
-# The choice style: the main category as competing options, and satd as the
-# same noul. Each option starts with what its noul question asks, as a
-# statement, followed by the noul's true criteria; the false criteria are
+# The choice style: the main category as competing options. Each option
+# starts with what its noul question asks, as a statement, followed by the noul's true criteria; the false criteria are
 # covered by the other options, so both styles carry the same criteria.
 CHOICE_QUESTIONS = {
     "category": Choice(
@@ -277,8 +270,9 @@ CHOICE_QUESTIONS = {
                 "A patch avoids writing a copy, by putting code in a common place with the "
                 "stated purpose of letting another user share it, or by deliberately "
                 "extending or reusing existing code instead of duplicating it. The diff "
-                "shows that the reuse was done; a reuse only suggested in the discussion "
-                "does not count.",
+                "shows that code was created, moved or changed so that other places can use "
+                "it, even if those users don't appear in the thread; a reuse only suggested "
+                "in the discussion does not count.",
                 *_true("preventive_reuse"),
             ],
             "clone_and_reuse": (
@@ -293,7 +287,6 @@ CHOICE_QUESTIONS = {
             "not_duplication": ["None of the above.", *NOT_DUPLICATION_CASES],
         },
     ),
-    "satd": NOUL_QUESTIONS["satd"],
 }
 
 # The categories each choice option stands for.
@@ -306,18 +299,6 @@ CHOICE_CATEGORIES = {
 }
 
 QUESTION_STYLES = ("noul", "choice")
-
-
-def load_cache(cache_file=CACHE_FILE):
-    if os.path.exists(cache_file):
-        with open(cache_file) as f:
-            return json.load(f)
-    return {}
-
-
-def save_cache(cache, cache_file=CACHE_FILE):
-    with open(cache_file, "w") as f:
-        json.dump(cache, f, indent=2, ensure_ascii=False)
 
 
 def _questions_version(questions):
@@ -340,8 +321,8 @@ def cache_key(thread_id, style="noul"):
     return f"{thread_id}:{MODEL}:{style}:{QUESTIONS_VERSION[style]}"
 
 
-def build_state(thread_content):
-    return STATE_PREAMBLE + truncate_thread_content(thread_content or "")
+def build_state(thread_content, max_chars=MAX_THREAD_CONTENT_CHARS):
+    return STATE_PREAMBLE + truncate_thread_content(thread_content or "", max_chars)
 
 
 def categories_from_nouls(nouls):
@@ -368,140 +349,89 @@ def parse_response(response):
 
 
 def parse_choice_response(response):
-    """Reads the chosen option and the satd noul, returning the same shape
-    as parse_response, with the option probabilities as scores."""
-    if "category" not in response.choices or "satd" not in response.nouls:
-        raise ValueError("missing category choice or satd noul")
+    """Reads the chosen option, returning the same shape as parse_response,
+    with the option probabilities as scores."""
+    if "category" not in response.choices:
+        raise ValueError("missing category choice")
     answer = response.choices["category"]
-    satd = response.nouls["satd"].noul
-
-    categories = list(CHOICE_CATEGORIES[answer.choice])
-    if satd >= NOUL_THRESHOLD:
-        categories.append("satd")
 
     return {
-        "categories": normalize_categories(categories),
-        "scores": {**answer.probabilities, "satd": satd},
+        "categories": normalize_categories(CHOICE_CATEGORIES[answer.choice]),
+        "scores": answer.probabilities,
         "model": response.model,
     }
 
 
-def classify_thread(thread_content, client, style="noul"):
+def classify_thread(thread_content, client, style="noul", max_chars=MAX_THREAD_CONTENT_CHARS):
     """One independent call per thread, with no shared conversation state."""
-    state = build_state(thread_content)
+    state = build_state(thread_content, max_chars)
     if style == "choice":
         return parse_choice_response(client.system_one(state, CHOICE_QUESTIONS))
     return parse_response(client.system_one(state, NOUL_QUESTIONS))
 
 
-def _result_for_thread(thread_id, thread_content, cache, lock, client, style="noul"):
-    """The thread's cached result, or a new one. A failure returns
-    {"error": ...} instead of stopping the run, and is not cached."""
-    key = cache_key(thread_id, style)
+def is_context_exceeded(error):
+    return isinstance(error, TypeSafeBadRequestError) and "max_tokens_exceeded" in str(error.body)
 
-    with lock:
-        if key in cache:
-            return cache[key]
 
-    for attempt in range(RATE_LIMIT_RETRIES + 1):
+def classify_with_retries(thread_content, client, style="noul"):
+    """The thread's result, with the max_chars it was cut to, or
+    {"error": ...} instead of stopping the run."""
+    max_chars = MAX_THREAD_CONTENT_CHARS
+    rate_limited = 0
+    while True:
         try:
-            result = classify_thread(thread_content, client, style)
+            result = {**classify_thread(thread_content, client, style, max_chars), "max_chars": max_chars}
             break
         except TypeSafeRateLimitError as error:
-            if attempt == RATE_LIMIT_RETRIES:
-                print(f"\nError classifying thread {thread_id}: {error}")
+            if rate_limited == RATE_LIMIT_RETRIES:
                 return {"error": str(error)}
+            rate_limited += 1
             time.sleep(RATE_LIMIT_WAIT_SECONDS)
         except Exception as error:
-            print(f"\nError classifying thread {thread_id}: {error}")
-            return {"error": str(error)}
-
-    with lock:
-        cache[key] = result
+            if not is_context_exceeded(error) or max_chars == MIN_THREAD_CONTENT_CHARS:
+                return {"error": str(error)}
+            max_chars = max(MIN_THREAD_CONTENT_CHARS, int(max_chars * SHRINK_FACTOR))
 
     time.sleep(REQUEST_DELAY)
-
     return result
 
 
-def classify_file(path, output_dir, cache, cache_lock, client, workers, limit=None,
-                  cache_file=CACHE_FILE, style="noul"):
-    df = pd.read_parquet(path)
+def classify(paths, client, workers=DEFAULT_WORKERS, cache_file=CACHE_FILE, style="noul", backup=None):
 
-    for column in (THREAD_ID_COLUMN, CONTENT_COLUMN):
-        if column not in df.columns:
-            raise KeyError(f"Column '{column}' not found in {path}.")
+    def classify_one(thread_id, thread_content):
+        result = classify_with_retries(thread_content, client, style)
+        if "error" in result:
+            print(f"\nError classifying thread {thread_id}: {result['error']}")
+        return result
 
-    if limit is not None:
-        df = df.head(limit).reset_index(drop=True)
-
-    out_path = os.path.join(output_dir, os.path.basename(path))
-
-    result_by_id = {}
-    results_lock = threading.Lock()
-
-    def checkpoint():
-        temp = df.copy()
-        results = temp[THREAD_ID_COLUMN].map(lambda tid: result_by_id.get(tid, {}))
-        temp["llm_categories"] = results.map(
-            lambda result: json.dumps(result["categories"]) if "categories" in result else None
-        )
-        temp["llm_scores"] = results.map(
-            lambda result: json.dumps(result["scores"]) if "scores" in result else None
-        )
-        temp["llm_model"] = results.map(lambda result: result.get("model")).astype("string")
-        temp["llm_error"] = results.map(lambda result: result.get("error")).astype("string")
-        temp.to_parquet(out_path, index=False)
-        save_cache(cache, cache_file)
-
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {
-            executor.submit(
-                _result_for_thread, thread_id, thread_content, cache, cache_lock, client, style
-            ): thread_id
-            for thread_id, thread_content in zip(df[THREAD_ID_COLUMN], df[CONTENT_COLUMN])
-        }
-
-        progress = tqdm(
-            as_completed(futures),
-            total=len(futures),
-            desc=f"{os.path.basename(path)} (x{workers})",
-        )
-
-        for processed, future in enumerate(progress, start=1):
-            thread_id = futures[future]
-            result = future.result()
-
-            with results_lock:
-                result_by_id[thread_id] = result
-
-                if processed % SAVE_EVERY == 0:
-                    checkpoint()
-
-    checkpoint()
-    failed = sum("error" in result for result in result_by_id.values())
-    print(f"{os.path.basename(path)}: classified {len(result_by_id) - failed} thread(s), "
-          f"{failed} failed -> {out_path}")
+    classify_lists(paths, cache_file, lambda tid: cache_key(tid, style), classify_one, workers, backup)
 
 
-def classify(path, output_dir=OUTPUT_DIR, workers=DEFAULT_WORKERS, limit=None,
-             cache_file=CACHE_FILE, style="noul"):
-    # Each question style in its own folder, so one run doesn't overwrite the
-    # other's answers.
-    output_dir = os.path.join(output_dir, style)
-    os.makedirs(output_dir, exist_ok=True)
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--lists", help="Comma-separated lists to classify (default: every list)")
+    parser.add_argument(
+        "-w", "--workers", type=int, default=DEFAULT_WORKERS,
+        help=f"Number of threads classified in parallel (parallel Jev calls). Default: {DEFAULT_WORKERS}.",
+    )
+    parser.add_argument("--cache-file", default=CACHE_FILE,
+                        help="Resumability cache (default: llm_cache.jsonl next to this script).")
+    parser.add_argument(
+        "--question-style", choices=QUESTION_STYLES, default="choice",
+        help="choice: one choice for the main category (default); noul: one noul per category.",
+    )
+    parser.add_argument("--no-backup", action="store_true",
+                        help="Don't back up the cache to the Zenodo draft (classify/zenodo_backup.py).")
+    args = parser.parse_args()
 
-    if os.path.isdir(path):
-        files = sorted(glob.glob(os.path.join(path, "*.parquet")))
-    else:
-        files = [path]
+    if args.workers < 1:
+        parser.error("--workers must be >= 1")
 
     load_dotenv()
     api_key = os.getenv("TYPESAFE_API_KEY")
     if not api_key:
-        raise SystemExit(
-            "TYPESAFE_API_KEY not set. Copy .env.example to .env and fill in your key."
-        )
+        raise SystemExit("TYPESAFE_API_KEY not set. Copy .env.example to .env and fill in your key.")
     client = TypeSafeClient(
         api_key=api_key,
         model=MODEL,
@@ -510,53 +440,10 @@ def classify(path, output_dir=OUTPUT_DIR, workers=DEFAULT_WORKERS, limit=None,
         retry=RetryPolicy(max_retries=API_MAX_RETRIES, timeout=None),
     )
 
-    cache = load_cache(cache_file)
-    cache_lock = threading.Lock()
-
-    for file_path in files:
-        classify_file(file_path, output_dir, cache, cache_lock, client, workers, limit=limit,
-                      cache_file=cache_file, style=style)
-
-    print(f"Saved to: {output_dir}")
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "path", nargs="?", default=PRE_FILTER_DIR,
-        help="A single pre-filtered parquet or a directory of parquets (e.g. pre_filter/pre_filter_output/)",
-    )
-    parser.add_argument(
-        "--output-dir", default=OUTPUT_DIR,
-        help="Results go to a subfolder named after the question style (noul/ or choice/).",
-    )
-    parser.add_argument(
-        "-w", "--workers", type=int, default=DEFAULT_WORKERS,
-        help=f"Number of threads classified in parallel (parallel Jev calls). Default: {DEFAULT_WORKERS}.",
-    )
-    parser.add_argument(
-        "--limit", type=int, default=None,
-        help="Classify only the first N threads per file (for a cheap test run).",
-    )
-    parser.add_argument(
-        "--cache-file", default=CACHE_FILE,
-        help=(
-            "Path to the resumability cache (default: llm_cache.json next to this script). "
-            "Point this at a scratch path for a one-off/test run so it "
-            "doesn't mix with -- or overwrite -- the main cache."
-        ),
-    )
-    parser.add_argument(
-        "--question-style", choices=QUESTION_STYLES, default="noul",
-        help="noul: one noul per category (default); choice: one choice for the main category plus the satd noul.",
-    )
-    args = parser.parse_args()
-
-    if args.workers < 1:
-        parser.error("--workers must be >= 1")
-
-    classify(args.path, output_dir=args.output_dir, workers=args.workers, limit=args.limit,
-             cache_file=args.cache_file, style=args.question_style)
+    lists = args.lists.split(",") if args.lists else None
+    classify(list_paths(output_dir(), lists), client, workers=args.workers, cache_file=args.cache_file,
+             style=args.question_style,
+             backup=None if args.no_backup else zenodo_backup.from_config("jev_llm_cache"))
 
 
 if __name__ == "__main__":

@@ -3,7 +3,6 @@ a fake HTTP transport (no real API calls)."""
 
 import importlib.util
 import json
-import threading
 from pathlib import Path
 
 import httpx2
@@ -19,9 +18,9 @@ jev = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(jev)
 
 
-def jev_body(clone=0.0, reuse=0.0, discussion=0.0, satd=0.0, model="jev-1.13.0"):
+def jev_body(clone=0.0, reuse=0.0, discussion=0.0, model="jev-1.13.0"):
     nouls = {"clone_refactoring": clone, "preventive_reuse": reuse,
-             "duplication_discussion": discussion, "satd": satd}
+             "duplication_discussion": discussion}
     return {
         "model": model,
         "answers": {name: {"type": "noul", "noul": noul} for name, noul in nouls.items()},
@@ -29,7 +28,7 @@ def jev_body(clone=0.0, reuse=0.0, discussion=0.0, satd=0.0, model="jev-1.13.0")
     }
 
 
-def jev_choice_body(choice, satd=0.0, model="jev-1.13.0"):
+def jev_choice_body(choice, model="jev-1.13.0"):
     probabilities = {option: 0.0 for option in jev.CHOICE_CATEGORIES}
     probabilities[choice] = 1.0
     return {
@@ -37,7 +36,6 @@ def jev_choice_body(choice, satd=0.0, model="jev-1.13.0"):
         "answers": {
             "category": {"type": "choice", "choice": choice, "confidence": 0.9,
                          "probabilities": probabilities},
-            "satd": {"type": "noul", "noul": satd},
         },
         "usage": {"input_tokens": 10, "output_tokens": 4},
     }
@@ -110,11 +108,9 @@ def test_long_thread_keeps_matches_and_fills_the_budget():
     (dict(clone=0.5), ["clone_refactoring"]),
     (dict(clone=0.9, reuse=0.8), ["clone_refactoring", "preventive_reuse"]),
     (dict(discussion=0.7), ["duplication_discussion"]),
-    (dict(discussion=0.7, satd=0.6), ["duplication_discussion", "satd"]),
-    (dict(satd=0.9), ["satd"]),
     # duplication_discussion only counts when no patch dedups or reuses.
     (dict(clone=0.8, discussion=0.9), ["clone_refactoring"]),
-    (dict(reuse=0.8, discussion=0.9, satd=0.7), ["preventive_reuse", "satd"]),
+    (dict(reuse=0.8, discussion=0.9), ["preventive_reuse"]),
 ])
 def test_threshold_and_combination_rules(nouls, categories):
     result = jev.classify_thread("content", FakeJev([(200, jev_body(**nouls))]).client)
@@ -124,8 +120,7 @@ def test_threshold_and_combination_rules(nouls, categories):
     assert set(result["scores"]) == set(jev.NOUL_QUESTIONS)
 
 
-# The choice style asks one choice and the satd noul; each option maps to
-# its categories, and satd is added on top of any of them.
+# The choice style asks one choice; each option maps to its categories.
 def test_choice_style_request():
     fake = FakeJev([(200, jev_choice_body("not_duplication"))])
 
@@ -134,29 +129,27 @@ def test_choice_style_request():
     questions = fake.requests[0]["questions"]
     assert questions["category"]["type"] == "choice"
     assert set(questions["category"]["criteria"]) == set(jev.CHOICE_CATEGORIES)
-    assert questions["satd"]["type"] == "noul"
+    assert set(questions) == {"category"}
 
 
-@pytest.mark.parametrize("choice, satd, categories", [
-    ("clone_refactoring", 0.1, ["clone_refactoring"]),
-    ("clone_and_reuse", 0.1, ["clone_refactoring", "preventive_reuse"]),
-    ("duplication_discussion", 0.8, ["duplication_discussion", "satd"]),
-    ("not_duplication", 0.1, ["not_duplication"]),
-    ("not_duplication", 0.8, ["satd"]),
+@pytest.mark.parametrize("choice, categories", [
+    ("clone_refactoring", ["clone_refactoring"]),
+    ("clone_and_reuse", ["clone_refactoring", "preventive_reuse"]),
+    ("duplication_discussion", ["duplication_discussion"]),
+    ("not_duplication", ["not_duplication"]),
 ])
-def test_choice_style_categories(choice, satd, categories):
-    body = jev_choice_body(choice, satd=satd)
+def test_choice_style_categories(choice, categories):
+    body = jev_choice_body(choice)
 
     result = jev.classify_thread("content", FakeJev([(200, body)]).client, style="choice")
 
     assert result["categories"] == categories
     assert result["scores"][choice] == 1.0
-    assert result["scores"]["satd"] == satd
 
 
 def test_missing_noul_is_rejected():
     body = jev_body()
-    del body["answers"]["satd"]
+    del body["answers"]["duplication_discussion"]
 
     with pytest.raises(ValueError):
         jev.classify_thread("content", FakeJev([(200, body)]).client)
@@ -201,68 +194,31 @@ def test_cache_key_includes_style_and_questions_version():
     assert jev.QUESTIONS_VERSION["noul"] != jev.QUESTIONS_VERSION["choice"]
 
 
-# Each question style writes to its own folder under the output dir.
-@pytest.mark.parametrize("style", jev.QUESTION_STYLES)
-def test_classify_writes_each_style_to_its_own_folder(tmp_path, monkeypatch, style):
-    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
-    written = []
-    monkeypatch.setattr(jev, "classify_file",
-                        lambda path, output_dir, *args, **kwargs: written.append(output_dir))
+# Candidates get the categories in the category column, in place; the cache keeps
+# the scores and the model Jev answered with.
+def test_classify_adds_the_category_column(tmp_path):
+    path = tmp_path / "list=testlist.parquet"
+    pd.DataFrame({"_thread_id": ["t1", "t2"], "is_candidate": ["yes", "no"],
+                  "thread_content": ["content", None]}).to_parquet(path, index=False)
+    cache_file = tmp_path / "cache.jsonl"
 
-    jev.classify(str(tmp_path / "list_data_testlist.parquet"), output_dir=str(tmp_path / "out"),
-                 cache_file=str(tmp_path / "llm_cache.json"), style=style)
+    jev.classify([str(path)], FakeJev([(200, jev_body(clone=0.9))]).client, workers=1,
+                 cache_file=str(cache_file))
 
-    assert written == [str(tmp_path / "out" / style)]
-    assert (tmp_path / "out" / style).is_dir()
-
-
-# classify_file
-
-def run_classify(tmp_path, thread_ids, fake, cache, **kwargs):
-    input_path = tmp_path / "list_data_testlist.parquet"
-    pd.DataFrame([
-        {jev.THREAD_ID_COLUMN: thread_id, "thread_content": "content", "list": "testlist"}
-        for thread_id in thread_ids
-    ]).to_parquet(input_path, index=False)
-    output_dir = tmp_path / "output"
-    output_dir.mkdir()
-
-    jev.classify_file(str(input_path), str(output_dir), cache=cache, cache_lock=threading.Lock(),
-                      client=fake.client, workers=1,
-                      cache_file=str(tmp_path / "llm_cache.json"), **kwargs)
-
-    return pd.read_parquet(output_dir / input_path.name).set_index(jev.THREAD_ID_COLUMN)
+    result = pd.read_parquet(path).set_index("_thread_id")
+    assert result.loc["t1", "category"] == "clone_refactoring"
+    assert pd.isna(result.loc["t2", "category"])
+    cached = json.loads(cache_file.read_text())
+    assert cached["key"] == jev.cache_key("t1")
+    assert cached["result"]["scores"]["clone_refactoring"] == 0.9
+    assert cached["result"]["model"] == "jev-1.13.0"
 
 
-# Each thread gets its categories, nouls and the model Jev answered with,
-# the original columns are kept, and --limit classifies only the first N.
-def test_classify_file_writes_results(tmp_path):
-    fake = FakeJev([(200, jev_body(clone=0.9)), (200, jev_body())])
+# A 400 fails the thread instead of stopping the run.
+def test_failure_returns_the_error():
+    result = jev.classify_with_retries("content", FakeJev([(400, {"error": "bad request"})]).client)
 
-    result = run_classify(tmp_path, ["t1", "t2", "t3"], fake, cache={}, limit=2)
-
-    assert list(result.index) == ["t1", "t2"]
-    assert json.loads(result.loc["t1", "llm_categories"]) == ["clone_refactoring"]
-    assert json.loads(result.loc["t1", "llm_scores"])["clone_refactoring"] == 0.9
-    assert json.loads(result.loc["t2", "llm_categories"]) == ["not_duplication"]
-    assert (result["llm_model"] == "jev-1.13.0").all()
-    assert result["llm_error"].isna().all()
-    assert set(result["list"]) == {"testlist"}
-
-
-# A cached thread doesn't call the API; a failing thread (here a 400) is
-# left blank, with the reason in llm_error, and isn't cached.
-def test_classify_file_uses_cache_and_skips_failures(tmp_path):
-    cache = {jev.cache_key("cached"): {"categories": ["satd"], "scores": {}, "model": "jev-1.13.0"}}
-    fake = FakeJev([(400, {"error": "bad request"})])
-
-    result = run_classify(tmp_path, ["cached", "failing"], fake, cache)
-
-    assert len(fake.requests) == 1
-    assert json.loads(result.loc["cached", "llm_categories"]) == ["satd"]
-    assert "400" in result.loc["failing", "llm_error"]
-    assert pd.isna(result.loc["failing", "llm_categories"])
-    assert jev.cache_key("failing") not in cache
+    assert "400" in result["error"]
 
 
 # The SDK retries timeouts and 5xxs quickly; a rate limit (429) that
@@ -272,12 +228,37 @@ def test_classify_file_uses_cache_and_skips_failures(tmp_path):
     ([(429, {})] * (jev.API_MAX_RETRIES + 1) * 3, True),
     ([(429, {})] * (jev.API_MAX_RETRIES + 1) * 4, False),
 ])
-def test_classify_file_retries_transient_failures(tmp_path, monkeypatch, failures, classified):
+def test_transient_failures_are_retried(monkeypatch, failures, classified):
     monkeypatch.setattr(jev, "RATE_LIMIT_RETRIES", 3)
     fake = FakeJev(failures + [(200, jev_body(reuse=0.7))])
 
-    result = run_classify(tmp_path, ["t1"], fake, cache={})
+    result = jev.classify_with_retries("content", fake.client)
 
-    assert pd.isna(result.loc["t1", "llm_error"]) == classified
+    assert ("error" not in result) == classified
     if classified:
-        assert json.loads(result.loc["t1", "llm_categories"]) == ["preventive_reuse"]
+        assert result["categories"] == ["preventive_reuse"]
+
+
+CONTEXT_EXCEEDED = (400, {"detail": {"error_type": "max_tokens_exceeded"}})
+
+
+# A thread over Jev's context is sent again cut to SHRINK_FACTOR of the
+# previous size, and the result keeps the size it was cut to.
+def test_context_exceeded_is_retried_with_a_smaller_cut():
+    fake = FakeJev([CONTEXT_EXCEEDED, CONTEXT_EXCEEDED, (200, jev_body(clone=0.9))])
+
+    result = jev.classify_with_retries("x" * 100_000, fake.client)
+
+    sizes = [len(request["state"]) - len(jev.STATE_PREAMBLE) for request in fake.requests]
+    assert sizes == [74_000, 55_500, 41_625]
+    assert result["categories"] == ["clone_refactoring"] and result["max_chars"] == 41_625
+
+
+# Below MIN_THREAD_CONTENT_CHARS it gives up and fails the thread.
+def test_context_exceeded_stops_at_the_minimum_cut():
+    fake = FakeJev([CONTEXT_EXCEEDED] * 10)
+
+    result = jev.classify_with_retries("x" * 100_000, fake.client)
+
+    assert "max_tokens_exceeded" in result["error"]
+    assert len(fake.requests[-1]["state"]) - len(jev.STATE_PREAMBLE) == jev.MIN_THREAD_CONTENT_CHARS
