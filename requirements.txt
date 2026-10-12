@@ -1,42 +1,35 @@
-# Dependências do projeto (Python 3).
-#
-# Instalação:
-#   python3 -m venv .venv
-#   .venv/bin/pip install -r requirements.txt
-#
-# Os demais módulos usados pelos scripts (csv, json, os, re, sys, time,
-# urllib, argparse, math) fazem parte da biblioteca padrão e não precisam
-# ser instalados.
-
-# Leitura/escrita dos CSVs e parquets e toda a filtragem em filter/.
+# CSV and Parquet reading and writing.
 pandas==3.0.3
 
-# Backend de parquet usado pelo pandas e pela leitura direta dos .parquet.
+# Parquet backend of pandas, also used directly.
 pyarrow==24.0.0
 
-# Leitura da coluna "code" em commit/commit_to_message_id_by_patch_id.py
-# (o pyarrow não lê page headers maiores que 16 MB, que aparecem em listas grandes).
+# Reads the "code" column in commit/commit_to_message_id_by_patch_id.py
+# (pyarrow can't read page headers over 16 MB, found in large lists).
 polars==1.44.2
 
-# libgit2 (patch-ids) em commit/commit_to_message_id_by_patch_id.py.
+# libgit2 (patch-ids) in commit/commit_to_message_id_by_patch_id.py.
 pygit2==1.20.1
 
-# Barra de progresso usada em build_threads/build_threads.py e classify/*/classify_threads.py.
+# Progress bars.
 tqdm==4.68.3
 
-# Cliente da API da OpenAI usado por classify/openai_classifier/classify_threads.py.
+# OpenAI API client, for classify/openai_classifier/classify_threads.py.
 openai==2.44.0
 
-# SDK da API do Jev (TypeSafe) usado por classify/jev_classifier/classify_threads.py.
+# Jev (TypeSafe) API SDK, for classify/jev_classifier/classify_threads.py.
 typesafe-sdk==0.7.1
 
-# OpenJev (motor aberto no estilo do Jev), usado por classify/openjev_classifier/classify_threads.py,
-# fica fora desta lista: o pacote declara torch e transformers, que só servem para rodar modelos
-# locais, e o script só usa a parte que chama o OpenRouter. Instale-o à parte, sem dependências:
+# OpenJev (open Jev-style engine), for classify/openjev_classifier/classify_threads.py, is
+# not listed: it declares torch and transformers, only needed for local models, and the
+# script only calls OpenRouter. Install it separately, without dependencies:
 #   .venv/bin/pip install --no-deps "openjev @ git+https://github.com/lookski/openjev@3e97d9cd934a1bb573e4da41200bf4615760d2db"
 
-# Leitura do .env (OPENAI_API_KEY, TYPESAFE_API_KEY, OPENROUTER_API_KEY) usada por classify/*/classify_threads.py.
+# Loads .env (API keys and the Zenodo token).
 python-dotenv==1.2.2
 
-# Testes unitarios
+# Reads config/pipeline.yaml.
+PyYAML==6.0.3
+
+# Unit tests.
 pytest==9.1.1

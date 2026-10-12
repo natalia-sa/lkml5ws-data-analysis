@@ -1,236 +1,119 @@
-# Análise de duplicação de código nas Linux Kernel Mailing Lists (LKML5Ws)
+# Code duplication in the Linux kernel mailing lists
 
-## Do que se trata
+This repository contains the pipeline that builds a dataset of mailing-list
+threads about code duplication in the Linux kernel. It starts from the
+[LKML5Ws](https://doi.org/10.5281/zenodo.17567225) dataset, groups the emails
+into threads, selects and classifies the threads that deal with code
+duplication, and links their patches to the commits that reached the mainline
+kernel.
 
-O ponto de partida é o dataset LKML5Ws, um conjunto **Apache Parquet particionado por mailing
-list** (cada pasta `list=<nome>` guarda um `list_data.parquet` com os e-mails daquela lista).
-O esquema completo do dataset está documentado em
-[`parquet_viewer/README_dataset.md`](parquet_viewer/README_dataset.md).
+## Pipeline
 
-A partir desses e-mails, o objetivo é chegar em um subconjunto confiável de threads sobre duplicação/deduplicação de código, classificá-las e verificar o desfecho de cada patch. Para isso o pipeline
-combina três estratégias:
+| Step | Script | What it does |
+|---|---|---|
+| `fetch` | `fetch/fetch.py` | Downloads the LKML5Ws lists that appear in the kernel's `MAINTAINERS` file. |
+| `build_threads` | `build_threads/build_threads.py` | Groups the emails of each list into threads, drops pull requests and bot messages, and flags the threads that match the regex pre-filter (`pre_filter/`). |
+| `classify` | `classify/jev_classifier/classify_threads.py` | Classifies each flagged thread into one category with an LLM. |
+| `commit` | `commit/commit_to_message_id.py` | Links the emails of the threads about duplication to mainline commits. |
+| `publish` | `publish/publish_dataset.py` | Packs the output into tar archives and uploads them to an unpublished Zenodo draft. |
 
-1. **Filtro por regex** (rápido, alto recall, muitos falsos positivos);
-2. **Classificação por LLM** (interpreta o significado técnico da discussão);
-3. **Consulta ao Patchwork** (descobre se o patch foi aceito no subsistema).
+Every step reads and writes `data/output/list=<name>.parquet`, one file per
+mailing list, adding its own columns. Every step also resumes from what is
+already done.
 
-## Execução
+## Setup
 
-### 1. Preparar o ambiente
+Requirements: Python 3.13, Git, and about 180 GB of free disk space for the
+full dataset (156 GB of which are the downloaded lists).
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-cp .env.example .env  
+cp .env.example .env                             
+git submodule update --init repositories/linux    
 ```
 
-Além das dependências do `requirements.txt` (`pandas`, `pyarrow`), a etapa de classificação por
-LLM usa `openai`, `python-dotenv` e `tqdm`, e é a única que precisa da `OPENAI_API_KEY` em
-`.env`.
+`.env` holds the API key of the classifier (`TYPESAFE_API_KEY` for Jev) and
+`ZENODO_TOKEN`, a Zenodo token with the `deposit:write` scope only. Paths,
+the range of kernel releases and the Zenodo drafts are set in
+`config/pipeline.yaml`.
 
-### 2. Criar as pastas de dados
-
-Estas pastas guardam dados de entrada/saída e ficam fora do controle de versão
-(veja o `.gitignore`) — é preciso criá-las e populá-las localmente:
+## Running
 
 ```bash
-mkdir -p iio amd
+.venv/bin/python run_pipeline.py                       
+.venv/bin/python run_pipeline.py --lists b43-dev             
 ```
 
-### 3. Baixar e descompactar o dataset LKML5Ws
+The `publish` step never publishes the dataset. It uploads the archives to a
+draft, which is reviewed and published by hand on Zenodo. Create the draft
+once with `publish/publish_dataset.py --create-draft` and set its id in
+`config/pipeline.yaml`.
 
-Baixe o `.tar.gz` do dataset (links e detalhes em
-[Dataset e referências](#dataset-e-referências-lkml5ws), mais abaixo) e coloque-o na raiz
-do repositório. Depois descompacte com o script incluso:
+## Output
+
+One row per thread.
+
+| Column | Type | Description | Step |
+|---|---|---|---|
+| `thread_id` | string | Thread identifier. | `build_threads` |
+| `list` | string | Mailing list. | `build_threads` |
+| `n_messages` | int64 | Number of messages in the thread. | `build_threads` |
+| `message_ids` | list\<string\> | Message-ID of each message, in chronological order. | `build_threads` |
+| `date` | timestamp | Date of the first message. | `build_threads` |
+| `subject` | string | Subject of the first message. | `build_threads` |
+| `is_duplication_candidate` | bool | Whether the thread matches the regex pre-filter. | `build_threads` |
+| `thread_content` | string | Text of the messages; null for non-candidates. | `build_threads` |
+| `category` | string | Category given by the classifier; null for non-candidates and failed classifications. | `classify` |
+| `category_confidence` | double | Probability of the chosen category, from 0 to 1. | `classify` |
+| `commit_matches` | list\<struct\> | Commits linked to emails of the thread; null if the thread is not about duplication, empty if no email matched. | `commit` |
+
+`category` is one of `clone_refactoring`, `preventive_reuse`,
+`clone_and_reuse` (both of the previous two), `duplication_discussion` and
+`not_duplication`. The categories are defined in
+[`select_sample/LABELING_CRITERIA.md`](select_sample/LABELING_CRITERIA.md).
+
+Each item of `commit_matches` has four fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `message_id` | string | Email of the thread linked to the commit. |
+| `commit_hash` | string | Hash of the mainline commit. |
+| `status` | string | `LINK` (the commit's `Link:` trailer cites the email), `EXACT` (same author email and date) or `AMBIGUOUS` (more than one candidate email). |
+| `candidate_message_ids` | list\<string\> | Every candidate email, filled only for `AMBIGUOUS`. |
+
+The remaining fields of each message, such as sender and recipients, can be
+retrieved from LKML5Ws through `message_ids`.
+
+## Labeled sample and classifier evaluation
+
+`select_sample/` holds a sample of threads labeled by two reviewers, the
+labeling criteria, and `sample_stats.ipynb`, which compares the three
+classifiers in `classify/` (Jev, OpenJev and OpenAI) against the sample. Jev
+is the classifier used by the pipeline.
+
+## Tests
 
 ```bash
-bash decompression_script.sh
+.venv/bin/python -m pytest classify commit/test_match_commits.py publish test_run_pipeline.py
+.venv/bin/python -m pytest build_threads fetch pre_filter
 ```
 
-Isso cria a pasta `LKML5Ws/`, particionada por lista (`LKML5Ws/list=<nome>/list_data.parquet`).
-
-### 4. Preparar o parquet de entrada de cada subsistema
-
-O pipeline espera um único `.parquet` por subsistema em `iio/list_data_iio.parquet` e
-`amd/list_data_amd.parquet`. Copie as partições relevantes de `LKML5Ws/` para esses caminhos, por exemplo:
-
-```bash
-cp "LKML5Ws/list=<nome-da-lista-iio>/list_data.parquet" iio/list_data_iio.parquet
-cp "LKML5Ws/list=<nome-da-lista-amd>/list_data.parquet" amd/list_data_amd.parquet
-```
-
-### 5. Montar as threads
-
-```bash
-.venv/bin/python build_threads/build_threads.py iio
-```
-
-Isso lê cada `.parquet` da pasta `iio/` e gera o correspondente em `build_threads_output/`
-(ex.: `build_threads_output/list_data_iio.parquet`), já com a coluna `_thread_id`. Repita
-para `amd` (`.venv/bin/python build_threads/build_threads.py amd`).
-
-### 6. Rodar o filtro por regex
-
-```bash
-.venv/bin/python filter/filter_parquet.py build_threads_output/list_data_iio.parquet
-```
-
-Isso lê `build_threads_output/list_data_iio.parquet` e grava automaticamente o resultado em
-`filter_output/iio-duplicated.parquet` (nome derivado do arquivo de entrada). Detalhes do que
-esses scripts fazem estão na seção [Como funciona](#como-funciona-o-pipeline) abaixo.
-
-### 7. Checar o resultado com o visualizador de parquet
-
-```bash
-.venv/bin/python parquet_viewer/view_parquet.py filter_output/iio-duplicated.parquet -n 10
-```
-
-Isso mostra o total de linhas do arquivo gerado e as 10 primeiras, para conferir rapidamente
-se o filtro funcionou. Mais opções em [`parquet_viewer/README_view_parquet.md`](parquet_viewer/README_view_parquet.md).
-
-## Como funciona o pipeline
-
-O fluxo roda sobre os `.parquet` de cada subsistema e passa por estas etapas:
-
-### 1. Montagem de threads — `build_threads/build_threads.py`
-
-Reconstrói as **threads** de discussão a partir dos cabeçalhos `In-Reply-To`/`References`
-(usando *union-find*) e grava a coluna `_thread_id` (idêntica para todos os e-mails de uma
-mesma thread). Roda sobre todos os `.parquet` de uma pasta de entrada (ex.: `iio/`, `amd/`) e
-grava um arquivo correspondente por entrada em `build_threads_output/`, mostrando uma barra de
-progresso por arquivo processado.
-
-### 2. Filtragem por regex — `filter/filter_parquet.py`
-
-Lê os `.parquet` já com threads montadas em `build_threads_output/` e marca a thread inteira quando
-**qualquer** e-mail dela casa com uma expressão regular de duplicação de código (`dedup`,
-`duplicate`, `copy-paste`, `clone`, `redundant/identical/same code`, etc.), buscando tanto no
-assunto quanto no corpo/código.
-
-Além de filtrar, o script:
-
-- **liga as versões de um mesmo patch** (v2 → v1, v3 → v1, ...) na coluna
-  `first_version_message_id`, agrupando submissões pelo autor + assunto-base;
-- **sorteia ~10% das threads** para verificação manual (coluna `manual_verification`).
-
-Saída: um `.parquet` só com as threads que mencionam duplicação de código, gravado
-automaticamente em `filter_output/<subsistema>-duplicated.parquet`. Comando de exemplo na
-seção [Execução](#execução), passo 6.
-
-### 3. Classificação por LLM — `classify/classify_duplication.py`
-
-O regex tem muitos falsos positivos ("duplicate index", "duplicate packet"...). Esta etapa
-envia **cada thread inteira** (uma chamada por thread) para o modelo **GPT-5-mini** da OpenAI,
-que decide, a partir do significado técnico da conversa, um único rótulo:
-
-| Rótulo | Significado |
-|---|---|
-| `CODE_DUPLICATION` | A thread discute duplicação de código-fonte (taxonomia de clones tipos 1–4). |
-| `REDUNDANCY_REMOVAL` | Remoção de redundância/limpeza — **não** é duplicação de código. |
-| `NOT_CODE_DUPLICATION` | Falso positivo do regex. |
-| `INSUFFICIENT_INFORMATION` | Não dá para decidir. |
-
-O rótulo é gravado na coluna `duplication_classification`. O script usa cache
-(`classify/llm_cache.json`), checkpoints periódicos e chamadas paralelas, então pode ser
-interrompido e retomado sem perder progresso.
-
-```bash
-.venv/bin/python classify/classify_duplication.py \
-    filter_output/iio-duplicated.parquet classify/iio-regex-classified.parquet
-```
-
-> Requer uma chave `OPENAI_API_KEY` no arquivo `.env`.
-
-### 4. Status de aceite no Patchwork — `patchwork/add_accepted_status.py`
-
-Para cada *patchset*, o script encontra a linha do **último patch** da série e consulta o
-**Patchwork** para descobrir se ele foi aceito no subsistema, preenchendo a coluna `accepted`
-com o estado exato retornado pela API (`accepted`, `new`, `superseded`, `rejected`, ...).
-
-Cada subsistema vive numa instância diferente do Patchwork:
-
-- **iio** → `patchwork.kernel.org` (API REST moderna, `state` como string);
-- **amd** → `patchwork.freedesktop.org` (fork antigo, API `1.0`, `state` numérico).
-
-Detalhes, limitações e o significado exato de cada valor de `accepted` estão em
-[`patchwork/README-add-accepted-status.md`](patchwork/README-add-accepted-status.md).
-
-```bash
-.venv/bin/python patchwork/add_accepted_status.py
-```
-
-### Scripts auxiliares
-
-- **`parquet_viewer/view_parquet.py`** — espia rapidamente qualquer `.parquet` (total de
-  linhas + primeiras N linhas). Ver [`parquet_viewer/README_view_parquet.md`](parquet_viewer/README_view_parquet.md).
-- **`inspect/inspect_duplicated.py`** — imprime na íntegra as threads sorteadas para
-  verificação manual.
-- **`inspect/find_usp.py`** — localiza threads com pelo menos um remetente `@usp.br`.
-
-## Notebook de análise
-
-- **Rodar no Colab:** <https://colab.research.google.com/drive/1POtpQV_GusB20M8zl02bXNxkkAQAuIQZ?usp=sharing>
-- **Versão no repositório:** [`notebooks/new_lkml5ws_data_analysis.ipynb`](notebooks/new_lkml5ws_data_analysis.ipynb)
-
-## Estrutura do repositório
+## Repository layout
 
 ```
-.
-├── compression_script.sh / decompression_script.sh   # (des)compactação do dataset LKML5Ws
-├── requirements.txt                                   # dependências (pandas, pyarrow, ...)
-├── notebooks/
-│   └── new_lkml5ws_data_analysis.ipynb                # notebook de análise (também no Colab)
-├── parquet_viewer/                                    # visualizador + doc do esquema do dataset
-├── iio/  amd/                                          # parquets de origem de cada subsistema
-├── build_threads/                                     # 1. montagem de threads (_thread_id)
-│   └── build_threads.py
-├── build_threads_output/                                     # saída da montagem de threads
-├── filter/                                            # 2. filtro por regex + versões
-│   └── filter_parquet.py
-├── filter_output/                                     # saída do filtro por regex
-├── classify/                                          # 3. classificação por LLM (GPT-5-mini)
-│   └── classify_duplication.py
-├── patchwork/                                         # 4. status de aceite via Patchwork
-│   ├── add_accepted_status.py
-│   └── README-add-accepted-status.md
-└── inspect/                                           # scripts auxiliares de inspeção
-    ├── inspect_duplicated.py        # threads sorteadas para verificação manual
-    └── find_usp.py                  # threads com remetentes da USP
+run_pipeline.py     runs the steps in order
+config/             pipeline.yaml and cached allow-list data
+fetch/              step 1: download of the lists
+build_threads/      step 2: thread building
+pre_filter/         regex pre-filter used by build_threads
+classify/           step 3: classifiers, shared code and cache backup
+commit/             step 4: link between emails and commits
+publish/            step 5: upload to Zenodo
+select_sample/      labeled sample, labeling criteria and evaluation notebook
+repositories/linux  kernel repository (Git submodule)
+data/               downloaded lists, output and archives (not versioned)
 ```
 
-> Os arquivos grandes de dados (`*.tar.gz`, `iio/`, `amd/`, parquets gerados, caches) ficam
-> fora do controle de versão — veja o `.gitignore`.
-
-## Dataset e referências (LKML5Ws)
-
-### Sobre o dataset e o paper
-
-- **MailingListsHeritage** — a ferramenta que criou o dataset:
-  <https://gitlab.com/ccsl-usp/codev/MailingListsHeritage>
-- **Pre-print do paper** (enviado para o ICSME 2026):
-  <https://drive.google.com/file/d/1OOA3mq6BsoZuus7iOiKLZGW6WB7gdvhU/view?usp=sharing>
-
-### Onde baixar o dataset
-
-No dataset completo, **cada arquivo contém cerca de 20 listas**. A recomendação é escolher um
-arquivo aleatório do dataset completo, ou usar o segundo link para baixar cada lista
-individualmente.
-
-- **Completo:**
-  <https://zenodo.org/records/17567225?preview=1&token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmNWI2NWQ4LTZjZGUtNDczNS1hMzAyLWE3MWFhYTUyYjRjMiIsImRhdGEiOnt9LCJyYW5kb20iOiI0NzQ2YjAzZmEzZDNjMzFkODAzMWZjNzE3YWQ4NWFiZSJ9.LJgQGR2P2qjk04w4KpzCrLYjXKIMEbETa77YeG6S18YkzoDSktCDysVEZ9tqds4Qdh4SqNT29yDu_bKuvjYNoA&preview_file=README.md>
-- **Separado por lista de e-mail:**
-  <https://files.rcpassos.me/public/Academic/Datasets/LKML5Ws_uncompressed_lists/>
-
-Para descompactar, ver a seção [Execução](#execução), passo 3. O esquema completo das colunas
-está em [`parquet_viewer/README_dataset.md`](parquet_viewer/README_dataset.md).
-
-### Editando a ferramenta MailingListsHeritage
-
-Caso alguém queira **editar o código da ferramenta** usada para gerar o dataset, há um "pacote
-inicial" com algumas listas já coletadas:
-
-- **Pacote inicial de listas:**
-  <https://files.rcpassos.me/public/Academic/MailingListsHeritage/>
-
-Recomenda-se usar antes o **demo mode** (autocontido):
-<https://gitlab.com/ccsl-usp/codev/MailingListsHeritage#demo-mode-self-contained>
+`patchwork/`, `notebooks/` and the compression scripts belong to an earlier
+version of the analysis and are not part of the pipeline.
