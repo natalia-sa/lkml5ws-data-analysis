@@ -12,9 +12,11 @@ classifier's, so both read the same text and the same questions; only the
 model answering them changes. OpenJev asks each question in its own call, so
 the noul style costs three calls per thread and the choice style one.
 
-Fills the column `category` (the comma-joined categories; None for threads
-that aren't candidates or failed), shared by every classifier, in each list of
-<output_dir>/list=<name>.parquet, in place.
+Fills the column `category` (the category, clone_and_reuse for a thread with
+both patch categories; None for threads that aren't candidates or failed),
+shared by every classifier, in each list of
+<output_dir>/list=<name>.parquet, in place, and `category_confidence`, the
+probability of the option chosen (choice style only).
 
 Each answer, with its scores and model, is appended to a cache
 (llm_cache.jsonl), so an interrupted run resumes where it stopped; failed
@@ -47,6 +49,7 @@ from classify.jev_classifier.classify_threads import (  # noqa: E402
     QUESTIONS_VERSION,
     build_state,
     categories_from_nouls,
+    choice_confidence,
 )
 
 CACHE_FILE = os.path.join(HERE, "llm_cache.jsonl")
@@ -136,7 +139,8 @@ def classify(paths, engine, workers=DEFAULT_WORKERS, cache_file=CACHE_FILE, styl
             print(f"\nError classifying thread {thread_id}: {error}")
             return {"error": str(error)}
 
-    classify_lists(paths, cache_file, lambda tid: cache_key(tid, style), classify_one, workers, backup)
+    classify_lists(paths, cache_file, lambda tid: cache_key(tid, style), classify_one, workers, backup,
+                   choice_confidence)
 
 
 def main():

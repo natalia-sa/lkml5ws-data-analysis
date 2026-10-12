@@ -30,11 +30,10 @@ class EmailPatchId:
 
 class EmailPatchIdIndex:
     def __init__(self):
-        # O mesmo diff do patch-id pode aparecer em mais de um email
+        # The same diff may appear in more than one email
         self.message_ids_by_patch_id: dict[str, list[str]] = {} # { patch_id: [message_id] }
         self.total_emails = 0
-        # Lista de onde o e-mail veio. Se o mesmo e-mail foi enviado para várias
-        # listas, fica a primeira indexada.
+        # List the email came from: the first one indexed, if it was sent to several.
         self.mailing_list_by_message_id: dict[str, str] = {}
 
     def add(self, email: EmailPatchId) -> None:
@@ -53,13 +52,11 @@ def load_email_diffs(mailing_list_file: str):
     if any(column not in schema_names for column in EMAIL_CODE_COLUMNS):
         return
 
-    # Leitura com polars e não com pyarrow: Na coluna "code" de listas
-    # grandes alguns headers passam de 16 MB, o limite fixo do leitor
-    # do pyarrow, que então falha com "Deserializing page header
-    # failed" mesmo com o arquivo íntegro. O leitor do polars não tem
-    # esse limite.
+    # Read with polars, not pyarrow: in large lists some page headers of the
+    # "code" column exceed pyarrow's fixed 16 MB limit, and it fails with
+    # "Deserializing page header failed" on a valid file.
     table = (
-        # Note: Polars dispara threads para a leitura do parquet
+        # Note: polars reads the parquet with several threads
         pl.scan_parquet(mailing_list_file)
         .select(EMAIL_CODE_COLUMNS)
         .filter(
@@ -79,9 +76,8 @@ def load_email_diffs(mailing_list_file: str):
 
 def compute_diff_patch_id(diff: str) -> str | None:
 
-    # O "code" vem de "\n".join(code_blocks), que não deixa "\n" no fim. Sem
-    # ele o parser da libgit2 rejeita a última linha do hunk ("invalid patch
-    # instruction at line N")
+    # "code" comes from "\n".join(code_blocks), with no trailing "\n"; without
+    # it libgit2 rejects the last hunk line ("invalid patch instruction at line N")
     if not diff.endswith("\n"):
         diff += "\n \n"
 
@@ -91,7 +87,7 @@ def compute_diff_patch_id(diff: str) -> str | None:
         if len(parsed) == 0:
             return None
 
-        # Pode falhar por "the patch input contains 6 id characters"
+        # May fail with "the patch input contains 6 id characters"
         return str(parsed.patchid)
     except (pygit2.GitError, ValueError):
         return None
@@ -119,11 +115,10 @@ def index_mailing_list_file(mailing_list_file: str) -> list[EmailPatchId]:
 
     email_patch_ids = compute_email_patch_ids(email_diffs) # { index: patch_id }
 
-    # Usa o nome do arquivo pra pegar o nome da lista
-    # Ex: ".../list=<nome>/list_data.parquet".
+    # The list name comes from the path: ".../list=<name>/list_data.parquet".
     mailing_list = pathlib.Path(mailing_list_file).parent.name.removeprefix("list=")
 
-    # email_message_ids e email_patch_ids são relacionadas pelo indice
+    # email_message_ids and email_patch_ids are related by index
     emails: list[EmailPatchId] = []
     for i, email_message_id in enumerate(email_message_ids):
         email_patch_id = email_patch_ids.get(i)
@@ -145,7 +140,7 @@ def build_email_patch_id_index(mailing_list_path: pathlib.Path, jobs: int) -> Em
     email_patch_id_index = EmailPatchIdIndex()
 
     with ProcessPoolExecutor(max_workers=jobs) as executor:
-        # Dispara um processo para cada mailing_list_file. Nesse caso, future->mailing_list_file
+        # One process per mailing_list_file: future -> mailing_list_file
         futures = {
             executor.submit(index_mailing_list_file, mailing_list_file): mailing_list_file
             for mailing_list_file in mailing_list_files
@@ -170,8 +165,8 @@ def add_git_commit_patch_id(git_commit_patch_ids: dict[str, str], git_commit_has
         git_commit_patch_ids[git_commit_hash] = git_commit_patch_id
 
 def compute_git_commit_patch_ids_shard(git_commit_hashes: list[str], git_tree: pathlib.Path) -> dict[str, str]:
-    # git log --stdin lendo de um pipe vivo pode travar (deadlock) se o buffer do
-    # pipe encher antes de terminarmos de escrever; por isso um arquivo real.
+    # git log --stdin on a live pipe can deadlock if the pipe buffer fills
+    # before we finish writing, hence a real file.
     with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as stdin_file:
         stdin_file.write("\n".join(git_commit_hashes))
         stdin_file.flush()
@@ -201,7 +196,7 @@ def compute_git_commit_patch_ids_shard(git_commit_hashes: list[str], git_tree: p
             for line in git_log_stdout:
                 line = line.decode("utf-8", errors="replace")
 
-                # Separa a stream de diffs usando o separador "commit <Hash em SHA1>(tamanho 41)"
+                # Diffs are separated by "commit <SHA-1 hash>" lines (hash plus newline: 41 chars)
                 if line.startswith("commit ") and len(line) == len("commit ") + 41:
                     if git_commit_hash is not None:
                         add_git_commit_patch_id(git_commit_patch_ids, git_commit_hash, git_commit_diff_lines)
@@ -234,7 +229,7 @@ def get_git_commit_patch_ids(git_commit_hashes: list[str], git_tree: pathlib.Pat
     git_commit_patch_ids: dict[str, str] = {}
 
     #with ProcessPoolExecutor(max_workers=len(git_commit_shards)) as executor:
-    # Gargalo é o tempo de espera do git log e do código C da libgit2. 
+    # The bottleneck is waiting for git log and libgit2's C code.
     with ThreadPoolExecutor(max_workers=len(git_commit_shards)) as executor:
         futures = [
             executor.submit(compute_git_commit_patch_ids_shard, git_commit_shard, git_tree)

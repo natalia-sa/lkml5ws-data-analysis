@@ -151,7 +151,7 @@ def test_cache_key_includes_model_style_and_questions_version():
 def test_classify_adds_the_column_and_skips_caching_failures(tmp_path, monkeypatch):
     fake_endpoint(monkeypatch, choice="clone_refactoring")
     path = tmp_path / "list=testlist.parquet"
-    pd.DataFrame({"_thread_id": ["ok", "failed", "other"], "is_candidate": ["yes", "yes", "no"],
+    pd.DataFrame({"thread_id": ["ok", "failed", "other"], "is_duplication_candidate": [True, True, False],
                   "thread_content": ["good thread", "bad thread", None]}).to_parquet(path)
     real_classify = openjev.classify_thread
 
@@ -165,7 +165,7 @@ def test_classify_adds_the_column_and_skips_caching_failures(tmp_path, monkeypat
 
     openjev.classify([str(path)], engine(), workers=1, cache_file=str(cache_file), style="choice")
 
-    out = pd.read_parquet(path).set_index("_thread_id")
+    out = pd.read_parquet(path).set_index("thread_id")
     assert out.loc["ok", "category"] == "clone_refactoring"
     assert out["category"].drop("ok").isna().all()
     assert [json.loads(line)["key"] for line in cache_file.read_text().splitlines()] == \

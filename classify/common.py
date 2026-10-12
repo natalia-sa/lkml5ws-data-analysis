@@ -35,6 +35,10 @@ CATEGORIES = (
 # duplication_discussion never occurs together with these.
 PATCH_CATEGORIES = {"clone_refactoring", "preventive_reuse"}
 
+# What the category column holds for a thread with both of them, the only
+# combination the rules allow.
+BOTH_PATCH_CATEGORIES = "clone_and_reuse"
+
 # Jev takes 32k tokens for its state plus its longest question
 # (docs.typesafe.ai/models), ~2.5 chars/token since diffs tokenize poorly:
 # JEV_CONTEXT_CHARS, minus the state preamble (~0.6k) and the longest
@@ -68,6 +72,15 @@ def normalize_categories(categories):
         found.discard("not_duplication")
 
     return [category for category in CATEGORIES if category in found] or ["not_duplication"]
+
+
+def category_name(categories):
+    """The single value of the category column for the normalized categories
+    of a thread."""
+    if set(categories) == PATCH_CATEGORIES:
+        return BOTH_PATCH_CATEGORIES
+    [category] = categories
+    return category
 
 
 def _match_windows(text, budget):
@@ -160,9 +173,14 @@ def append_lines(cache_file, lines):
         fh.writelines(line + "\n" for line in lines)
 
 
-# The column every classifier fills with its categories: the last one run
+# The column every classifier fills with its category: the last one run
 # on a list is the one it holds.
 CATEGORY_COLUMN = "category"
+CATEGORY_TYPE = pa.large_string()
+
+# Next to it, how sure the classifier was of that category, from 0 to 1.
+CONFIDENCE_SUFFIX = "_confidence"
+CONFIDENCE_TYPE = pa.float64()
 
 # Candidate threads read and classified at a time, so a long list is never
 # held in memory.
@@ -172,42 +190,53 @@ READ_BATCH_ROWS = 5_000
 
 def candidate_threads(path):
     """(thread_id, thread_content) of the candidate threads, in file order."""
-    columns = ["_thread_id", "is_candidate", "thread_content"]
+    columns = ["thread_id", "is_duplication_candidate", "thread_content"]
     for batch in pq.ParquetFile(path).iter_batches(batch_size=READ_BATCH_ROWS, columns=columns):
-        batch = batch.filter(pc.equal(batch.column("is_candidate"), "yes"))
-        yield from zip(batch.column("_thread_id").to_pylist(), batch.column("thread_content").to_pylist())
+        batch = batch.filter(batch.column("is_duplication_candidate"))
+        yield from zip(batch.column("thread_id").to_pylist(), batch.column("thread_content").to_pylist())
 
 
-def write_column(path, column, values, column_type=pa.large_string()):
-    """Rewrites path with column set to values[thread_id] (None if absent),
-    through a .tmp renamed at the end, so the file is always complete."""
+def write_columns(path, columns):
+    """Rewrites path with each column of columns, {name: (values, type)},
+    set to values[thread_id] (None if absent): where the column already is,
+    or at the end if it is new. Goes through a .tmp renamed at the end, so
+    the file is always complete."""
     parquet_file = pq.ParquetFile(path)
     schema = parquet_file.schema_arrow
-    if column in schema.names:
-        schema = schema.remove(schema.get_field_index(column))
-    schema = schema.append(pa.field(column, column_type))
+    for name, (_, column_type) in columns.items():
+        field = pa.field(name, column_type)
+        index = schema.get_field_index(name)
+        schema = schema.set(index, field) if index >= 0 else schema.append(field)
 
     tmp_path = path + ".tmp"
     with pq.ParquetWriter(tmp_path, schema) as writer:
         for batch in parquet_file.iter_batches(batch_size=READ_BATCH_ROWS):
-            if column in batch.schema.names:
-                batch = batch.drop_columns([column])
-            ids = batch.column("_thread_id").to_pylist()
-            new = pa.array([values.get(thread_id) for thread_id in ids], column_type)
-            writer.write_batch(pa.RecordBatch.from_arrays([*batch.columns, new], schema=schema))
+            ids = batch.column("thread_id").to_pylist()
+            arrays = dict(zip(batch.schema.names, batch.columns))
+            for name, (values, column_type) in columns.items():
+                arrays[name] = pa.array([values.get(thread_id) for thread_id in ids], column_type)
+            writer.write_batch(pa.RecordBatch.from_arrays([arrays[name] for name in schema.names], schema=schema))
     os.replace(tmp_path, path)
 
 
-def classify_list(path, cache, cache_file, key, classify, workers, backup=None, column=CATEGORY_COLUMN):
+def write_column(path, column, values, column_type=pa.large_string()):
+    write_columns(path, {column: (values, column_type)})
+
+
+def classify_list(path, cache, cache_file, key, classify, workers, backup=None, column=CATEGORY_COLUMN,
+                  confidence=None):
     """Classifies the candidate threads of one list not yet in the cache,
     appending each answer to cache_file as it arrives, then writes column:
-    the comma-joined categories, None for threads not candidate or failed.
+    the category (category_name), None for threads not candidate or failed.
     classify(thread_id, thread_content) returns a result with "categories",
     or {"error": ...}, which isn't cached, so a rerun retries the thread.
-    backup.added(cache_file) is called after each answer cached."""
-    columns = ["_thread_id", "is_candidate"] + ([column] if column in pq.read_schema(path).names else [])
+    backup.added(cache_file) is called after each answer cached.
+    confidence(result) fills the column next to it, <column>_confidence,
+    left empty by a classifier that has none."""
+    written = [column, column + CONFIDENCE_SUFFIX]
+    columns = ["thread_id", "is_duplication_candidate"] + [name for name in written if name in pq.read_schema(path).names]
     table = pq.read_table(path, columns=columns)
-    candidates = table.filter(pc.equal(table.column("is_candidate"), "yes")).column("_thread_id").to_pylist()
+    candidates = table.filter(table.column("is_duplication_candidate")).column("thread_id").to_pylist()
     pending = [thread_id for thread_id in candidates if key(thread_id) not in cache]
     pending_set = set(pending)
 
@@ -231,18 +260,30 @@ def classify_list(path, cache, cache_file, key, classify, workers, backup=None, 
                     progress.update()
         progress.close()
 
-    values = {tid: ",".join(cache[key(tid)]["categories"]) for tid in candidates if key(tid) in cache}
-    current = dict(zip(table.column("_thread_id").to_pylist(), table.column(column).to_pylist())) \
-        if column in table.schema.names else None
-    # Rewritten only when the column changes, so a thread that always fails
+    cached = {tid: cache[key(tid)] for tid in candidates if key(tid) in cache}
+    new = {
+        column: ({tid: category_name(result["categories"]) for tid, result in cached.items()}, CATEGORY_TYPE),
+        column + CONFIDENCE_SUFFIX: (
+            {tid: confidence(result) for tid, result in cached.items()} if confidence else {}, CONFIDENCE_TYPE,
+        ),
+    }
+    thread_ids = table.column("thread_id").to_pylist()
+
+    def changed(name, values):
+        if name not in table.schema.names:
+            return True
+        current = dict(zip(thread_ids, table.column(name).to_pylist()))
+        return any(current.get(tid) != values.get(tid) for tid in candidates)
+
+    # Rewritten only when a column changes, so a thread that always fails
     # doesn't make every rerun rewrite the list.
-    if current is None or any(current.get(tid) != values.get(tid) for tid in candidates):
-        write_column(path, column, values)
+    if any(changed(name, values) for name, (values, _) in new.items()):
+        write_columns(path, new)
     print(f"{os.path.basename(path)}: {len(candidates)} candidates, {classified} classified now, "
           f"{failed} failed")
 
 
-def classify_lists(paths, cache_file, key, classify, workers, backup=None):
+def classify_lists(paths, cache_file, key, classify, workers, backup=None, confidence=None):
     """classify_list over paths, with the cache restored from the backup
     first and backed up again at the end, even after an interruption."""
     if backup:
@@ -250,7 +291,7 @@ def classify_lists(paths, cache_file, key, classify, workers, backup=None):
     cache = load_cache(cache_file)
     try:
         for path in paths:
-            classify_list(path, cache, cache_file, key, classify, workers, backup)
+            classify_list(path, cache, cache_file, key, classify, workers, backup, confidence=confidence)
     finally:
         if backup:
             backup.safe_upload(cache_file)

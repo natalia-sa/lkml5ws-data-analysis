@@ -5,12 +5,13 @@ import os
 import sys
 
 import pandas as pd
+import pyarrow.parquet as pq
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from classify import common  # noqa: E402
-from classify.common import CATEGORIES, classify_list, load_cache, normalize_categories  # noqa: E402
+from classify.common import CATEGORIES, category_name, classify_list, load_cache, normalize_categories  # noqa: E402
 
 
 # The combination rules of LABELING_CRITERIA.md, with the result in
@@ -41,10 +42,20 @@ def test_categories_follow_the_labeling_criteria_order():
     )
 
 
+# One value per thread, with a name of its own for the two patch categories.
+@pytest.mark.parametrize("categories, expected", [
+    (["clone_refactoring"], "clone_refactoring"),
+    (["not_duplication"], "not_duplication"),
+    (["clone_refactoring", "preventive_reuse"], "clone_and_reuse"),
+])
+def test_category_name(categories, expected):
+    assert category_name(categories) == expected
+
+
 # classify_list
 
 def write_list(path, rows):
-    pd.DataFrame(rows, columns=["_thread_id", "list", "is_candidate", "thread_content"]).to_parquet(path, index=False)
+    pd.DataFrame(rows, columns=["thread_id", "list", "is_duplication_candidate", "thread_content"]).to_parquet(path, index=False)
 
 
 def run_list(path, cache_file, answers):
@@ -62,7 +73,7 @@ def run_list(path, cache_file, answers):
     return asked
 
 
-ROWS = [("t1", "l", "yes", "a"), ("t2", "l", "no", None), ("t3", "l", "yes", "c")]
+ROWS = [("t1", "l", True, "a"), ("t2", "l", False, None), ("t3", "l", True, "c")]
 
 
 # The column is added in place, None for threads not candidate or failed,
@@ -74,10 +85,34 @@ def test_classify_list_adds_the_column_in_place(tmp_path):
     run_list(path, cache_file, {"t1": "clone_refactoring", "t3": RuntimeError("boom")})
 
     out = pd.read_parquet(path)
-    assert list(out.columns) == ["_thread_id", "list", "is_candidate", "thread_content", "category"]
-    assert out["_thread_id"].tolist() == ["t1", "t2", "t3"]
+    assert list(out.columns) == ["thread_id", "list", "is_duplication_candidate", "thread_content", "category",
+                                 "category_confidence"]
+    assert out["thread_id"].tolist() == ["t1", "t2", "t3"]
     assert out["category"].tolist()[0] == "clone_refactoring" and out["category"][1:].isna().all()
+    assert out["category_confidence"].isna().all()
     assert list(load_cache(str(cache_file))) == ["t1:v1"]
+
+
+# confidence(result) fills category_confidence, and both columns stay where
+# they are when a rerun replaces them.
+def test_classify_list_writes_the_confidence(tmp_path):
+    path, cache_file = tmp_path / "list=l.parquet", tmp_path / "cache.jsonl"
+    write_list(path, ROWS)
+    cache = {"t1:v1": {"categories": ["clone_refactoring"], "score": 0.9},
+             "t3:v1": {"categories": ["not_duplication"], "score": 0.6}}
+
+    def classify(path):
+        classify_list(str(path), cache, str(cache_file), lambda tid: f"{tid}:v1", None, workers=1,
+                      confidence=lambda result: result["score"])
+
+    classify(path)
+    common.write_column(str(path), "later", {"t1": "x"})
+    cache["t1:v1"]["score"] = 0.7
+    classify(path)
+
+    out = pq.read_table(path)
+    assert out.schema.names[-3:] == ["category", "category_confidence", "later"]
+    assert out.column("category_confidence").to_pylist() == [0.7, None, 0.6]
 
 
 # A rerun asks only the threads missing from the cache (a line cut by an

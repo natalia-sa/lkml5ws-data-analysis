@@ -146,14 +146,14 @@ class FakeClient:
 # keeps the reasoning.
 def test_classify_adds_the_category_column(tmp_path):
     path = tmp_path / "list=testlist.parquet"
-    pd.DataFrame({"_thread_id": ["t1", "t2"], "is_candidate": ["yes", "no"],
+    pd.DataFrame({"thread_id": ["t1", "t2"], "is_duplication_candidate": [True, False],
                   "thread_content": ["content", None]}).to_parquet(path, index=False)
     cache_file = tmp_path / "cache.jsonl"
 
     classify_threads.classify([str(path)], FakeClient([response_json("clone_refactoring", reasoning="r1")]),
                               workers=1, cache_file=str(cache_file))
 
-    result = pd.read_parquet(path).set_index("_thread_id")
+    result = pd.read_parquet(path).set_index("thread_id")
     assert result.loc["t1", "category"] == "clone_refactoring"
     assert pd.isna(result.loc["t2", "category"])
     assert json.loads(cache_file.read_text())["result"]["reasoning"] == "r1"

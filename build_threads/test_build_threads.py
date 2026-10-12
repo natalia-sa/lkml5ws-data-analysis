@@ -24,7 +24,7 @@ def thread_id_by_message_id(df, tmp_path):
 
     thread_ids = {
         message_id: thread_id
-        for message_ids, thread_id in zip(result["message_ids"], result["_thread_id"])
+        for message_ids, thread_id in zip(result["message_ids"], result["thread_id"])
         for message_id in message_ids
     }
 
@@ -219,15 +219,14 @@ def test_three_message_thread_becomes_one_row(tmp_path):
 
     row = result.iloc[0]
 
-    assert row["_thread_id"] in {parent_id, reply_id, grandchild_id}
+    assert row["thread_id"] in {parent_id, reply_id, grandchild_id}
     assert row["list"] == "testlist"
     assert row["n_messages"] == 3
     assert list(row["message_ids"]) == [parent_id, reply_id, grandchild_id]
     assert row["date"] == "2026-06-01 12:00:00"
     assert row["subject"] == "[PATCH] fix thing"
-    assert row["from"] == "author@example.com"
-    assert list(row["cc"]) == ["reviewer@example.com"]
-    assert row["is_candidate"] == "yes"
+    assert "from" not in row and "cc" not in row
+    assert row["is_duplication_candidate"]
 
     content = row["thread_content"]
     assert content.count("MESSAGE") == 3
@@ -413,13 +412,13 @@ def test_only_candidate_threads_get_thread_content(tmp_path):
     ])
 
     thread_ids, result = thread_id_by_message_id(df, tmp_path)
-    result = result.set_index("_thread_id")
+    result = result.set_index("thread_id")
     replied, plain = result.loc[thread_ids["1@example.com"]], result.loc[thread_ids["3@example.com"]]
 
-    assert replied["is_candidate"] == "yes"
+    assert replied["is_duplication_candidate"]
     assert "[quoted text removed]" in replied["thread_content"]
     # No match, and a match only in a pull request message, which is left out.
-    assert plain["is_candidate"] == "no"
+    assert not plain["is_duplication_candidate"]
     assert pd.isna(plain["thread_content"])
     assert "4@example.com" not in thread_ids
 
@@ -474,7 +473,7 @@ def test_thread_with_no_date_keeps_a_null_date(tmp_path):
     df["date"] = pd.to_datetime(["2026-06-01 12:00:00", None])
 
     thread_ids, result = thread_id_by_message_id(df, tmp_path)
-    result = result.set_index("_thread_id")
+    result = result.set_index("thread_id")
 
     assert result.loc[thread_ids["1@example.com"], "date"] == pd.Timestamp("2026-06-01 12:00:00")
     assert pd.isna(result.loc[thread_ids["2@example.com"], "date"])
@@ -499,7 +498,7 @@ def test_output_is_the_same_with_any_body_chunk_size(tmp_path, monkeypatch):
     _, chunked = thread_id_by_message_id(df, tmp_path / "chunked")
 
     pd.testing.assert_frame_equal(whole, chunked)
-    assert (whole["is_candidate"] == "yes").sum() == 2
+    assert whole["is_duplication_candidate"].sum() == 2
 
 
 # Bot messages are left out like pull requests: they don't match and aren't in the
@@ -519,5 +518,5 @@ def test_bot_messages_are_left_out_of_the_thread(tmp_path):
     assert len(result) == 1
     row = result.iloc[0]
     assert list(row["message_ids"]) == ["1@example.com", "3@example.com"]
-    assert row["is_candidate"] == "no"
+    assert not row["is_duplication_candidate"]
     assert "4@example.com" not in thread_ids

@@ -4,8 +4,9 @@ categories of LABELING_CRITERIA.md, with one OpenAI call per thread:
 few-shot examples and a short chain of thought ("reasoning") before the
 categories.
 
-Fills the column `category` (the comma-joined categories; None for threads
-that aren't candidates or failed), shared by every classifier, in each list of
+Fills the column `category` (the category, clone_and_reuse for a thread with
+both patch categories; None for threads that aren't candidates or failed),
+shared by every classifier, in each list of
 <output_dir>/list=<name>.parquet, in place. The categories, their
 combination rules and the cut of long threads come from classify/common.py,
 shared with the Jev classifiers.

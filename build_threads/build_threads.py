@@ -34,7 +34,7 @@ LIST_FILE = "list_data.parquet"
 
 THREAD_BUILD_COLUMNS = ["message_id", "in_reply_to", "references", "date"]
 
-METADATA_COLUMNS = ["message_id", "subject", "date", "from", "cc"]
+METADATA_COLUMNS = ["message_id", "subject", "date", "from"]
 
 BATCH_SIZE = 50_000
 
@@ -362,15 +362,13 @@ def read_bodies(input_path, positions):
 def output_schema(input_path):
     date_type = pq.read_schema(input_path).field("date").type
     return pa.schema([
-        ("_thread_id", pa.large_string()),
+        ("thread_id", pa.large_string()),
         ("list", pa.large_string()),
         ("n_messages", pa.int64()),
         ("message_ids", pa.list_(pa.string())),
         ("date", _view_type_replacement(date_type) or date_type),
         ("subject", pa.large_string()),
-        ("from", pa.large_string()),
-        ("cc", pa.list_(pa.string())),
-        ("is_candidate", pa.large_string()),
+        ("is_duplication_candidate", pa.bool_()),
         ("thread_content", pa.large_string()),
     ])
 
@@ -386,15 +384,13 @@ def thread_rows(messages_df, list_name, candidates):
         candidate = thread_id in candidates
         date = group["date"].iloc[0]
         yield {
-            "_thread_id": thread_id,
+            "thread_id": thread_id,
             "list": list_name,
             "n_messages": len(group),
             "message_ids": group["message_id"].tolist(),
             "date": None if pd.isna(date) else date,
             "subject": group["subject"].iloc[0],
-            "from": group["from"].iloc[0],
-            "cc": group["cc"].iloc[0],
-            "is_candidate": "yes" if candidate else "no",
+            "is_duplication_candidate": candidate,
             "thread_content": replace_quotes(build_thread_content(group)) if candidate else None,
         }
 

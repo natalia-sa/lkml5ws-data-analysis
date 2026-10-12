@@ -198,14 +198,14 @@ def test_cache_key_includes_style_and_questions_version():
 # the scores and the model Jev answered with.
 def test_classify_adds_the_category_column(tmp_path):
     path = tmp_path / "list=testlist.parquet"
-    pd.DataFrame({"_thread_id": ["t1", "t2"], "is_candidate": ["yes", "no"],
+    pd.DataFrame({"thread_id": ["t1", "t2"], "is_duplication_candidate": [True, False],
                   "thread_content": ["content", None]}).to_parquet(path, index=False)
     cache_file = tmp_path / "cache.jsonl"
 
     jev.classify([str(path)], FakeJev([(200, jev_body(clone=0.9))]).client, workers=1,
                  cache_file=str(cache_file))
 
-    result = pd.read_parquet(path).set_index("_thread_id")
+    result = pd.read_parquet(path).set_index("thread_id")
     assert result.loc["t1", "category"] == "clone_refactoring"
     assert pd.isna(result.loc["t2", "category"])
     cached = json.loads(cache_file.read_text())
@@ -262,3 +262,20 @@ def test_context_exceeded_stops_at_the_minimum_cut():
 
     assert "max_tokens_exceeded" in result["error"]
     assert len(fake.requests[-1]["state"]) - len(jev.STATE_PREAMBLE) == jev.MIN_THREAD_CONTENT_CHARS
+
+
+# The confidence is the probability of the option chosen, clone_and_reuse for
+# two categories; the noul style has none.
+@pytest.mark.parametrize("categories, scores, expected", [
+    (["clone_refactoring"], {"clone_refactoring": 0.52, "preventive_reuse": 0.0, "clone_and_reuse": 0.0,
+                             "duplication_discussion": 0.02, "not_duplication": 0.46}, 0.52),
+    (["clone_refactoring", "preventive_reuse"],
+     {"clone_refactoring": 0.3, "preventive_reuse": 0.1, "clone_and_reuse": 0.6,
+      "duplication_discussion": 0.0, "not_duplication": 0.0}, 0.6),
+    (["not_duplication"], {"clone_refactoring": 0.1, "preventive_reuse": 0.0, "clone_and_reuse": 0.0,
+                           "duplication_discussion": 0.1, "not_duplication": 0.8}, 0.8),
+    (["clone_refactoring"], {"clone_refactoring": 0.9, "preventive_reuse": 0.1, "duplication_discussion": 0.7},
+     None),
+])
+def test_choice_confidence(categories, scores, expected):
+    assert jev.choice_confidence({"categories": categories, "scores": scores}) == expected

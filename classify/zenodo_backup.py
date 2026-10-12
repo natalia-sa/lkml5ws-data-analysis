@@ -9,7 +9,7 @@ draft always holds a complete copy. Before a run the draft's copy is merged
 into the local cache, which is append-only, so every later upload holds what
 is already there; a copy with fewer lines than the draft's is never uploaded.
 
-ZENODO_CLASSIFY_TOKEN (only the deposit:write scope, which can't publish) goes in .env, the
+ZENODO_TOKEN (only the deposit:write scope, which can't publish) goes in .env, the
 draft's id in classify_backup.deposition_id of config/pipeline.yaml. Create
 the draft once with:
     .venv/bin/python classify/zenodo_backup.py create
@@ -118,10 +118,10 @@ def load_config(config_file=CONFIG_FILE):
 def from_config(name, config_file=CONFIG_FILE):
     """The backup of the cache called name; .env must be loaded."""
     config = load_config(config_file)
-    token = os.getenv("ZENODO_CLASSIFY_TOKEN")
+    token = os.getenv("ZENODO_TOKEN")
     if not token or not config["deposition_id"]:
         raise SystemExit(
-            "Zenodo backup not configured: set ZENODO_CLASSIFY_TOKEN in .env and classify_backup.deposition_id "
+            "Zenodo backup not configured: set ZENODO_TOKEN in .env and classify_backup.deposition_id "
             "in config/pipeline.yaml (create the draft with classify/zenodo_backup.py create), "
             "or pass --no-backup."
         )
@@ -139,6 +139,6 @@ if __name__ == "__main__":
     if sys.argv[1:] != ["create"]:
         raise SystemExit("Usage: classify/zenodo_backup.py create")
     load_dotenv()
-    if not os.getenv("ZENODO_CLASSIFY_TOKEN"):
-        raise SystemExit("ZENODO_CLASSIFY_TOKEN not set in .env.")
-    print(f"Draft created; set classify_backup.deposition_id to {create(load_config()['api_url'], os.getenv('ZENODO_CLASSIFY_TOKEN'))}")
+    if not os.getenv("ZENODO_TOKEN"):
+        raise SystemExit("ZENODO_TOKEN not set in .env.")
+    print(f"Draft created; set classify_backup.deposition_id to {create(load_config()['api_url'], os.getenv('ZENODO_TOKEN'))}")

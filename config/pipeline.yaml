@@ -4,33 +4,44 @@ zenodo:
   doi: 10.5281/zenodo.17567225
   version: v1.0.0
 
-# Listas já descompactadas (fetch.py --source rcpassos).
+# Lists already uncompressed (fetch.py --source rcpassos).
 rcpassos:
   url: https://files.rcpassos.me/public/Academic/Datasets/LKML5Ws_uncompressed_lists/
 
-# MAINTAINERS do kernel em todas as releases entre estas tags, de onde o fetch
-# tira a allow-list. A v2.6.30 (2009-06) é a primeira release em que o campo F: é
-# usado; a v7.2 (2026-08-16) era a última estável em 2026-10.
+# Kernel releases whose MAINTAINERS the fetch builds the allow-list from.
+# v2.6.30 (2009-06) is the first one with the F: field; v7.2 (2026-08-16) was
+# the latest stable in 2026-10.
 maintainers:
   first_tag: v2.6.30
   last_tag: v7.2
-  # A comparação ignora o domínio do endereço; estas listas casam assim com
-  # outra lista do MAINTAINERS e ficam de fora.
+  # Matching ignores the address domain, so these lists match another list
+  # of MAINTAINERS and are left out.
   exclude:
-    - dpdk-dev        # dev@dpdk.org casa com dev@openvswitch.org
-    - linux-patches   # patches@lists.linux.dev casa com patches@opensource.cirrus.com
+    - dpdk-dev        # dev@dpdk.org matches dev@openvswitch.org
+    - linux-patches   # patches@lists.linux.dev matches patches@opensource.cirrus.com
 
-# Caminhos relativos à raiz do repositório.
+# Relative to the repository root.
 paths:
   raw_dir: data/raw
   source_dir: data/source
   output_dir: data/output
+  publish_dir: data/publish
   archive_index: config/archive_index.csv
 
-# Backup do cache dos classificadores (classify/*/llm_cache.jsonl) num rascunho
-# não publicado do Zenodo, atualizado a cada `every` respostas novas. O id vem de
-# classify/zenodo_backup.py create; o token, de ZENODO_CLASSIFY_TOKEN no .env.
+# Backup of the classifiers' cache (classify/*/llm_cache.jsonl) to an
+# unpublished Zenodo draft, every `every` new answers. Id from
+# classify/zenodo_backup.py create; token from ZENODO_TOKEN in .env.
 classify_backup:
   api_url: https://zenodo.org/api
   deposition_id: "23253397"
   every: 5000
+
+# Upload of the final dataset (data/output) to an unpublished Zenodo draft
+# (publish/publish_dataset.py), as <name>_<n>.dataset.tar archives of up to
+# `archive_gb` GB each, built in paths.publish_dir. Id from
+# publish/publish_dataset.py --create-draft; token from ZENODO_TOKEN in .env.
+publish:
+  api_url: https://zenodo.org/api
+  deposition_id: "23307333"
+  name: LKML5Ws-duplication
+  archive_gb: 2

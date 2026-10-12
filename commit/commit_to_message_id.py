@@ -42,7 +42,7 @@ MATCHES_TYPE = pa.list_(pa.struct([
     ("message_id", pa.string()),
     ("commit_hash", pa.string()),
     ("status", pa.string()),
-    ("candidates", pa.list_(pa.string())),
+    ("candidate_message_ids", pa.list_(pa.string())),
 ]))
 
 
@@ -140,12 +140,12 @@ def duplication_threads(path) -> dict[str, list[str]] | None:
     if CATEGORY_COLUMN not in pq.read_schema(path).names:
         return None
 
-    table = pq.read_table(path, columns=["_thread_id", "message_ids", CATEGORY_COLUMN])
+    table = pq.read_table(path, columns=["thread_id", "message_ids", CATEGORY_COLUMN])
     category = table.column(CATEGORY_COLUMN)
     table = table.filter(pc.fill_null(pc.not_equal(category, "not_duplication"), False))
 
     return dict(zip(
-        table.column("_thread_id").to_pylist(),
+        table.column("thread_id").to_pylist(),
         (message_ids or [] for message_ids in table.column("message_ids").to_pylist()),
     ))
 
@@ -354,7 +354,7 @@ def match_commits(commits, email_index: EmailIndex, threads_by_message_id: dict[
                 "message_id": message_id,
                 "commit_hash": commit.commit_hash,
                 "status": status.name,
-                "candidates": candidates if status == Status.AMBIGUOUS else [],
+                "candidate_message_ids": candidates if status == Status.AMBIGUOUS else [],
             })
 
     return matches, status_counts

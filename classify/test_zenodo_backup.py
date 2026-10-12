@@ -119,7 +119,7 @@ def test_restore_merges_the_draft_into_the_local_cache(tmp_path):
 # every `every` answers and once more at the end.
 def test_classify_lists_restores_and_backs_up(tmp_path):
     path, cache_file = tmp_path / "list=l.parquet", tmp_path / "cache.jsonl"
-    pd.DataFrame({"_thread_id": ["t1", "t2", "t3", "t4"], "is_candidate": ["yes"] * 4,
+    pd.DataFrame({"thread_id": ["t1", "t2", "t3", "t4"], "is_duplication_candidate": [True] * 4,
                   "thread_content": ["x"] * 4}).to_parquet(path, index=False)
     zenodo = FakeZenodo({"jev_llm_cache.1.jsonl.gz": gzip.compress((entry("t1") + "\n").encode())})
     asked, uploads = [], []

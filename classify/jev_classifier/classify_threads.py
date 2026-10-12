@@ -11,9 +11,11 @@ Two ways of asking (--question-style):
 - choice (default): one Jev "choice" question picks the main category among
   mutually exclusive options, whose probabilities add up to 1.
 
-Fills the column `category` (the comma-joined categories; None for threads
-that aren't candidates or failed), shared by every classifier, in each list of
-<output_dir>/list=<name>.parquet, in place. The categories, their
+Fills the column `category` (the category, clone_and_reuse for a thread with
+both patch categories; None for threads that aren't candidates or failed),
+shared by every classifier, in each list of
+<output_dir>/list=<name>.parquet, in place, and `category_confidence`, the
+probability of the option chosen (choice style only). The categories, their
 combination rules and the cut of long threads come from classify/common.py,
 shared with the other classifiers.
 
@@ -362,6 +364,17 @@ def parse_choice_response(response):
     }
 
 
+def choice_confidence(result):
+    """The probability of the option chosen in the choice style, which for
+    two categories is the one of clone_and_reuse. None in the noul style,
+    whose categories are scored one by one."""
+    if set(result["scores"]) != set(CHOICE_CATEGORIES):
+        return None
+    for option, categories in CHOICE_CATEGORIES.items():
+        if normalize_categories(categories) == result["categories"]:
+            return result["scores"][option]
+
+
 def classify_thread(thread_content, client, style="noul", max_chars=MAX_THREAD_CONTENT_CHARS):
     """One independent call per thread, with no shared conversation state."""
     state = build_state(thread_content, max_chars)
@@ -405,7 +418,8 @@ def classify(paths, client, workers=DEFAULT_WORKERS, cache_file=CACHE_FILE, styl
             print(f"\nError classifying thread {thread_id}: {result['error']}")
         return result
 
-    classify_lists(paths, cache_file, lambda tid: cache_key(tid, style), classify_one, workers, backup)
+    classify_lists(paths, cache_file, lambda tid: cache_key(tid, style), classify_one, workers, backup,
+                   choice_confidence)
 
 
 def main():

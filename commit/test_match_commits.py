@@ -39,18 +39,18 @@ def email(message_id, author="dev@ex.com", date=DATE):
 
 def write_threads(path, rows):
     pq.write_table(pa.Table.from_pylist(rows, schema=pa.schema([
-        ("_thread_id", pa.large_string()),
+        ("thread_id", pa.large_string()),
         ("message_ids", pa.list_(pa.string())),
-        ("is_candidate", pa.large_string()),
+        ("is_duplication_candidate", pa.bool_()),
         ("category", pa.large_string()),
     ])), path)
 
 
 THREADS = [
-    {"_thread_id": "t1", "message_ids": ["p1@ex.com", "r1@ex.com"], "is_candidate": "yes", "category": "clone_refactoring"},
-    {"_thread_id": "t2", "message_ids": ["p2@ex.com"], "is_candidate": "yes", "category": "not_duplication"},
-    {"_thread_id": "t3", "message_ids": ["p3@ex.com"], "is_candidate": "no", "category": None},
-    {"_thread_id": "t4", "message_ids": ["p4@ex.com"], "is_candidate": "yes", "category": "duplication_discussion"},
+    {"thread_id": "t1", "message_ids": ["p1@ex.com", "r1@ex.com"], "is_duplication_candidate": True, "category": "clone_refactoring"},
+    {"thread_id": "t2", "message_ids": ["p2@ex.com"], "is_duplication_candidate": True, "category": "not_duplication"},
+    {"thread_id": "t3", "message_ids": ["p3@ex.com"], "is_duplication_candidate": False, "category": None},
+    {"thread_id": "t4", "message_ids": ["p4@ex.com"], "is_duplication_candidate": True, "category": "duplication_discussion"},
 ]
 
 
@@ -63,7 +63,7 @@ def test_duplication_threads_leaves_out_not_duplication_and_unclassified(tmp_pat
 
 def test_duplication_threads_of_a_list_not_classified(tmp_path):
     path = str(tmp_path / "list=l.parquet")
-    pq.write_table(pa.table({"_thread_id": ["t1"], "message_ids": [["p1@ex.com"]]}), path)
+    pq.write_table(pa.table({"thread_id": ["t1"], "message_ids": [["p1@ex.com"]]}), path)
 
     assert duplication_threads(path) is None
 
@@ -136,9 +136,9 @@ def test_match_commits_and_written_column(tmp_path):
 
     assert pq.read_table(path).column(MATCHES_COLUMN).to_pylist() == [
         [
-            {"message_id": "p1@ex.com", "commit_hash": "a", "status": "EXACT", "candidates": []},
+            {"message_id": "p1@ex.com", "commit_hash": "a", "status": "EXACT", "candidate_message_ids": []},
             {"message_id": "r1@ex.com", "commit_hash": "b", "status": "AMBIGUOUS",
-             "candidates": ["elsewhere@ex.com", "r1@ex.com"]},
+             "candidate_message_ids": ["elsewhere@ex.com", "r1@ex.com"]},
         ],
         None,
         None,
