@@ -21,6 +21,8 @@ import json
 import os
 import re
 import sys
+import time
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 import yaml
@@ -33,13 +35,24 @@ from classify.common import CONFIG_FILE, append_lines, load_cache  # noqa: E402
 
 TIMEOUT_SECONDS = 300
 
+# Zenodo's gateway errors, which pass on their own.
+TRANSIENT_STATUS = {502, 503, 504}
+ATTEMPTS = 5
+RETRY_SECONDS = 10
 
-def call(opener, token, method, url, data=None, content_type=None):
+
+def call(opener, token, method, url, data=None, content_type=None, sleep=time.sleep):
     headers = {"Authorization": f"Bearer {token}"}
     if content_type:
         headers["Content-Type"] = content_type
-    with opener(Request(url, data=data, method=method, headers=headers), timeout=TIMEOUT_SECONDS) as response:
-        return response.read()
+    for attempt in range(1, ATTEMPTS + 1):
+        try:
+            with opener(Request(url, data=data, method=method, headers=headers), timeout=TIMEOUT_SECONDS) as response:
+                return response.read()
+        except HTTPError as error:
+            if error.code not in TRANSIENT_STATUS or attempt == ATTEMPTS:
+                raise
+            sleep(RETRY_SECONDS * attempt)
 
 
 class ZenodoBackup:

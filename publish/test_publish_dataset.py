@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import tarfile
+from urllib.error import HTTPError, URLError
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -32,10 +33,12 @@ NAME = "dataset"
 class FakeZenodo:
     """The files of one draft, served through the legacy deposit API."""
 
-    def __init__(self, files=None, corrupt=False):
+    def __init__(self, files=None, corrupt=False, put_errors=()):
         self.files = dict(files or {})
         self.corrupt = corrupt
         self.puts = []
+        # Raised by the next PUTs, one each, before any is stored.
+        self.put_errors = list(put_errors)
 
     def __call__(self, request, timeout):
         assert request.get_header("Authorization") == "Bearer token"
@@ -48,6 +51,8 @@ class FakeZenodo:
             body = {"links": {"bucket": BUCKET}}
         elif method == "PUT" and url.startswith(BUCKET):
             data = request.data.read()
+            if self.put_errors:
+                raise self.put_errors.pop(0)
             assert request.get_header("Content-length") == str(len(data))
             self.files[name] = b"" if self.corrupt else data
             self.puts.append(name)
@@ -66,8 +71,8 @@ def write_list(directory, name, columns=("thread_id", *REQUIRED_COLUMNS), rows=1
     return path
 
 
-def draft(zenodo):
-    return Draft(API, 1, "token", opener=zenodo)
+def draft(zenodo, sleep=None):
+    return Draft(API, 1, "token", opener=zenodo, sleep=sleep or (lambda seconds: None))
 
 
 # Lists are packed in the order given; one over the limit goes alone.
@@ -154,3 +159,32 @@ def test_sync_stops_when_zenodo_got_another_content(tmp_path):
 
     with pytest.raises(RuntimeError, match="md5 mismatch"):
         sync(draft(FakeZenodo(corrupt=True)), files, NAME)
+
+
+def test_upload_starts_over_when_the_connection_drops(tmp_path):
+    files = local_files(tmp_path, {"dataset_1.dataset.tar": b"one"})
+    zenodo = FakeZenodo(put_errors=[URLError(BrokenPipeError(32, "Broken pipe")),
+                                    HTTPError(BUCKET, 504, "Gateway Timeout", {}, None)])
+    waits = []
+
+    assert sync(draft(zenodo, waits.append), files, NAME) == ["dataset_1.dataset.tar"]
+    assert zenodo.files == {"dataset_1.dataset.tar": b"one"}
+    assert waits == [10, 20]
+
+
+def test_upload_gives_up_after_the_last_attempt(tmp_path):
+    files = local_files(tmp_path, {"dataset_1.dataset.tar": b"one"})
+    zenodo = FakeZenodo(put_errors=[URLError("Broken pipe")] * 5)
+
+    with pytest.raises(URLError):
+        sync(draft(zenodo), files, NAME)
+    assert zenodo.files == {}
+
+
+def test_upload_does_not_retry_a_refused_request(tmp_path):
+    files = local_files(tmp_path, {"dataset_1.dataset.tar": b"one"})
+    zenodo = FakeZenodo(put_errors=[HTTPError(BUCKET, 403, "Forbidden", {}, None), URLError("unused")])
+
+    with pytest.raises(HTTPError):
+        sync(draft(zenodo), files, NAME)
+    assert len(zenodo.put_errors) == 1

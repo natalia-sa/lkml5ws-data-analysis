@@ -18,6 +18,8 @@ import os
 import re
 import sys
 import tarfile
+import time
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 import pyarrow.parquet as pq
@@ -29,7 +31,9 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 from classify.common import CATEGORY_COLUMN, CONFIDENCE_SUFFIX, CONFIG_FILE, list_paths  # noqa: E402
-from classify.zenodo_backup import TIMEOUT_SECONDS, call, create  # noqa: E402
+from classify.zenodo_backup import (  # noqa: E402
+    ATTEMPTS, RETRY_SECONDS, TIMEOUT_SECONDS, TRANSIENT_STATUS, call, create,
+)
 from commit.commit_to_message_id import MATCHES_COLUMN  # noqa: E402
 
 # What the steps after build_threads add to each list.
@@ -141,10 +145,11 @@ def build_archives(paths, publish_dir, name, archive_bytes):
 class Draft:
     """The files of one unpublished Zenodo draft."""
 
-    def __init__(self, api_url, deposition_id, token, opener=urlopen):
+    def __init__(self, api_url, deposition_id, token, opener=urlopen, sleep=time.sleep):
         self.deposition_url = f"{api_url}/deposit/depositions/{deposition_id}"
         self.token = token
         self.opener = opener
+        self.sleep = sleep
 
     def _call(self, method, url):
         return call(self.opener, self.token, method, url)
@@ -157,7 +162,20 @@ class Draft:
         self._call("DELETE", file["links"]["self"])
 
     def upload(self, name, path, md5):
-        """Streams path to the draft and checks the md5 Zenodo got."""
+        """Streams path to the draft and checks the md5 Zenodo got. A
+        connection dropped midway (an archive takes minutes to send) or a
+        gateway error starts the file over, up to ATTEMPTS times."""
+        for attempt in range(1, ATTEMPTS + 1):
+            try:
+                return self._upload_once(name, path, md5)
+            except OSError as error:  # URLError, BrokenPipeError, TimeoutError...
+                transient = not isinstance(error, HTTPError) or error.code in TRANSIENT_STATUS
+                if not transient or attempt == ATTEMPTS:
+                    raise
+                print(f"\nUpload of {name} failed ({error}); retrying ({attempt}/{ATTEMPTS - 1})")
+                self.sleep(RETRY_SECONDS * attempt)
+
+    def _upload_once(self, name, path, md5):
         bucket = json.loads(self._call("GET", self.deposition_url))["links"]["bucket"]
         size = os.path.getsize(path)
         headers = {

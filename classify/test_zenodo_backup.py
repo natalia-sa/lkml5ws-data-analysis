@@ -13,7 +13,7 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from classify.common import classify_lists, load_cache  # noqa: E402
-from classify.zenodo_backup import ZenodoBackup  # noqa: E402
+from classify.zenodo_backup import ATTEMPTS, ZenodoBackup, call  # noqa: E402
 
 API = "https://zenodo.test/api"
 DRAFT = f"{API}/deposit/depositions/1"
@@ -148,3 +148,32 @@ def test_answers_appended_after_any_cache_end_are_kept(tmp_path, content):
     append_lines(str(cache_file), [entry("z")])
 
     assert "z" in load_cache(str(cache_file))
+
+
+def test_call_retries_a_gateway_error():
+    from urllib.error import HTTPError
+
+    def opener_failing(times, code):
+        calls = []
+
+        def opener(request, timeout):
+            calls.append(request)
+            if len(calls) <= times:
+                raise HTTPError(request.full_url, code, "error", None, None)
+            return io.BytesIO(b"ok")
+        return opener, calls
+
+    waits = []
+    opener, calls = opener_failing(2, 504)
+    assert call(opener, "token", "GET", "https://zenodo/files", sleep=waits.append) == b"ok"
+    assert len(calls) == 3 and len(waits) == 2
+
+    opener, calls = opener_failing(ATTEMPTS, 504)
+    with pytest.raises(HTTPError):
+        call(opener, "token", "GET", "https://zenodo/files", sleep=waits.append)
+    assert len(calls) == ATTEMPTS
+
+    opener, calls = opener_failing(1, 403)
+    with pytest.raises(HTTPError):
+        call(opener, "token", "GET", "https://zenodo/files", sleep=waits.append)
+    assert len(calls) == 1

@@ -254,14 +254,15 @@ def test_context_exceeded_is_retried_with_a_smaller_cut():
     assert result["categories"] == ["clone_refactoring"] and result["max_chars"] == 41_625
 
 
-# Below MIN_THREAD_CONTENT_CHARS it gives up and fails the thread.
-def test_context_exceeded_stops_at_the_minimum_cut():
+# After SHRINK_RETRIES smaller cuts it gives up and fails the thread.
+def test_context_exceeded_stops_after_the_last_cut():
     fake = FakeJev([CONTEXT_EXCEEDED] * 10)
 
     result = jev.classify_with_retries("x" * 100_000, fake.client)
 
     assert "max_tokens_exceeded" in result["error"]
-    assert len(fake.requests[-1]["state"]) - len(jev.STATE_PREAMBLE) == jev.MIN_THREAD_CONTENT_CHARS
+    sizes = [len(request["state"]) - len(jev.STATE_PREAMBLE) for request in fake.requests]
+    assert sizes == [74_000, 55_500, 41_625, 31_218]
 
 
 # The confidence is the probability of the option chosen, clone_and_reuse for

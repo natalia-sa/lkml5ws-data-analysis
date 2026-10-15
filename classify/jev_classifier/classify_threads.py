@@ -80,9 +80,9 @@ RATE_LIMIT_WAIT_SECONDS = 60
 RATE_LIMIT_RETRIES = 3
 # Chars per token vary with the thread (diffs, hex dumps), so a thread cut to
 # MAX_THREAD_CONTENT_CHARS can still exceed Jev's context: it is then sent
-# again cut to SHRINK_FACTOR of the previous size, down to MIN_THREAD_CONTENT_CHARS.
+# again cut to SHRINK_FACTOR of the previous size, up to SHRINK_RETRIES times.
 SHRINK_FACTOR = 0.75
-MIN_THREAD_CONTENT_CHARS = 20_000
+SHRINK_RETRIES = 3
 
 # Jev only receives the state and the questions, so the context the OpenAI
 # prompt gives in its instructions goes at the top of the state.
@@ -391,7 +391,7 @@ def classify_with_retries(thread_content, client, style="noul"):
     """The thread's result, with the max_chars it was cut to, or
     {"error": ...} instead of stopping the run."""
     max_chars = MAX_THREAD_CONTENT_CHARS
-    rate_limited = 0
+    rate_limited = shrunk = 0
     while True:
         try:
             result = {**classify_thread(thread_content, client, style, max_chars), "max_chars": max_chars}
@@ -402,9 +402,10 @@ def classify_with_retries(thread_content, client, style="noul"):
             rate_limited += 1
             time.sleep(RATE_LIMIT_WAIT_SECONDS)
         except Exception as error:
-            if not is_context_exceeded(error) or max_chars == MIN_THREAD_CONTENT_CHARS:
+            if not is_context_exceeded(error) or shrunk == SHRINK_RETRIES:
                 return {"error": str(error)}
-            max_chars = max(MIN_THREAD_CONTENT_CHARS, int(max_chars * SHRINK_FACTOR))
+            shrunk += 1
+            max_chars = int(max_chars * SHRINK_FACTOR)
 
     time.sleep(REQUEST_DELAY)
     return result
