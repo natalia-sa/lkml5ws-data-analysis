@@ -20,9 +20,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(HERE)
 REVIEWER1_DIR = os.path.join(HERE, "reviser1")
 REVIEWER2_DIR = os.path.join(HERE, "reviser2")
-OUTPUT_PATH = os.path.join(
-    HERE, "consolidated", "sample_review_all_consolidated_quotes_removed.csv"
-)
+OUTPUT_PATH = os.path.join(HERE, "consolidated", "labeled_sample.csv")
 
 sys.path.insert(0, PROJECT_ROOT)
 from pre_filter.pre_filter_threads import replace_quotes  # noqa: E402
