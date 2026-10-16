@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-N_REVIEWERS = 2
+N_REVIEWERS = 3
 KEY = ["list", "thread_id"]
 
 
