@@ -24,6 +24,8 @@ from pre_filter.pre_filter_threads import replace_quotes  # noqa: E402
 
 from review_fields import N_REVIEWERS, FIELDS, FIELDS_BY_NAME, KEY
 
+from review_ui import Back, Skip, Quit, COMMANDS_HELP, ask_field, thread_url
+
 SAMPLE_FILE = os.path.join(HERE, "samples.csv")
 USP_SAMPLE_FILE = os.path.join(HERE, "samples_usp.csv")
 REVIEWS_DIR = os.path.join(HERE, "reviser")
@@ -59,12 +61,15 @@ COLUMNS = [
 # (no `matched_terms` column there), so load_usp_threads() computes it itself.
 PRE_FILTER_COLUMNS = COLUMNS + ["matched_terms"]
 
+ANSWER_COLUMNS = KEY + ["field", "answer"]
+
+
 def review_file(number):
     return os.path.join(REVIEWS_DIR, f"review{number}.csv")
 
 
 def load_answers(path):
-    """{(list, thread_id): {field: answer}}. A última resposta de cada campo vale."""
+    """{(list, thread_id): {field: answer}}, one answer per field."""
     answers = defaultdict(dict)
     if os.path.exists(path):
         df = pd.read_csv(path, dtype=str, keep_default_na=False)
@@ -73,34 +78,52 @@ def load_answers(path):
     return answers
 
 
-def save_answer(path, key, field, answer):
+def save_answers(path, answers):
+    """Rewrites the whole file atomically (temp file + rename), so a Ctrl+C
+    in the middle of a write can't leave a truncated CSV behind."""
+    rows = [
+        {"list": l, "thread_id": t, "field": f, "answer": a}
+        for (l, t), fields in sorted(answers.items())
+        for f, a in fields.items()
+    ]
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    row = pd.DataFrame([{"list": key[0], "thread_id": key[1], "field": field, "answer": answer}])
-    row.to_csv(path, mode="a", header=not os.path.exists(path), index=False)
+
+    tmp = path + ".tmp"
+    pd.DataFrame(rows, columns=ANSWER_COLUMNS).to_csv(tmp, index=False)
+    os.replace(tmp, path)
+
+
+def drop_orphans(thread_answers):
+    """Removes answers of dependent fields whose parent no longer has the
+    required value. Relies on FIELDS listing the parent before the child."""
+    for field in FIELDS:
+        if field.ask_if is None:
+            continue
+        parent, value = field.ask_if
+        if thread_answers.get(parent) != value:
+            thread_answers.pop(field.name, None)
+
+
+def set_answer(path, answers, key, field, value):
+    answers[key][field.name] = value
+    drop_orphans(answers[key])
+    save_answers(path, answers)
+
+
+def undo_answer(path, answers, key, field):
+    answers[key].pop(field.name, None)
+    drop_orphans(answers[key])
+    save_answers(path, answers)
 
 
 def needs_answer(field, answers):
-    """`answers` são as respostas já dadas a este thread."""
+    """`answers` are the answers already given to this thread."""
     if field.name in answers:
         return False
     if field.ask_if is None:
         return True
     parent, value = field.ask_if
     return answers.get(parent) == value
-
-
-def ask(field):
-    if field.options is None:
-        answer = ""
-        while not answer:
-            answer = input(f"{field.prompt}\n> ").strip()
-        return answer.upper() if field.upper else answer
-
-    keys = "/".join(field.options)
-    answer = ""
-    while answer not in field.options:
-        answer = input(f"{field.prompt} ({keys}): ").strip().lower()
-    return field.options[answer]
 
 
 def matches_usp(row):
@@ -297,16 +320,12 @@ def crop_to_snippets(text, context_chars=SNIPPET_CONTEXT_CHARS):
     return f"\n\n{'.' * 40}\n\n".join(parts)
 
 
-def print_thread(row):
+def print_thread(row, position=None):
     terms = row["matched_terms"].replace(",", ", ") or "none"
 
-    thread_id = row["thread_id"]
-    thread_id_url = thread_id.strip("<>")
-    thread_url = f"https://lore.kernel.org/all/{thread_id_url}/"
-
     thread_link = (
-        f"\033]8;;{thread_url}\033\\"
-        f"{thread_id}"
+        f"\033]8;;{thread_url(row)}\033\\"
+        f"{row['thread_id']}"
         f"\033]8;;\033\\"
     )
 
@@ -323,6 +342,7 @@ def print_thread(row):
         field("Messages", row["n_messages"]),
         field("Date", row["date"]),
         field("Matched terms", terms),
+        *([field("Progress", position)] if position else []),
         "-" * 100,
         field("Subject", row["subject"]),
     ])
@@ -336,7 +356,7 @@ def print_thread(row):
 
         header += (
             f"\n{ITALIC}Showing excerpts around matched terms only; "
-            f"the full thread is hidden.{RESET}"
+            f"type :open to read the whole thread on lore.kernel.org.{RESET}"
         )
 
     print()
@@ -360,25 +380,50 @@ def review(sample_file, reviewer, fields):
         return
 
     print(f"{len(pending)} thread(s) left to review.")
+    print(COMMANDS_HELP)
+
+    history = []      # (index in pending, field) answered in this session
+    skipped = set()
+    i = 0
 
     try:
-        for row in pending:
+        while i < len(pending):
+            row = pending[i]
             key = (row["list"], row["thread_id"])
-            shown = False
 
-            for field in fields:
-                if not needs_answer(field, answers[key]):
+            if key in skipped:
+                i += 1
+                continue
+
+            try:
+                shown = False
+                for field in fields:
+                    if not needs_answer(field, answers[key]):
+                        continue
+
+                    if not shown:
+                        print_thread(row, position=f"{i + 1}/{len(pending)}")
+                        shown = True
+
+                    value = ask_field(row, field)
+                    set_answer(path, answers, key, field, value)
+                    history.append((i, field))
+            except Skip:
+                skipped.add(key)
+            except Back:
+                if not history:
+                    print("Nothing to undo.")
                     continue
 
-                if not shown:
-                    print_thread(row)
-                    shown = True
+                i, field = history.pop()
+                key = (pending[i]["list"], pending[i]["thread_id"])
+                skipped.discard(key)
+                undo_answer(path, answers, key, field)
+                continue
 
-                value = ask(field)
-                answers[key][field.name] = value
-                save_answer(path, key, field.name, value)
-    except (KeyboardInterrupt, EOFError):
-        print("\nReview Interrupted. Answers given so far are saved.")
+            i += 1
+    except (KeyboardInterrupt, EOFError, Quit):
+        print("\nReview interrupted. Answers given so far are saved.")
         return
 
     print("Review complete.")
@@ -407,7 +452,7 @@ def main():
         action="store_true",
         help=(
             f"Append {N_COMMON_HELPER_PER_LIST} unlabelled threads per list "
-            "matched only by pre_filter's common-helper arm to the shared main"
+            "matched only by pre_filter's common-helper arm to the shared main "
             "sample, then exit."
         ),
     )
