@@ -247,10 +247,23 @@ def crop_to_snippets(text, context_chars=SNIPPET_CONTEXT_CHARS):
     if not spans:
         return text
 
-    windows = [
-        [max(0, start - context_chars), min(len(text), end + context_chars)]
-        for start, end in spans
-    ]
+    windows = []
+
+    # Expand snippet boundaries to preserve complete lines
+    for match_start, match_end in spans:
+        start = max(0, match_start - context_chars)
+        end = min(len(text), match_end + context_chars)
+
+        if start > 0:
+            newline = text.rfind("\n", 0, start)
+            start = newline + 1 if newline != -1 else 0
+
+        if end < len(text):
+            newline = text.find("\n", end)
+            end = newline + 1 if newline != -1 else len(text)
+
+        windows.append([start, end])
+
     windows.sort()
 
     merged = [windows[0]]
@@ -262,11 +275,62 @@ def crop_to_snippets(text, context_chars=SNIPPET_CONTEXT_CHARS):
 
     parts = []
     for start, end in merged:
-        prefix = "[...]\n" if start > 0 else ""
-        suffix = "\n[...]" if end < len(text) else ""
+        ITALIC = "\033[3m"
+        RESET = "\033[0m"
+
+        prefix = f"{ITALIC}[...]{RESET}\n" if start > 0 else ""
+        suffix = f"\n{ITALIC}[...]{RESET}" if end < len(text) else ""
         parts.append(prefix + text[start:end] + suffix)
 
     return f"\n\n{'.' * 40}\n\n".join(parts)
+
+
+def print_thread(row):
+    terms = row["matched_terms"].replace(",", ", ") or "none"
+
+    thread_id = row["thread_id"]
+    thread_id_url = thread_id.strip("<>")
+    thread_url = f"https://lore.kernel.org/all/{thread_id_url}/"
+
+    thread_link = (
+        f"\033]8;;{thread_url}\033\\"
+        f"{thread_id}"
+        f"\033]8;;\033\\"
+    )
+
+    BOLD_WHITE = "\033[1;97m"
+    RESET = "\033[0m"
+
+    def field(name, value):
+        return f"{BOLD_WHITE}{name}:{RESET} {value}"
+
+    header = "\n".join([
+        "=" * 100,
+        field("List", row["list"]),
+        field("Thread", thread_link),
+        field("Messages", row["n_messages"]),
+        field("Date", row["date"]),
+        field("Matched terms", terms),
+        "-" * 100,
+        field("Subject", row["subject"]),
+    ])
+
+    snippets = crop_to_snippets(row["thread_content"])
+    cropped = len(snippets) < len(row["thread_content"])
+    body = highlight(snippets)
+    if cropped:
+        ITALIC = "\033[3m"
+        RESET = "\033[0m"
+
+        header += (
+            f"\n{ITALIC}Showing excerpts around matched terms only; "
+            f"the full thread is hidden.{RESET}"
+        )
+
+    print()
+    print(header)
+    print(body)
+    print("=" * 100)
 
 
 def review(output_file):
@@ -282,26 +346,8 @@ def review(output_file):
 
     for i in pending:
         row = df.loc[i]
-        terms = row["matched_terms"].replace(",", ", ") or "none"
 
-        header = (
-            "=" * 100 + "\n"
-            f"List: {row['list']}  Thread: {row['thread_id']}\n"
-            f"Messages: {row['n_messages']}  Date: {row['date']}\n"
-            f"Matched terms: {terms}\n"
-            + "-" * 100 + "\n"
-            f"Subject: {row['subject']}\n"
-        )
-        snippets = crop_to_snippets(row["thread_content"])
-        cropped = len(snippets) < len(row["thread_content"])
-        body = highlight(snippets)
-        if cropped:
-            header += "(showing excerpt(s) around matched terms only -- full thread hidden)\n"
-
-        print()
-        print(header)
-        print(body)
-        print("=" * 100)
+        print_thread(row)
 
         answer = ""
         while answer not in ("y", "n"):
