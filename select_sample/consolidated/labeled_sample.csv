@@ -1,4 +1,4 @@
-thread_id,list,n_messages,message_ids,date,subject,from,cc,thread_content,matched_terms,reviewer1,reviewer2,final_decision,category,final_justification
+thread_id,list,n_messages,message_ids,date,subject,from,cc,thread_content,matched_terms,is_clone_refactoring__reviewer1,is_clone_refactoring__reviewer2,is_clone_refactoring__final,category,is_clone_refactoring__justification
 001c01cb74f2$d3dd8990$66f8800a@maildom.okisemi.com,linux-i2c,8,"['4CC645A1.5010509@dsn.okisemi.com'
  '20101026102048.316d0c04@endymion.delvare'
  '001a01cb74ec$e3eb3ea0$66f8800a@maildom.okisemi.com'
