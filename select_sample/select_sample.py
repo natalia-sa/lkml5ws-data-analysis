@@ -90,6 +90,12 @@ def needs_answer(field, answers):
 
 
 def ask(field):
+    if field.options is None:
+        answer = ""
+        while not answer:
+            answer = input(f"{field.prompt}\n> ").strip()
+        return answer.upper() if field.upper else answer
+
     keys = "/".join(field.options)
     answer = ""
     while answer not in field.options:
