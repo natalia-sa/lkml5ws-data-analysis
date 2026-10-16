@@ -361,21 +361,25 @@ def review(sample_file, reviewer, fields):
 
     print(f"{len(pending)} thread(s) left to review.")
 
-    for row in pending:
-        key = (row["list"], row["thread_id"])
-        shown = False
+    try:
+        for row in pending:
+            key = (row["list"], row["thread_id"])
+            shown = False
 
-        for field in fields:
-            if not needs_answer(field, answers[key]):
-                continue
+            for field in fields:
+                if not needs_answer(field, answers[key]):
+                    continue
 
-            if not shown:
-                print_thread(row)
-                shown = True
+                if not shown:
+                    print_thread(row)
+                    shown = True
 
-            value = ask(field)
-            answers[key][field.name] = value
-            save_answer(path, key, field.name, value)
+                value = ask(field)
+                answers[key][field.name] = value
+                save_answer(path, key, field.name, value)
+    except (KeyboardInterrupt, EOFError):
+        print("\nReview Interrupted. Answers given so far are saved.")
+        return
 
     print("Review complete.")
 
