@@ -136,13 +136,22 @@ def normalize_message_id(value) -> str | None:
     return value or None
 
 
-def duplication_threads(path) -> dict[str, list[str]] | None:
-    if CATEGORY_COLUMN not in pq.read_schema(path).names:
-        return None
+def duplication_threads(
+    path, require_classification: bool = True
+) -> dict[str, list[str]] | None:
+    columns = [ "thread_id", "message_ids" ]
 
-    table = pq.read_table(path, columns=["thread_id", "message_ids", CATEGORY_COLUMN])
-    category = table.column(CATEGORY_COLUMN)
-    table = table.filter(pc.fill_null(pc.not_equal(category, "not_duplication"), False))
+    if require_classification:
+        if CATEGORY_COLUMN not in pq.read_schema(path).names:
+            return None
+
+        columns.append(CATEGORY_COLUMN)
+
+    table = pq.read_table(path, columns=columns)
+
+    if require_classification:
+        category = table.column(CATEGORY_COLUMN)
+        table = table.filter(pc.fill_null(pc.not_equal(category, "not_duplication"), False))
 
     return dict(zip(
         table.column("thread_id").to_pylist(),
@@ -371,6 +380,11 @@ def main() -> None:
     parser.add_argument("--git-tree", type=pathlib.Path, default=DEFAULT_GIT_TREE)
     parser.add_argument("--use-until", type=str)
     parser.add_argument("--path", type=pathlib.Path, nargs="+")
+    parser.add_argument(
+        "--require-classification",
+        action="store_true",
+        help="Require classified input and filter non-duplication threads",
+    )
 
     args = parser.parse_args()
 
@@ -385,7 +399,10 @@ def main() -> None:
         if not os.path.exists(output_file):
             raise SystemExit(f"Not found: {output_file}")
 
-        threads = duplication_threads(output_file)
+        threads = duplication_threads(
+            output_file,
+            require_classification=args.require_classification,
+        )
 
         if threads is None:
             print(f"Skipping {os.path.basename(output_file)}: not classified")
