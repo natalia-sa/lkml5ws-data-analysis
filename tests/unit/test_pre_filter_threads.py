@@ -2,7 +2,7 @@
 
 import pytest
 
-from pre_filter_threads import QUOTE_PLACEHOLDER, is_candidate, matches, replace_quotes
+from pre_filter.pre_filter_threads import QUOTE_PLACEHOLDER, is_candidate, matches, replace_quotes
 
 
 # Each term in the regex matches, and a thread lists every term it hit.
