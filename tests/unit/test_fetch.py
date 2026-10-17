@@ -12,7 +12,7 @@ import tarfile
 
 import pytest
 
-import fetch
+import fetch.fetch as fetch
 
 RECORD_URL = "https://zenodo.test/api/records/123"
 

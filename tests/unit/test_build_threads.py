@@ -5,8 +5,8 @@ the pre-filter, the one-row-per-thread output and the list selection of `main`.
 import pandas as pd
 import pytest
 
-import build_threads
-from build_threads import build_threads_for_file, is_pull_request
+import build_threads.build_threads as build_threads
+from build_threads.build_threads import build_threads_for_file, is_pull_request
 
 MESSAGE_DEFAULTS = {"subject": "", "raw_body": "", "from": "", "cc": None}
 
