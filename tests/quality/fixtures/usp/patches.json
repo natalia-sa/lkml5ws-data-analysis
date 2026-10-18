@@ -1,0 +1,199 @@
+{
+    "patches": [
+        {
+            "commit_hash": "ab568cb755600dda283541179e9338e1f0faed9f",
+            "message_id": "20260519234752.23911-2-natalia.andre@ime.usp.br"
+        },
+        {
+            "commit_hash": "3a7f08f66ec31b23822f107444e7c6816909ec1c",
+            "message_id": "20260519234752.23911-3-natalia.andre@ime.usp.br"
+        },
+        {
+            "commit_hash": "cded217233845577e58b0720a61ebce556196f08",
+            "message_id": "20260519234752.23911-4-natalia.andre@ime.usp.br"
+        },
+        {
+            "commit_hash": "e6cd87745a456548e1a2f9ae90927e18a10b57fe",
+            "message_id": "20260519234752.23911-5-natalia.andre@ime.usp.br"
+        },
+        {
+            "commit_hash": "339002636932e56191ba810975a876fe4a3e223f",
+            "message_id": "20260519234752.23911-6-natalia.andre@ime.usp.br"
+        },
+        {
+            "commit_hash": "f1cb3d3afd1024269ec1887a36b28efd9ea849a3",
+            "message_id": "20260519234752.23911-7-natalia.andre@ime.usp.br"
+        },
+        {
+            "commit_hash": "947eb6f0a274f8b15a0248051a65b069effd5057",
+            "message_id": "20260513003503.339418-2-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "f3c1ef2bca5c128b62b5b804a50ad3f6f64a3098",
+            "message_id": "20260513003503.339418-3-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "43a66cae2e9dc97b309a296deb141a9b3446eb1a",
+            "message_id": "20260513003503.339418-4-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "86931542d0ae02de2b819ce54a22a44596db6dac",
+            "message_id": "20260424004910.21003-1-gabrielsousa230@gmail.com"
+        },
+        {
+            "commit_hash": "721ee897a0470366584adc9f3ef88498f63101f0",
+            "message_id": "20260424004910.21003-2-gabrielsousa230@gmail.com"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20260520224217.17615-1-ryan.oliveiraf@usp.br"
+        },
+        {
+            "commit_hash": "b5838d1517e229111453ef9177bacafa39f3f1c2",
+            "message_id": "20250225015532.303032-1-luanicaro@usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20260417090841.6190-1-erick.am@usp.br"
+        },
+        {
+            "commit_hash": "dc0d6fdfa5b6ab36ddaa774265261336c3e7dbae",
+            "message_id": "20260428232009.10737-1-leonardocesar@usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20260420032858.10286-1-giovannauchoa@usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20260418201545.20673-1-andrejhirata@usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20260503031703.33330-1-joaovictor.fernandes@usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20260502234348.131563-2-gabrielblo@ime.usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20260502234348.131563-3-gabrielblo@ime.usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20260331015202.51017-1-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "1ebc22b9b32fc4319538f95bd65f9dee5a5e6c38",
+            "message_id": "20260405213725.25426-2-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20250507182327.49068-1-biancalvao@gmail.com"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20250526120340.16880-1-biancalvao@gmail.com"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20250429093923.347370-1-mikhael_abdallah@usp.br"
+        },
+        {
+            "commit_hash": "50ed17cdfd7f32f1b0f87da0aaabcd5e8dd23f19",
+            "message_id": "20250424002144.23260-1-beatrizvianacosta16@gmail.com"
+        },
+        {
+            "commit_hash": "fc0b0e82260f3b93f63325a89b4e4e17737b1421",
+            "message_id": "20250421145534.91146-1-arthurpilone@usp.br"
+        },
+        {
+            "commit_hash": "7ba4251181243ddd388be8d0c70564b5d9a8c3ca",
+            "message_id": "20250423204631.16460-1-gustavo.vaz@usp.br"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20250623201539.16148-1-gabriellimamoraes@gmail.com"
+        },
+        {
+            "commit_hash": "fe03825b1a6c5cb6a31a21fca8d8cbe075991ad3",
+            "message_id": "20250507184539.54658-1-bellacaselli20@gmail.com"
+        },
+        {
+            "commit_hash": "6f6bf97823451dceda121e7341b41ce8d0560c14",
+            "message_id": "20250611174253.16578-1-nattanferreira58@gmail.com"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20250428034222.318898-1-gabrielgeraldinosouza@gmail.com"
+        },
+        {
+            "commit_hash": null,
+            "message_id": "20250429165604.67984-1-saguileran@ime.usp.br"
+        },
+        {
+            "commit_hash": "7e340d3ceacf75e3e088fcc3dd4f8729d6c079c3",
+            "message_id": "20250503035949.11132-1-saguileran@ime.usp.br"
+        },
+        {
+            "_comment": "All patches below this point were released after May."
+        },
+        {
+            "commit_hash": "da805bfb3dfeb3fd30b905eb2ad98700994192e6",
+            "message_id": "20260708163013.221986-1-andrebueno.mac@gmail.com"
+        },
+        {
+            "commit_hash": "9243cf4777fc780157602603caa52c285908f26a",
+            "message_id": "20260728222436.8393-1-ulissespaixao@usp.br"
+        },
+        {
+            "commit_hash": "40d7dc96cf14e2e37fb9501e7d25fde10b858596",
+            "message_id": "20260528185912.24774-1-matheus.feitosa@usp.br"
+        },
+        {
+            "commit_hash": "dc04b407200d8c7642960afcd3cb64c9c3859f29",
+            "message_id": "20260626030013.20569-2-tiagodourado@usp.br"
+        },
+        {
+            "commit_hash": "f4c7d8293f019bccb7211ce312559715b51c5094",
+            "message_id": "20260626024948.19131-3-tiagodourado@usp.br"
+        },
+        {
+            "commit_hash": "21b62d3a52fe130ae40f4ad361d7ab9663c933b8",
+            "message_id": "20260611195026.25125-2-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "f79cb6df29af2e5ee63bdcb297a430ef7bb6e8b2",
+            "message_id": "20260611195026.25125-3-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "fb2f057b2c8cb59ddaa546cebafcba82d810532d",
+            "message_id": "20260611195026.25125-4-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "906757bbcff35f65b1ebdc79cba3c7088ddafac8",
+            "message_id": "20260611195026.25125-5-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "20d41add95d29acaf2eb680126a31921c624cdcb",
+            "message_id": "20260611195026.25125-6-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "f053749e33d7925a6ae58bac7673de8cd4ee10de",
+            "message_id": "20260611195026.25125-7-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "6688bf379b7ee7c0f94341c135e3c985b52caf69",
+            "message_id": "20260611195026.25125-8-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "334cbfa3cf0aeb1b51741e1925257a911c646f30",
+            "message_id": "20260611195026.25125-9-guilherme.bozi@usp.br"
+        },
+        {
+            "commit_hash": "272e584fc0d831596924130303405b9ed631e5e7",
+            "message_id": "20260611195026.25125-10-guilherme.bozi@usp.br"
+        }
+    ]
+}
