@@ -1,4 +1,4 @@
-thread_id,list,n_messages,message_ids,date,subject,from,cc,thread_content,matched_terms,is_clone_refactoring
+thread_id,list,n_messages,message_ids,date,subject,from,cc,thread_content,matched_terms
 20240220194657.243378-3-davidbtadokoro@usp.br,amd,4,"['20240220194657.243378-1-davidbtadokoro@usp.br'
  '20240220194657.243378-2-davidbtadokoro@usp.br'
  '20240220194657.243378-3-davidbtadokoro@usp.br'
@@ -285,7 +285,7 @@ index 083cb3158859..d6d50cd3755d 100644
  
  #endif /* DAL_DC_DCN10_RV1_CLK_MGR_VBIOS_SMU_H_ */
 -- 
-2.39.2",,no
+2.39.2",
 20240809210122.23814-1-luanicaro@usp.br,amd,1,['20240809210122.23814-1-luanicaro@usp.br'],2024-08-09 21:01:17,[RFC PATCH] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['LipArcanjo <luanicaroarcanjo@gmail.com>'
  'Luan Icaro Pinto Arcanjo <luanicaro@usp.br>'
  'amd-gfx@lists.freedesktop.org' 'dri-devel@lists.freedesktop.org']","================================================
@@ -1190,7 +1190,7 @@ index 000000000000..6c9246a6e4e6
 +
 +#endif
 -- 
-2.43.0","copy-pasted,duplications",yes
+2.43.0","copy-pasted,duplications"
 20241116224850.22874-1-luanicaro@usp.br,amd,1,['20241116224850.22874-1-luanicaro@usp.br'],2024-11-16 22:47:53,[RFC PATCH v2] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['Luan Arcanjo <luanicaro@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
 MESSAGE 1 of 1
@@ -2053,7 +2053,7 @@ index 000000000000..4e0ceb39b95f
 +
 +#endif
 -- 
-2.43.0","copy-pasted,duplications",yes
+2.43.0","copy-pasted,duplications"
 20250207230852.10232-1-luanicaro@usp.br,amd,1,['20250207230852.10232-1-luanicaro@usp.br'],2025-02-07 23:08:50,[PATCH v2] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['Luan Arcanjo <luanicaro@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
 MESSAGE 1 of 1
@@ -2916,7 +2916,7 @@ index 000000000000..4e0ceb39b95f
 +
 +#endif
 -- 
-2.43.0","copy-pasted,duplications",yes
+2.43.0","copy-pasted,duplications"
 20260404064003.94877-1-guilherme.bozi@usp.br,amd,1,['20260404064003.94877-1-guilherme.bozi@usp.br'],2026-04-04 06:40:20,[PATCH] drm/amdgpu: use named SRCID for JPEG decode in VCN 1.0,Guilherme Ivo Bozi <guilherme.bozi@usp.br>,"['airlied@gmail.com' 'simona@ffwll.ch' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org' 'guilherme.bozi@usp.br']","================================================
 MESSAGE 1 of 1
@@ -2985,7 +2985,7 @@ index e5951709bfc3..d97883a88b0e 100644
  #endif /* __IRQSRCS_VCN_1_0_H__ */
  
 -- 
-2.47.3",,no
+2.47.3",
 20260421015506.9230-1-andrejhirata@usp.br,amd,1,['20260421015506.9230-1-andrejhirata@usp.br'],2026-04-21 01:54:58,[PATCH] drm/amd/pm: Use guard(mutex) instead of manual lock+unlock,Andre Hirata <andrejhirata@usp.br>,"['amd-gfx@lists.freedesktop.org' 'andrejhirata@usp.br'
  'gabriel.dimant@usp.br' 'guilhermesangabriel@usp.br']","================================================
 MESSAGE 1 of 1
@@ -4346,7 +4346,7 @@ index feadf604b..fc8f137a2 100644
  	return ret;
  }
 -- 
-2.43.0",,no
+2.43.0",
 20260422003911.33841-3-tiagodourado@usp.br,amd,3,"['20260422003911.33841-1-tiagodourado@usp.br'
  '20260422003911.33841-2-tiagodourado@usp.br'
  '20260422003911.33841-3-tiagodourado@usp.br']",2026-04-22 00:38:43,[PATCH 0/2] drm/amdgpu/jpeg: deduplicate process_interrupt across JPEG versions,Tiago Dourado <tiagodourado@usp.br>,"['luiz.f.f.fernandes@usp.br' 'Tiago Dourado <tiagodourado@usp.br>'
@@ -4564,7 +4564,7 @@ index 1821dced9..92aaf5dea 100644
  				  unsigned int vmid,
  				  struct amdgpu_fence *timedout_fence)
 -- 
-2.43.0","deduplicate,duplicate,duplicates",yes
+2.43.0","deduplicate,duplicate,duplicates"
 20260508103653.39000-1-andrejhirata@usp.br,amd,16,"['20260508024744.6523-1-andrejhirata@usp.br'
  'dcc966e0-da1d-4589-ad04-02aeb1a8e06f@amd.com'
  '20260508103653.39000-1-andrejhirata@usp.br'
@@ -26502,7 +26502,7 @@ vim +247 drivers/gpu/drm/amd/amdgpu/../pm/amdgpu_dpm.c
 
 --
 0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki",,no
+https://github.com/intel/lkp-tests/wiki",
 20260512190019.228440-8-guilherme.bozi@usp.br,amd,10,"['20260512190019.228440-1-guilherme.bozi@usp.br'
  '20260512190019.228440-2-guilherme.bozi@usp.br'
  '20260512190019.228440-3-guilherme.bozi@usp.br'
@@ -30380,7 +30380,7 @@ index e7e1d9979876..7b2c4cd42450 100644
  
  
 -- 
-2.47.3",duplicated,yes
+2.47.3",duplicated
 20260520224217.17615-1-ryan.oliveiraf@usp.br,amd,1,['20260520224217.17615-1-ryan.oliveiraf@usp.br'],2026-05-20 22:42:13,[PATCH] drm/amdgpu: Unify vm_fault_interrupt_state logic for gmc v10 and v12_0,Ryan Oliveira <ryan.oliveiraf@usp.br>,"['Ryan Oliveira <ryan.oliveiraf@usp.br>'
  'Kaiky Cintra <kaikycintra@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -30586,7 +30586,7 @@ index 586703ec0dfa..d3eabe3b6dff 100644
  };
  
 -- 
-2.54.0",duplication,yes
+2.54.0",duplication
 403722a9-eb23-475f-8172-47039f54605d@amd.com,amd,2,"['20260417090841.6190-1-erick.am@usp.br'
  '403722a9-eb23-475f-8172-47039f54605d@amd.com']",2026-04-17 09:07:52,[PATCH] drm/amdgpu: Deduplicate eop_irq v11/v12 functions to use helper,Erick Henrique <erick.am@usp.br>,"['Erick Henrique De Araujo Moreira <erick.am@usp.br>'
  'Lais Alves Da Costa <laisalvesc@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -31081,7 +31081,7 @@ Christian.
 >  static int gfx_v12_0_set_priv_reg_fault_state(struct amdgpu_device *adev,
 > --
 > 2.43.0
->","deduplicate,duplication",yes
+>","deduplicate,duplication"
 52ff3c29-0e45-4f56-9677-a6fb299c72b6@amd.com,amd,2,"['20241009153424.15256-1-luanicaro@usp.br'
  '52ff3c29-0e45-4f56-9677-a6fb299c72b6@amd.com']",2024-10-09 15:34:01,[RFC PATCH] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['LipArcanjo <luanicaroarcanjo@gmail.com>'
  'Luan Icaro Pinto Arcanjo <luanicaro@usp.br>'
@@ -32920,7 +32920,7 @@ Siqueira
 > +
 > +bool engine_bp_to_atom(enum engine_id id, uint32_t *atom_engine_id);
 > +
-> +#endif","copy-pasted,duplications",yes
+> +#endif","copy-pasted,duplications"
 55479c9b-1686-42db-b8da-aaa93c589660@amd.com,amd,2,"['20240613160549.139004-1-jppaulo11@usp.br'
  '55479c9b-1686-42db-b8da-aaa93c589660@amd.com']",2024-06-13 16:05:45,[PATCH] drm/amd/display/dc: Remove dc code repetition,Joao Paulo Pereira da Silva <jppaulo11@usp.br>,"['luanicaro@usp.br' 'paulormm@ime.usp.br'
  'Joao Paulo Pereira da Silva <jppaulo11@usp.br>'
@@ -33263,7 +33263,7 @@ Siqueira
 > +	_optc1_enable_crtc(optc);
 >   	return true;
 >   }
->","duplication,repeated",yes
+>","duplication,repeated"
 59f9d505-c839-4193-ab1a-30af8ddd6ee9@amd.com,amd,2,"['20260427191556.9672-1-leonardocesar@usp.br'
  '59f9d505-c839-4193-ab1a-30af8ddd6ee9@amd.com']",2026-04-27 19:15:19,[PATCH v3] drm/amdgpu: deduplicate ring preempt ib function,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -33779,7 +33779,7 @@ Christian.
 >         .emit_reg_write_reg_wait = gfx_v12_0_ring_emit_reg_write_reg_wait,
 > --
 > 2.43.0
->","deduplicate,duplication",yes
+>","deduplicate,duplication"
 606b422c-4531-4950-a22e-61732383f6b5@amd.com,amd,2,"['20260512140142.6610-1-leonardocesar@usp.br'
  '606b422c-4531-4950-a22e-61732383f6b5@amd.com']",2026-05-12 14:01:29,[PATCH] drm/amdgpu: fix inconsistent indenting in amdgpu_gfx_ring_preempt_ib,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>'
  'kernel test robot <lkp@intel.com>' 'amd-gfx@lists.freedesktop.org'
@@ -33853,7 +33853,7 @@ Reviewed-by: Christian König <christian.koenig@amd.com>
 > +	amdgpu_ring_set_preempt_cond_exec(ring, true);
 >  
 >  	if (i >= adev->usec_timeout) {
->  		DRM_ERROR(""ring %d failed to preempt ib\n"", ring->idx);",,no
+>  		DRM_ERROR(""ring %d failed to preempt ib\n"", ring->idx);",
 8f0fbad4-fc60-40a7-a8ab-3962e6b8ecd4@amd.com,amd,2,"['20260418201545.20673-1-andrejhirata@usp.br'
  '8f0fbad4-fc60-40a7-a8ab-3962e6b8ecd4@amd.com']",2026-04-18 20:15:52,[PATCH] drm/amdgpu: unify gmc v10 and v11 get_vm_pde and get_vm_pte into common helpers,Andre Hirata <andrejhirata@usp.br>,"['amd-gfx@lists.freedesktop.org' 'andrejhirata@usp.br'
  'gabriel.dimant@usp.br' 'guilhermesangabriel@usp.br']","================================================
@@ -34710,7 +34710,7 @@ Christian.
 > 
 > --
 > 2.43.0
->",duplication,yes
+>",duplication
 CAAgyy7fZwCqPc7NkiTWd6qLgH-b3xouoSEcr-5q93sYo6ujvEA@mail.gmail.com,amd,3,"['20250207231219.10807-1-luanicaro@usp.br'
  'CADnq5_PQ-WiZt2qnbeSnxXWkj1Cf=OLq0pjWcnzm2PE8be34Mg@mail.gmail.com'
  'CAAgyy7fZwCqPc7NkiTWd6qLgH-b3xouoSEcr-5q93sYo6ujvEA@mail.gmail.com']",2025-02-07 23:12:09,[PATCH v3] drm/amd/display/dc: Refactor remove duplications on command_table files,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['Luan Arcanjo <luanicaro@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -37404,7 +37404,7 @@ escreveu:
 > > --
 > > 2.43.0
 > >
->","copy-pasted,duplications",yes
+>","copy-pasted,duplications"
 CADnq5_MGRpNE8Ge_5=w5mQDJivdS2Wt_2LD=dR-mrWH89Yc-0A@mail.gmail.com,amd,3,"['20260421200311.15624-1-leonardocesar@usp.br'
  '59b686c6-42f5-4cde-8199-dae64722bfd1@amd.com'
  'CADnq5_MGRpNE8Ge_5=w5mQDJivdS2Wt_2LD=dR-mrWH89Yc-0A@mail.gmail.com']",2026-04-21 20:03:00,[PATCH] drm/amdgpu: deduplicate ring preempt ib function,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -38171,7 +38171,7 @@ Alex
 > > --
 > > 2.43.0
 > >
->","deduplicate,duplication",yes
+>","deduplicate,duplication"
 CADnq5_MbpE9AT8qZiLQkYZ7QZ2YWwmu2U8vj3+C+umR1dnJL9A@mail.gmail.com,amd,2,"['20260415164029.52537-1-leonardocesar@usp.br'
  'CADnq5_MbpE9AT8qZiLQkYZ7QZ2YWwmu2U8vj3+C+umR1dnJL9A@mail.gmail.com']",2026-04-15 16:40:23,[PATCH] drm/amdgpu: deduplicate ring preempt ib function,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -38607,7 +38607,7 @@ Alex
 >  static void gfx_v12_0_ring_emit_rreg(struct amdgpu_ring *ring, uint32_t reg,
 > --
 > 2.43.0
->","deduplicate,duplication",yes
+>","deduplicate,duplication"
 CADnq5_Mi7jotv=ZYpEW1f1HOdOniUsJnXEqHqC2n38q=b42yxg@mail.gmail.com,amd,2,"['20250225015532.303032-1-luanicaro@usp.br'
  'CADnq5_Mi7jotv=ZYpEW1f1HOdOniUsJnXEqHqC2n38q=b42yxg@mail.gmail.com']",2025-02-25 01:55:29,[PATCH v4] drm/amd/display/dc: Refactor remove duplications,Luan Icaro Pinto Arcanjo <luanicaro@usp.br>,"['Luan Arcanjo <luanicaro@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -40256,7 +40256,7 @@ On Mon, Feb 24, 2025 at 8:55 PM Luan Icaro Pinto Arcanjo
 >  {
 > --
 > 2.43.0
->","copy-pasted,duplications",yes
+>","copy-pasted,duplications"
 CADnq5_Nvfj-WMc039YvjoWfYiXcQ5estN573dO1Y2LtwPMiNRA@mail.gmail.com,amd,3,"['20260428232009.10737-1-leonardocesar@usp.br'
  '38b716ff-fac9-4921-8121-4a76cf1cef18@amd.com'
  'CADnq5_Nvfj-WMc039YvjoWfYiXcQ5estN573dO1Y2LtwPMiNRA@mail.gmail.com']",2026-04-28 23:19:44,[PATCH v4] drm/amdgpu: deduplicate ring preempt ib function,Leonardo Cesar <leonardocesar@usp.br>,"['Leonardo Cesar <leonardocesar@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -41001,7 +41001,7 @@ On Wed, Apr 29, 2026 at 9:19 AM Christian König
 > >       .emit_wreg = gfx_v12_0_ring_emit_wreg,
 > >       .emit_reg_wait = gfx_v12_0_ring_emit_reg_wait,
 > >       .emit_reg_write_reg_wait = gfx_v12_0_ring_emit_reg_write_reg_wait,
->","deduplicate,duplication",yes
+>","deduplicate,duplication"
 CADnq5_NyjsHsgN1f9G=E7ZM6Z9AhEX1cX5k51W+bZMBx1S1tqQ@mail.gmail.com,amd,2,"['20240221192812.23038-1-jppaulo11@usp.br'
  'CADnq5_NyjsHsgN1f9G=E7ZM6Z9AhEX1cX5k51W+bZMBx1S1tqQ@mail.gmail.com']",2024-02-21 19:27:19,[PATCH] drm/amd/display: Add prefix to functions inside dnc10_cm_common.h,Joao Paulo Pereira da Silva <jppaulo11@usp.br>,"['Joao Paulo Pereira da Silva <jppaulo11@usp.br>'
  'amd-gfx@lists.freedesktop.org' 'dri-devel@lists.freedesktop.org']","================================================
@@ -41950,7 +41950,7 @@ Alex
 >                         shaper_lut = &dpp_base->shaper_params;
 > --
 > 2.43.0
->",,no
+>",
 CADnq5_P7mGBw21FYTfZwaff+3G6Ddj1wkCTKOU=LRLaVgF4ZAg@mail.gmail.com,amd,6,"['20260420032858.10286-1-giovannauchoa@usp.br'
  'CADnq5_P2+OqDtmhwOAuM9QsOFi8D45QA+=XOCqJ1vbMbjVQJCg@mail.gmail.com'
  '7eb86bbd-d875-474c-a052-176f6d00ad79@amd.com'
@@ -43760,7 +43760,7 @@ Alex
 > >>>> 2.53.0
 > >>>>
 > >>
->","duplicate,duplication",yes
+>","duplicate,duplication"
 CADnq5_PrP7jVyyJ85TZyRnpFVb5rVzPJ2vY78ZZp+YVSoneJZQ@mail.gmail.com,amd,3,"['20240528131026.214773-1-brunolevilevi@usp.br'
  '20240528131026.214773-3-brunolevilevi@usp.br'
  'CADnq5_PrP7jVyyJ85TZyRnpFVb5rVzPJ2vY78ZZp+YVSoneJZQ@mail.gmail.com']",2024-05-28 13:10:49,[PATCH 0/2] Fix alignment in comment blocks,Bruno Rocha Levi <brunolevilevi@usp.br>,"['Bruno Rocha Levi <brunolevilevi@usp.br>' 'amd-gfx@lists.freedesktop.org'
@@ -43868,7 +43868,7 @@ On Tue, May 28, 2024 at 10:47 AM Bruno Rocha Levi <brunolevilevi@usp.br> wrote
 >  #define _ACP_GFX_IF_H
 > --
 > 2.45.1
->",,no
+>",
 CAJgF-xswWgRGJGUDFRw+q4YOz1cVc5fqXumHBGxpLE_4736FQg@mail.gmail.com,amd,3,"['CAJgF-xs=3fbKQO5Mj=coPMXq0ecWmV0bJDNFN44coEHV3WS=wg@mail.gmail.com'
  '20260331015202.51017-1-guilherme.bozi@usp.br'
  'CAJgF-xswWgRGJGUDFRw+q4YOz1cVc5fqXumHBGxpLE_4736FQg@mail.gmail.com']",2026-02-17 22:35:51,[PATCH] drm/amd/display: Deduplicate DCN DDC register assignment,Guilherme Ivo Bozi <guilherme.bozi@usp.br>,"['siqueira@igalia.com' 'alexander.deucher@amd.com'
@@ -44966,7 +44966,7 @@ On Mon, Mar 30, 2026 at 10:52 PM Guilherme Ivo Bozi
 > +#endif /* __DAL_HW_FACTORY_DCN_DDC_H__ */
 > --
 > 2.47.3
->","deduplicate,duplication",yes
+>","deduplicate,duplication"
 a51e328a-f6b4-4bde-bcae-4abcd5c983ec@amd.com,amd,4,"['20240213224339.379599-1-jppaulo11@usp.br'
  '20240213224339.379599-2-jppaulo11@usp.br'
  '20240213224339.379599-3-jppaulo11@usp.br'
@@ -45130,7 +45130,7 @@ part is already present)? Could you rebase your change and squash these
 two commits in a single one?
 
 Thanks
-Siqueira",,no
+Siqueira",
 a5f06933-3cbc-4b6d-99fc-23ee31b291ca@amd.com,amd,2,"['20240222141900.295254-1-davidbtadokoro@usp.br'
  'a5f06933-3cbc-4b6d-99fc-23ee31b291ca@amd.com']",2024-02-22 14:19:00,[PATCH] drm/amd/display: Remove duplicated function signature from dcn3.01 DCCG,David Tadokoro <davidbtadokoro@usp.br>,"['David Tadokoro <davidbtadokoro@usp.br>' 'amd-gfx@lists.freedesktop.org'
  'dri-devel@lists.freedesktop.org']","================================================
@@ -45213,7 +45213,7 @@ Reviewed-by: Rodrigo Siqueira <Rodrigo.Siqueira@amd.com>
 I already merged your patch into the asdn.
 
 Thanks
-Siqueira","duplicated,duplication",no
+Siqueira","duplicated,duplication"
 f57eb557-4725-42ac-a157-742304e2344b@amd.com,amd,7,"['20260429173646.7653-1-ulissespaixao@usp.br'
  'dda47c3b-1303-4f10-b375-1f3eab032ee5@amd.com'
  '20260505021417.32520-1-ulissespaixao@usp.br'
@@ -46525,7 +46525,7 @@ cleanup could be applied there as well.
 
 --
 Kind regards,
-Guilherme Ivo","duplicated,duplication",yes
+Guilherme Ivo","duplicated,duplication"
 03a2d7e2-7feb-4b36-bd48-7a83a75cf118@amd.com,iio,4,"['20240424225302.47004-1-pedro.mariano@usp.br'
  'ZizBndYiU5GVUtmQ@debian-BULLSEYE-live-builder-AMD64'
  '20240428171725.5c24b858@jic23-huawei'
@@ -46809,7 +46809,7 @@ On 4/28/24 18:17, Jonathan Cameron wrote:
 That's correct. We are using this driver on DT system.
 
 Thanks,
-Michal",,no
+Michal",
 20240421184323.68b710e2@jic23-huawei,iio,6,"['20240420182744.153184-1-lorenzobs@usp.br'
  '20240420182744.153184-2-lorenzobs@usp.br'
  '20240420182744.153184-3-lorenzobs@usp.br'
@@ -47116,7 +47116,7 @@ Jonathan
 > -	return ret;
 >  }
 >  
->  static void ads131e08_regulator_disable(void *data)",,no
+>  static void ads131e08_regulator_disable(void *data)",
 20240426012313.2295067-2-gustavenrique01@gmail.com,iio,5,"['20240426012313.2295067-1-gustavenrique01@gmail.com'
  '20240426012313.2295067-2-gustavenrique01@gmail.com'
  '20240426012313.2295067-3-gustavenrique01@gmail.com'
@@ -47314,7 +47314,7 @@ On 04/25, Gustavo wrote:
 > -- 
 > 2.34.1
 > 
->",,no
+>",
 20240428020247.50114-1-otavio.ols@usp.br,iio,3,"['20240420233836.24971-1-otavio.ols@usp.br'
  '20240421183820.4e2c0133@jic23-huawei'
  '20240428020247.50114-1-otavio.ols@usp.br']",2024-04-20 23:34:11,[PATCH] iio: adc: use sign_extend32 to provide negative numbers conversion,Otávio Silva <otavio.ols@usp.br>,"['Otávio Silva <otavio.ols@usp.br>'
@@ -47430,7 +47430,7 @@ so it does not require 2’s complement as we first thought.
 
 We are sorry for the misunderstanding (and for the wrong emails), and
 thankful for your attention,
-Otávio Silva",,no
+Otávio Silva",
 20240428123911.73f54c08@jic23-huawei,iio,2,"['20240427121055.5639-1-lincolnyuji@usp.br'
  '20240428123911.73f54c08@jic23-huawei']",2024-04-27 12:10:55,[PATCH] iio: adc: ti-ads1015: use device_for_each_child_node_scoped(),Lincoln Yuji <lincolnyuji@usp.br>,"['Luiza Soezima <lbrsoezima@usp.br>'
  'Sabrina Araujo <sabrinaaraujo@usp.br>'
@@ -47567,7 +47567,7 @@ Jonathan
 > -				fwnode_handle_put(node);
 >  				return -EINVAL;
 >  			}
->  		}",,no
+>  		}",
 20240428164149.3d4b160b@jic23-huawei,iio,4,"['20240426131953.14933-1-lincolnyuji@usp.br'
  'ZizeKo_E7Z5DOR9C@debian-BULLSEYE-live-builder-AMD64'
  '20240428163652.7da552d1@jic23-huawei'
@@ -47880,7 +47880,7 @@ Jonathan
 > > > 2.34.1
 > > > 
 > > >     
->",,no
+>",
 20240428194326.2836387-2-ogustavo@usp.br,iio,6,"['20240428194326.2836387-1-ogustavo@usp.br'
  '20240428194326.2836387-2-ogustavo@usp.br'
  '20240428194326.2836387-3-ogustavo@usp.br'
@@ -48113,7 +48113,7 @@ out as testing for the autobuilders to see if we missed anything,
 
 Thanks,
 
-Jonathan",,no
+Jonathan",
 20240501084519.7fc7f982@jic23-huawei,iio,2,"['20240429132233.6266-1-lincolnyuji@usp.br'
  '20240501084519.7fc7f982@jic23-huawei']",2024-04-29 13:22:33,[PATCH v3] iio: adc: ti-ads1015: use device_for_each_child_node_scoped(),Lincoln Yuji <lincolnyuji@usp.br>,"['Lincoln Yuji <lincolnyuji@usp.br>' 'Luiza Soezima <lbrsoezima@usp.br>'
  'Sabrina Araujo <sabrinaaraujo@usp.br>'
@@ -48240,7 +48240,7 @@ Applied.
 > -				fwnode_handle_put(node);
 >  				return -EINVAL;
 >  			}
->  		}",,no
+>  		}",
 20240504123443.46949690@jic23-huawei,iio,6,"['20240501215724.26655-1-jorge.harrisonn@usp.br'
  '20240501215724.26655-2-jorge.harrisonn@usp.br'
  '20240501215724.26655-3-jorge.harrisonn@usp.br'
@@ -48577,7 +48577,7 @@ Email body:
 
 
 Regards,
-Markus",,no
+Markus",
 20240523173930.00005eb3@Huawei.com,iio,2,"['20240523162437.3823-1-viniciusflima@usp.br'
  '20240523173930.00005eb3@Huawei.com']",2024-05-23 16:24:35,[PATCH] iio: adc: mcp3564.c: Use device_for_each_child_node_scoped() to simplify error paths,Vinícius Lima <viniciusflima@usp.br>,"['Vinícius Henrique Ferraz Lima <viniciusflima@usp.br>'
  'Lucas Quaresma <lucasqml08@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -48711,7 +48711,7 @@ Jonathan
 > -			fwnode_handle_put(child);
 >  			return dev_err_probe(&indio_dev->dev, -EINVAL,
 >  					     ""Channel index > %d, for %s\n"",
->  					     MCP3564_INTERNAL_VCM + 1,",,no
+>  					     MCP3564_INTERNAL_VCM + 1,",
 20240602140940.7dc4fe94@jic23-huawei,iio,2,"['20240527091942.53616-1-gustavofukunaga@usp.br'
  '20240602140940.7dc4fe94@jic23-huawei']",2024-05-27 09:19:40,[PATCH] iio: adc: ti-adc161s626: make use of iio_device_claim_direct_scoped(),Gustavo Ueti Fukunaga <gustavofukunaga@usp.br>,"['Gustavo Ueti Fukunaga <gustavofukunaga@usp.br>' 'caiodantas@usp.br'
  'linux-iio@vger.kernel.org']","================================================
@@ -48822,7 +48822,7 @@ Jonathan
 > +		unreachable();
 >  	case IIO_CHAN_INFO_SCALE:
 >  		ret = regulator_get_voltage(data->ref);
->  		if (ret < 0)",,no
+>  		if (ret < 0)",
 20240615115238.2ecadd28@jic23-huawei,iio,7,"['20240613153920.14647-1-hagisf@usp.br'
  '20240613153920.14647-2-hagisf@usp.br'
  '20240613153920.14647-3-hagisf@usp.br'
@@ -49171,7 +49171,7 @@ is never needed!
 
 >  			if (ret < 0)
 >  				return ret;
->  			*val = (*val >> 2) & 0xfff;",,no
+>  			*val = (*val >> 2) & 0xfff;",
 20250426153307.59689da0@jic23-huawei,iio,2,"['20250423204631.16460-1-gustavo.vaz@usp.br'
  '20250426153307.59689da0@jic23-huawei']",2025-04-23 20:46:31,[PATCH v1] iio: accel: kxcjk-1013: Deduplicate setup interrupt functions,Gustavo Vaz <gustavo.vaz@usp.br>,"['linux-iio@vger.kernel.org' 'gustavo.vaz@usp.br'
  'franciscolealhenriques@usp.br']","================================================
@@ -49356,7 +49356,7 @@ Applied to the togreg branch of iio.git.
 
 Thanks,
 
-Jonathan",deduplicate,yes
+Jonathan",deduplicate
 20260420190139.37377770@jic23-huawei,iio,4,"['20260405213725.25426-2-guilherme.bozi@usp.br'
  'adQOnSHRS3baSTLv@ashevche-desk.local'
  'adujgV4nfAwiJPjA@debian-BULLSEYE-live-builder-AMD64'
@@ -49557,7 +49557,7 @@ Applied.
 
 Thanks,
 
-J","duplicate,duplication",yes
+J","duplicate,duplication"
 20260420212405.11789-1-gustavo.pagnotta@ime.usp.br,iio,1,['20260420212405.11789-1-gustavo.pagnotta@ime.usp.br'],2026-04-20 21:23:47,[PATCH] iio: adc: mcp320x: refactor driver to use bitfield API,Gustavo Pagnotta Faria <gustavo.pagnotta@ime.usp.br>,"['Gustavo Pagnotta Faria <gustavo.pangotta@ime.usp.br>'
  'Eduardo Augusto <eduardoaugustoabc@ime.usp.br>'
  'Christian Barry <christian.barry@ime.usp.br>'
@@ -49708,7 +49708,7 @@ index 57cff3772ebe..b7523e5ea903 100644
  
  		*val = (s32)raw;
 -- 
-2.43.0",,no
+2.43.0",
 20260421011540.555773-1-rafasales@usp.br,iio,3,"['20260415203345.195557-1-rafasales@usp.br'
  'aeHrF5HsRoWqazzR@ashevche-desk.local'
  '20260421011540.555773-1-rafasales@usp.br']",2026-04-15 20:33:30,[PATCH] iio: light: ltr501: Use automatic cleanup of locks,"""Rafael B. Sales"" <rafasales@usp.br>","['Rafael B. Sales <rafasales@usp.br>'
@@ -50024,7 +50024,7 @@ cases below).
 > this compiles and behaves well.
 
 You are right that guards in switch cases can lead to undesirable behavior.
-I will switch to using `scoped_guard()` here on v2 which will address this.",,no
+I will switch to using `scoped_guard()` here on v2 which will address this.",
 20260421153214.755c40be@jic23-huawei,iio,4,"['20260420215021.14112-1-gustavo.pagnotta@ime.usp.br'
  '20260421153214.755c40be@jic23-huawei'
  '20260421165134.0235b764@jic23-huawei'
@@ -50536,7 +50536,7 @@ purpose or refactor to avoid foo = bar(foo); cases.
 
 -- 
 With Best Regards,
-Andy Shevchenko",duplication,yes
+Andy Shevchenko",duplication
 20260423012011.41001-2-felipers@ime.usp.br,iio,6,"['20260423012011.41001-1-felipers@ime.usp.br'
  '20260423012011.41001-2-felipers@ime.usp.br'
  '20260423012011.41001-3-felipers@ime.usp.br'
@@ -51022,7 +51022,7 @@ index 5622b62840e6..a4d5d139af5f 100644
 Separate change anyway so I'm fine with that as a follow up.
 
 
->",,no
+>",
 20260424123719.64022c30@jic23-huawei,iio,9,"['20260422222553.67660-1-gustavo.pagnotta@ime.usp.br'
  '20260422222553.67660-2-gustavo.pagnotta@ime.usp.br'
  '20260422222553.67660-3-gustavo.pagnotta@ime.usp.br'
@@ -51601,7 +51601,7 @@ Jonathan
 		
 > >  		return 0;
 > > +		}  
->",,no
+>",
 20260427105102.6e5a92a9@jic23-huawei,iio,4,"['20260421040313.21029-1-pedro.pbg@usp.br'
  '20260421105834.0d6ebd98@jic23-huawei'
  'CAN+tGO-pX-BkZNiSsTjwk4ZWWBoiDSq43G=K1a1ba0nJLUAk2w@mail.gmail.com'
@@ -52482,7 +52482,7 @@ Yes.
 > --
 > Thanks,
 > 
-> Pedro",redundant,no
+> Pedro",redundant
 20260428160533.47e4e820@jic23-huawei,iio,4,"['20260428134205.1137419-1-rafael.guimaraes.dias@usp.br'
  'CALoEA-wd9jo_bPCGF0GqLH9SX7vWsCN7oyvkN3Q86R0F=WTjog@mail.gmail.com'
  '20260428160533.47e4e820@jic23-huawei'
@@ -52752,7 +52752,7 @@ Depends. If we use something from linux/sysfs.h it's still needed.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 20260429013640.26870-2-pedro.pbg@usp.br,iio,5,"['20260429013640.26870-1-pedro.pbg@usp.br'
  '20260429013640.26870-2-pedro.pbg@usp.br'
  '20260429013640.26870-3-pedro.pbg@usp.br'
@@ -53177,7 +53177,7 @@ backlog and the bots have finished poking at it.
 
 Thanks,
 
-Jonathan",redundant,no
+Jonathan",redundant
 20260429224401.11818-2-marcelomlage@usp.br,iio,7,"['20260429224401.11818-1-marcelomlage@usp.br'
  '20260429224401.11818-2-marcelomlage@usp.br'
  '20260429224401.11818-3-marcelomlage@usp.br'
@@ -53616,7 +53616,7 @@ No problem if you decide it's too time consuming or tricky though!
 Jonathan
  
 > Best regards,
-> Marcelo",,no
+> Marcelo",
 20260504162632.24f46f74@jic23-huawei,iio,9,"['20260428161339.1187956-1-rafael.guimaraes.dias@usp.br'
  '20260428161339.1187956-2-rafael.guimaraes.dias@usp.br'
  'CALoEA-yYG5hFrwOpJTEPiD9_KG38aXkg3r7dBSvyYACFGMU-Ow@mail.gmail.com'
@@ -54106,7 +54106,7 @@ I dropped that as well as it's all simple -EINVAL/ -ENOMEM
 > >  #include <linux/regmap.h>
 > > +#include <linux/sprintf.h>
 > > +#include <linux/types.h>  
->",,no
+>",
 20260505172526.087ad783@jic23-huawei,iio,4,"['20260429202304.25308-1-educg550@usp.br'
  'afLwqYt_XUjeroGJ@ashevche-desk.local'
  '20260505172507.71dbf4f7@jic23-huawei'
@@ -54479,7 +54479,7 @@ FWIW I prefer this option.
 > >  	}
 > >  
 > >  	return NOTIFY_OK;  
->",,no
+>",
 20260506022454.128169-2-felipers@ime.usp.br,iio,7,"['20260506022454.128169-1-felipers@ime.usp.br'
  '20260506022454.128169-2-felipers@ime.usp.br'
  '20260506022454.128169-3-felipers@ime.usp.br'
@@ -54934,7 +54934,7 @@ Applied to the testing branch of iio.git
 
 thanks
 
-Jonathan",,no
+Jonathan",
 20260507173654.3c52f58f@jic23-huawei,iio,2,"['20260506210616.313636-1-raffaelraiel@usp.br'
  '20260507173654.3c52f58f@jic23-huawei']",2026-05-06 21:05:33,[PATCH v4] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -55450,7 +55450,7 @@ it can be usefully applied.
 > -	mutex_unlock(&data->vcnl4000_lock);
 > -	return ret;
 > +	return i2c_smbus_write_word_data(data->client, VCNL4200_PS_CONF3, regval);
->  }",,no
+>  }",
 20260512012302.20883-2-natalia.andre@ime.usp.br,iio,15,"['20260512012302.20883-1-natalia.andre@ime.usp.br'
  '20260512012302.20883-2-natalia.andre@ime.usp.br'
  '20260512012302.20883-3-natalia.andre@ime.usp.br'
@@ -56440,7 +56440,7 @@ sense!)
 > >  	}
 > >  	dev_dbg(&pdev->dev, ""gyro_3d %x:%x, %x:%x, %x:%x\n"",
 > >  			st->gyro[0].index,  
->",redundant,no
+>",redundant
 20260513003503.339418-2-guilherme.bozi@usp.br,iio,6,"['20260513003503.339418-1-guilherme.bozi@usp.br'
  '20260513003503.339418-2-guilherme.bozi@usp.br'
  '20260513003503.339418-3-guilherme.bozi@usp.br'
@@ -56970,7 +56970,7 @@ Thanks,
 Jonathan
 
 > Salih
->","duplicated,duplication,repeated",yes
+>","duplicated,duplication,repeated"
 20260515152414.5c8dfebb@jic23-huawei,iio,2,"['20260514201312.678131-1-raffaelraiel@usp.br'
  '20260515152414.5c8dfebb@jic23-huawei']",2026-05-14 20:11:49,[PATCH v6] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -57381,7 +57381,7 @@ Applied to the testing branch of iio.git.
 
 Thanks
 
-Jonathan",,no
+Jonathan",
 20260516132218.073c7548@jic23-huawei,iio,5,"['20260512172538.101383-1-aline.nakazawa@ime.usp.br'
  'CAKqfh0FxvJh2VXH_Q0FBZxYBeCmw8r2XTiwErtfSQm-g-YtT9w@mail.gmail.com'
  'agOJhr9lj6hKnX4q@ashevche-desk.local'
@@ -58552,7 +58552,7 @@ Jonathan
 > > --
 > > 2.51.0
 > >
-> >",,no
+> >",
 20260519234752.23911-2-natalia.andre@ime.usp.br,iio,8,"['20260519234752.23911-1-natalia.andre@ime.usp.br'
  '20260519234752.23911-2-natalia.andre@ime.usp.br'
  '20260519234752.23911-3-natalia.andre@ime.usp.br'
@@ -59152,7 +59152,7 @@ Jonathan
 >  drivers/iio/magnetometer/hid-sensor-magn-3d.c | 20 +++++---------
 >  drivers/iio/pressure/hid-sensor-press.c       | 19 +++++--------
 >  6 files changed, 42 insertions(+), 88 deletions(-)
->",redundant,no
+>",redundant
 20260526141527.2be50ce5@jic23-huawei,iio,3,"['20260522182058.199762-1-matheus.feitosa@usp.br'
  'ahHt0BgZimUSuJDQ@debian-BULLSEYE-live-builder-AMD64'
  '20260526141527.2be50ce5@jic23-huawei']",2026-05-22 18:12:57,[PATCH v3] iio: light: tsl2591: simplify tsl2591_persist functions via lookup table,Matheus Silveira <matheus.feitosa@usp.br>,"['matheus.feitosa@usp.br' 'LucasRabaquim <lucas.rabaquim@usp.br>'
@@ -59449,7 +59449,7 @@ perhaps use TSL2591_PRST_ALS_INT_CYCLE_ANY rather than the numeric value 1?
 > >  }  
 > 
 > With the above nit and double check of tag names,
-> Reviewed-by: Marcelo Schmitt <marcelo.schmitt1@gmail.com>","duplication,redundant",yes
+> Reviewed-by: Marcelo Schmitt <marcelo.schmitt1@gmail.com>","duplication,redundant"
 223817b7-8f6a-47d2-8362-19669815f48e@amd.com,iio,16,"['20260414224245.8493-1-guilherme.bozi@usp.br'
  '20260414224245.8493-2-guilherme.bozi@usp.br'
  '20260414224245.8493-3-guilherme.bozi@usp.br'
@@ -60470,7 +60470,7 @@ Salih
 >>
 >> --
 >> Guilherme Ivo
->","duplicated,duplication,repeated",yes
+>","duplicated,duplication,repeated"
 2412f5b041f89557c238164065e7f8d704579c58.camel@crapouillou.net,iio,5,"['20260416011815.9140-1-felipers@ime.usp.br'
  '2412f5b041f89557c238164065e7f8d704579c58.camel@crapouillou.net'
  'd47618d58e88a65f5b28f1a8e3474819894b2f9b.camel@oss.cipunited.com'
@@ -60978,7 +60978,7 @@ enough as then you could handle the clk_disable() as well.
 > commit message.
 > 
 > >  	return ret;  
->",,no
+>",
 26330121-79bd-4273-b8e4-17efa19454eb@baylibre.com,iio,2,"['20260420201441.18055-1-gabrielblo@ime.usp.br'
  '26330121-79bd-4273-b8e4-17efa19454eb@baylibre.com']",2026-04-20 20:14:23,[PATCH] iio: light: veml6030: Generalize hw_init for veml6030 and veml6035,Gabriel Braga Lagrotaria <gabrielblo@ime.usp.br>,"['Ricardo H H Kojo <ricardo.kojo@ime.usp.br>'
  'Ellian Carlos <elliancarlos@gmail.com>' 'linux-iio@vger.kernel.org']","================================================
@@ -61276,7 +61276,7 @@ are defined.
 > +	return veml603x_hw_init(indio_dev, dev, &veml6035_hw_init_config);
 >  }
 >  
->  static int veml6030_probe(struct i2c_client *client)","deduplicate,duplication",yes
+>  static int veml6030_probe(struct i2c_client *client)","deduplicate,duplication"
 2d880cda-1baf-3b12-f79f-44b7eae74e77@linux.intel.com,iio,3,"['20260512173058.14858-1-jplinaris@usp.br'
  '2d880cda-1baf-3b12-f79f-44b7eae74e77@linux.intel.com'
  '177882592263.340324.11974519291675351329.b4-ty@kernel.org']",2026-05-12 17:30:57,[PATCH v3] counter: intel-qep: Replace manual mutex logic with lock guards,Joao Paulo Menezes Linaris <jplinaris@usp.br>,"['Joao Paulo Menezes Linaris <jplinaris@usp.br>'
@@ -61615,7 +61615,7 @@ Applied, thanks!
 
 Best regards,
 -- 
-William Breathitt Gray <wbg@kernel.org>",,no
+William Breathitt Gray <wbg@kernel.org>",
 363f9a39-e535-42ba-ab5d-faaf9920a8ae@baylibre.com,iio,2,"['20260418185422.166542-1-lucas.rabaquim@usp.br'
  '363f9a39-e535-42ba-ab5d-faaf9920a8ae@baylibre.com']",2026-04-18 18:54:09,[PATCH] iio: light: tsl2591: reduce code duplication in tsl2591_persist_* functions,LucasRabaquim <lucas.rabaquim@usp.br>,"['LucasRabaquim <lucas.rabaquim@usp.br>'
  'Matheus Feitosa <matheus.feitosa@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -61825,7 +61825,7 @@ Seems like the advantage is rather the reduction in verbosity.
 Why not u8 for both?
 
 > +};
-> +",duplication,yes
+> +",duplication
 5e974f6d-2e08-4db5-bab4-2ebefc050e1e@baylibre.com,iio,5,"['20260419003557.45287-1-lucas.rabaquim@usp.br'
  '20260419123604.591dc3ec@jic23-huawei'
  'aeXZY2Nj71Em7Z6y@ashevche-desk.local'
@@ -62722,7 +62722,7 @@ relevant previous discussion above and the new discussion below.
 > 
 
 Personally, I would go with looping over the lookup array since there
-isn't a simple formula that works for all values.","duplication,redundant",yes
+isn't a simple formula that works for all values.","duplication,redundant"
 CABAASXN_FzGLqojm-Bq8qLC8fnbbKnjzPvtRi6Q_-_Wk3HmJUw@mail.gmail.com,iio,3,"['20260422210537.12127-1-jplinaris@usp.br'
  '3ab73ef5-0a3a-66b4-a763-398f0921c289@linux.intel.com'
  'CABAASXN_FzGLqojm-Bq8qLC8fnbbKnjzPvtRi6Q_-_Wk3HmJUw@mail.gmail.com']",2026-04-22 21:05:37,[PATCH] counter: intel-qep: Replace manual mutex logic with lock guards,Joao Paulo Menezes Linaris <jplinaris@usp.br>,"['Joao Paulo Menezes Linaris <jplinaris@usp.br>'
@@ -63394,7 +63394,7 @@ keep all the added guards?
 >
 --
 Best regards,
-Joao Paulo Menezes Linaris",,no
+Joao Paulo Menezes Linaris",
 CAC46vBch9QooNOA6hgLd9NN_954DR+V-r06ZW0EdW4MfDudCbw@mail.gmail.com,iio,3,"['20250429093923.347370-1-mikhael_abdallah@usp.br'
  '20250429160710.00004a1b@huawei.com'
  'CAC46vBch9QooNOA6hgLd9NN_954DR+V-r06ZW0EdW4MfDudCbw@mail.gmail.com']",2025-04-29 09:39:23,[PATCH] iio: proximity: sx9500: Deduplicate buffer managing functions,Mikhael Abdallah de Oliveira Pinto <mikhael_abdallah@usp.br>,"['Mikhael Abdallah de Oliveira Pinto <mikhael_abdallah@usp.br>'
@@ -63727,7 +63727,7 @@ Em ter., 29 de abr. de 2025 às 12:07, Jonathan Cameron
 > >  }
 > >
 > >  static const struct iio_buffer_setup_ops sx9500_buffer_setup_ops = {
->",deduplicate,yes
+>",deduplicate
 CAHp75Vc9nUsduW2Fzq6EqgmT7gjeFgrOrw9a-aUgy4fXddR7bg@mail.gmail.com,iio,8,"['20260430200515.7915-1-guilhermeabreu200105@usp.br'
  'CALoEA-woSsD3+oEo-4xWLY+pQt5B=SaaUX4xPFoB46WPnFbwrA@mail.gmail.com'
  'CAHp75Vc9nUsduW2Fzq6EqgmT7gjeFgrOrw9a-aUgy4fXddR7bg@mail.gmail.com'
@@ -64232,7 +64232,7 @@ relying on transient dependencies.
 -- 
 Kind regards
 
-CJD",,no
+CJD",
 CAHp75VeYU_GXrOZL4SkpddgAfibd0NUtxZxa5ELAb=y_2+JzVQ@mail.gmail.com,iio,7,"['20260421021023.563290-1-rafasales@usp.br'
  '20260421021023.563290-2-rafasales@usp.br'
  '20260421021023.563290-3-rafasales@usp.br'
@@ -65030,7 +65030,7 @@ I meant ""but linux/errno.h"" (that includes Linux specific codes >= 512.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 CAHp75VeZ40W6Q2Q-4P29nDjq8s1ziH9NFKR2qH-RoNK_V8O3aA@mail.gmail.com,iio,10,"['20260501011548.15369-1-santanarl@usp.br'
  'CAHp75VeZ40W6Q2Q-4P29nDjq8s1ziH9NFKR2qH-RoNK_V8O3aA@mail.gmail.com'
  'CALoEA-wzsykL5V675HFYNn-xZpuCa+XEOa-LbJ0KqrVSR=ZUnA@mail.gmail.com'
@@ -65549,7 +65549,7 @@ to deal with all the process stuff others have highlighted.
 > >>    
 > >   
 > 
->",,no
+>",
 CALSmcyMRpiqHjryq5+GU9vXsZt0qJZbvjGhyW-Ho6Rm_Ly8kbA@mail.gmail.com,iio,5,"['20260420200047.102159-1-raffaelraiel@usp.br'
  'aeaKP2vARF-Bv1-2@ashevche-desk.local'
  'aeaL9ZvMEFF2OK0n@ashevche-desk.local'
@@ -65924,7 +65924,7 @@ and drop the intialization of ret.
 > -	return ret;
 >  }
 >  
->  static irqreturn_t vcnl4040_irq_thread(int irq, void *p)",,no
+>  static irqreturn_t vcnl4040_irq_thread(int irq, void *p)",
 CALoEA-xav-k064qsrNN8DumvggadWAPcV9HP82Uiem4VwgSs+w@mail.gmail.com,iio,3,"['20260506144359.16744-1-educg550@usp.br'
  'CALoEA-xav-k064qsrNN8DumvggadWAPcV9HP82Uiem4VwgSs+w@mail.gmail.com'
  '20260507172420.527469b8@jic23-huawei']",2026-05-06 14:43:59,[PATCH] iio: frequency: adf4377: replace mutex_lock/unlock with guard and scoped_guard,Educg550 <educg550@usp.br>,"['educg550@usp.br' 'Lucca Ciriac <luccaciriac@usp.br>'
@@ -66284,7 +66284,7 @@ for closely associating lock and action as we did with the original code.
 > +		return notifier_from_errno(adf4377_init(st));
 >  	}
 >  
->  	return NOTIFY_OK;",,no
+>  	return NOTIFY_OK;",
 CALoEA-z7jwCkPaapNp+y71NE2zgx-kdMSM_p9Cje4AhW+rhLsg@mail.gmail.com,iio,8,"['20260502234348.131563-1-gabrielblo@ime.usp.br'
  '20260502234348.131563-2-gabrielblo@ime.usp.br'
  '20260502234348.131563-3-gabrielblo@ime.usp.br'
@@ -66900,7 +66900,7 @@ Please proofread your own patches for stuff like this.  It's very
 easy to introduce stray changes as you develop your code so only
 way to catch them is too look at the end result before sending it out.
 
-Jonathan","deduplicate,redundant",yes
+Jonathan","deduplicate,redundant"
 CALoEA-zgYuPM667fm4XPcxqbsXkQ8G5t09aj=ZHmsx89UFYKSw@mail.gmail.com,iio,12,"['20260426211834.3318306-1-caiomorais@usp.br'
  '20260426211834.3318306-2-caiomorais@usp.br'
  '20260426211834.3318306-3-caiomorais@usp.br'
@@ -67422,7 +67422,7 @@ questions like this.
 > +#include <linux/iio/iio.h>
 >  
 >  #include <linux/iio/common/st_sensors_spi.h>
->",,no
+>",
 CAPBn40g33v0z6ki8P4iE1eZz-QTfWA2REEMN3Zghmt-TiiQL1w@mail.gmail.com,iio,1,['CAPBn40g33v0z6ki8P4iE1eZz-QTfWA2REEMN3Zghmt-TiiQL1w@mail.gmail.com'],2026-04-29 19:18:22,Re: [PATCH v2 2/2] iio: light: stk3310: Update includes to match IWYU,Rafael Guimaraes Dias <rafael.guimaraes.dias@usp.br>,"['Joshua Crofts <joshua.crofts1@gmail.com>' 'dlechner@baylibre.com'
  'nuno.sa@analog.com' 'andy@kernel.org' 'linux-iio@vger.kernel.org'
  'Felipe Khoury Dayoub <felipedayoub@usp.br>']","================================================
@@ -67544,7 +67544,7 @@ Em qua., 29 de abr. de 2026 às 15:55, Rafael Guimaraes Dias
 >> >
 >> > Reviewed-by: Joshua Crofts <joshua.crofts1@gmail.com>
 >> >
->>",duplicate,no
+>>",duplicate
 DIABH47DS3A6.J29LEHJY7CIW@gmail.com,iio,4,"['20260504190455.9841-1-guilhermeabreu200105@usp.br'
  'DIABH47DS3A6.J29LEHJY7CIW@gmail.com'
  'afmvD1EB159V498L@ashevche-desk.local'
@@ -67831,7 +67831,7 @@ Applied to the testing branch of iio.git
 
 Thanks for the patch and thanks to all those involved in review!
 
-Jonathan",,no
+Jonathan",
 DID1HLASZ0VS.359G8NOYVYG0W@gmail.com,iio,2,"['20260508034057.23595-1-jplinaris@usp.br'
  'DID1HLASZ0VS.359G8NOYVYG0W@gmail.com']",2026-05-08 03:40:57,[PATCH] counter: intel-qep: Replace manual mutex logic with lock guards,Joao Paulo Menezes Linaris <jplinaris@usp.br>,"['jplinaris@usp.br' 'Guilherme Dias <guilhermeabreu200105@usp.br>'
  'linux-iio@vger.kernel.org']","================================================
@@ -68046,7 +68046,7 @@ code, Andy usually treats the guard()()s as separate things.
 Again (and so on and so forth).
 
 best regards,
-max",,no
+max",
 Zizi89AJVo2MhWbc@debian-BULLSEYE-live-builder-AMD64,iio,4,"['20240426200118.20900-1-gschwartz@usp.br'
  'Zizi89AJVo2MhWbc@debian-BULLSEYE-live-builder-AMD64'
  '20240428125129.1605a09d@jic23-huawei'
@@ -68366,7 +68366,7 @@ Reviewed-by: ChiYuan Huang <cy_huang@richtek.com>
 > >  }
 > >  
 > >  static const char *rtq6056_channel_labels[RTQ6056_MAX_CHANNEL] = {
->",,no
+>",
 Zj7xCMU9cJodgR03@debian-BULLSEYE-live-builder-AMD64,iio,11,"['20240508155435.183850-1-hagisf@usp.br'
  'Zj7xCMU9cJodgR03@debian-BULLSEYE-live-builder-AMD64'
  '20240511143048.53df0ca4@jic23-huawei'
@@ -69030,7 +69030,7 @@ backlog this weekend...
 > +			return ret;
 >  		*val = (*val >> 2) & 0xfff;
 >  		if (chan->scan_type.sign == 's')
->  			*val = sign_extend32(*val,",,no
+>  			*val = sign_extend32(*val,",
 ad4Px0Aghm2gHzRV@ashevche-desk.local,iio,14,"['20260414093018.7153-1-guilherme.bozi@usp.br'
  '20260414093018.7153-2-guilherme.bozi@usp.br'
  '20260414093018.7153-3-guilherme.bozi@usp.br'
@@ -70201,7 +70201,7 @@ semantically a terminator entry.
 
 -- 
 With Best Regards,
-Andy Shevchenko","duplicated,duplication,repeated",yes
+Andy Shevchenko","duplicated,duplication,repeated"
 ad9mfuQ0wZpqiZTT@ashevche-desk.local,iio,12,"['20260414233912.662606-1-erick.henrique.rodrigues@usp.br'
  'ad9mfuQ0wZpqiZTT@ashevche-desk.local'
  '20260415230119.17512-1-erick.henrique.rodrigues@usp.br'
@@ -70854,7 +70854,7 @@ J
 > -	return res;
 >  }
 >  
->  static int m62332_read_raw(struct iio_dev *indio_dev,",,no
+>  static int m62332_read_raw(struct iio_dev *indio_dev,",
 ae8uwmF6nQanmEux@ashevche-desk.local,iio,27,"['20260421222210.16016-1-natalia.andre@ime.usp.br'
  '20260421222210.16016-2-natalia.andre@ime.usp.br'
  '20260421222210.16016-3-natalia.andre@ime.usp.br'
@@ -72286,7 +72286,7 @@ Ha-ha :-)
 
 -- 
 With Best Regards,
-Andy Shevchenko",deduplicate,yes
+Andy Shevchenko",deduplicate
 aeHtInsmJeapbJyo@ashevche-desk.local,iio,2,"['20260416211651.9625-1-raffaelraiel@usp.br'
  'aeHtInsmJeapbJyo@ashevche-desk.local']",2026-04-16 21:16:48,[PATCH] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -72463,7 +72463,7 @@ Ditto for other similar cases below.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 aeHvcCcQ1Xv5PuiC@ashevche-desk.local,iio,3,"['20260417005041.484742-1-marcelomlage@usp.br'
  'aeHvcCcQ1Xv5PuiC@ashevche-desk.local'
  '20260417142629.00000270@huawei.com']",2026-04-17 00:50:40,[PATCH] iio: adc: mcp3422: write bit operations with bitfield macros,Marcelo Machado Lage <marcelomlage@usp.br>,"['Marcelo Machado Lage <marcelomlage@usp.br>'
@@ -72744,7 +72744,7 @@ Drop these 3 macros and use FIELD_GET() inline instead just as you've done for t
 > +		| FIELD_PREP(MCP3422_SRATE_MASK, MCP3422_SRATE_240));
 >  	err = mcp3422_update_config(adc, config);
 >  	if (err < 0)
->  		return err;",,no
+>  		return err;",
 aeXXiWGJIvdhdBMQ@ashevche-desk.local,iio,12,"['20260417225959.16688-1-natalia.andre@ime.usp.br'
  '20260417225959.16688-2-natalia.andre@ime.usp.br'
  '20260417225959.16688-3-natalia.andre@ime.usp.br'
@@ -73366,7 +73366,7 @@ FWIW, we have BYTES_TO_BITS().
 
 -- 
 With Best Regards,
-Andy Shevchenko",deduplicate,yes
+Andy Shevchenko",deduplicate
 aeXl5BO91iRUqNWp@ashevche-desk.local,iio,2,"['20260419152917.8984-1-felipers@ime.usp.br'
  'aeXl5BO91iRUqNWp@ashevche-desk.local']",2026-04-19 15:27:34,[PATCH v2] iio: adc: ingenic-adc: use guard(mutex)(&lock) to handle synchronisation,Felipe Ribeiro de Souza <felipers@ime.usp.br>,"['Felipe Ribeiro de Souza <felipers@ime.usp.br>'
  'Lucas Ivars Cadima Ciziks <lucas@ciziks.com>'
@@ -73644,7 +73644,7 @@ Alternatively, propose the respective ACQUIRE*() macros to CCF.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 aeXnujb9-aui4ArO@ashevche-desk.local,iio,2,"['20260419213202.68356-1-pedro.pbg@usp.br'
  'aeXnujb9-aui4ArO@ashevche-desk.local']",2026-04-19 21:31:23,[PATCH] iio: light: iqs621-als: use lock guards,Pedro Barletta Gennari <pedro.pbg@usp.br>,['pedro.pbg@usp.br' 'linux-iio@vger.kernel.org'],"================================================
 MESSAGE 1 of 2
@@ -73976,7 +73976,7 @@ Drop it, use the value explicitly inline in each of the cases below.
 
 -- 
 With Best Regards,
-Andy Shevchenko",redundant,no
+Andy Shevchenko",redundant
 aeZnwBmq67YZaHbQ@ashevche-desk.local,iio,3,"['20260420141512.196932-1-luizmugnaini@usp.br'
  'aeZnwBmq67YZaHbQ@ashevche-desk.local'
  '20260421153802.7a5426d5@jic23-huawei']",2026-04-20 14:14:29,[PATCH v2] iio: temperature: mlx90614: use guard(mutex) for EEPROM access locking,Luiz Mugnaini <luizmugnaini@usp.br>,['Luiz Mugnaini <luizmugnaini@usp.br>' 'linux-iio@vger.kernel.org'],"================================================
@@ -74328,7 +74328,7 @@ Jonathan
 > -	return ret;
 >  }
 >  
->  static int mlx90614_wakeup(struct mlx90614_data *data)",,no
+>  static int mlx90614_wakeup(struct mlx90614_data *data)",
 aeZy0ERXjO2697R7@ashevche-desk.local,iio,2,"['20260420180454.90611-1-raffaelraiel@usp.br'
  'aeZy0ERXjO2697R7@ashevche-desk.local']",2026-04-20 18:00:31,[PATCH v2] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -74527,7 +74527,7 @@ Here and in all similar case the indentation went off-by-one.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 aehxdS5MePTLkekJ@ashevche-desk.local,iio,4,"['20260416032351.224072-1-giovannaluisahirata@usp.br'
  'aeHv0DEEc2bS4YB8@ashevche-desk.local'
  'CANhRbNwOtJo1BBj2gP7yYD=Tmy3EeGmwGET5ggeSSNBSLrb1gg@mail.gmail.com'
@@ -74792,7 +74792,7 @@ first one. This will train more on the process, and other useful skills.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 aeiRMWNgCbJ-NYN6@ashevche-desk.local,iio,2,"['20260422030846.45317-1-gustavo.pagnotta@ime.usp.br'
  'aeiRMWNgCbJ-NYN6@ashevche-desk.local']",2026-04-22 02:56:54,[PATCH v3] iio: adc: mcp320x: refactor driver to use bitfield API,Gustavo Pagnotta Faria <gustavo.pagnotta@ime.usp.br>,"['Gustavo Pagnotta Faria <gustavo.pagnotta@ime.usp.br>'
  'Eduardo Augusto <eduardoaugustoabc@ime.usp.br>'
@@ -75039,7 +75039,7 @@ I already commented on this.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 aekwcosBXRXgRsPn@ashevche-desk.local,iio,7,"['20260421221629.70401-1-felipers@ime.usp.br'
  '20260421221629.70401-2-felipers@ime.usp.br'
  '20260421221629.70401-3-felipers@ime.usp.br'
@@ -75474,7 +75474,7 @@ clearly says 80 and IIO tries to follow this.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 aekxqlop8d2htRDY@ashevche-desk.local,iio,3,"['20260422192521.7472-1-guilhermeabreu200105@usp.br'
  'aekxNBLWOXqkqXi_@ashevche-desk.local'
  'aekxqlop8d2htRDY@ashevche-desk.local']",2026-04-22 19:24:36,[PATCH] iio: gyro: adxrs290: Use guard(mutex) in lieu of manual lock+unlock,Guilherme Dias <guilhermeabreu200105@usp.br>,"['Guilherme Dias <guilhermeabreu200105@usp.br>'
@@ -75731,7 +75731,7 @@ this patch and none of them even compiled?!
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 aenTwHN57ltcqcP9@ashevche-desk.local,iio,2,"['20260423020922.4057-1-joaovictor.fernandes@usp.br'
  'aenTwHN57ltcqcP9@ashevche-desk.local']",2026-04-23 02:09:20,[PATCH] iio: imu: inv_icm42600: refactor sensors config,João Fernandes <joaovictor.fernandes@usp.br>,['Otavio Capobianco <gcotavio@usp.br>' 'linux-iio@vger.kernel.org'],"================================================
 MESSAGE 1 of 2
@@ -75981,7 +75981,7 @@ You see, this has to stay in the wrapper.
 
 -- 
 With Best Regards,
-Andy Shevchenko",duplication,yes
+Andy Shevchenko",duplication
 aeoI977TRD08FB32@ashevche-desk.local,iio,3,"['20260422211105.48158-1-eduardoaugustoabc@ime.usp.br'
  'aeoI977TRD08FB32@ashevche-desk.local'
  '20260424124823.443b3c23@jic23-huawei']",2026-04-22 21:11:05,[PATCH] iio: adc: mcp320x: Use guard(mutex) for lock handling,Eduardo Augusto <eduardoaugustoabc@ime.usp.br>,"['Eduardo Augusto <eduardoaugustoabc@ime.usp.br>'
@@ -76188,7 +76188,7 @@ maybe when things calm down a bit...
 Jonathan
 
 >  }
->",,no
+>",
 aes3hLTjW3VEzMha@ashevche-desk.local,iio,8,"['20260422231305.677778-1-rafasales@usp.br'
  '20260422231305.677778-2-rafasales@usp.br'
  '20260422231305.677778-3-rafasales@usp.br'
@@ -76964,7 +76964,7 @@ the bracket here:
 > +		}
 >  	default:
 >  		return -EINVAL;
->  	}",redundant,no
+>  	}",redundant
 aes7wGq2NYmtfMgs@ashevche-desk.local,iio,3,"['20260423183349.636757-1-caiomorais@usp.br'
  'a9307e04-3754-465e-a610-92c6e83cc3e6@baylibre.com'
  'aes7wGq2NYmtfMgs@ashevche-desk.local']",2026-04-23 18:33:41,[PATCH] iio: fix header includes across multiple drivers,Caio Morais <caiomorais@usp.br>,"['Caio Morais <caiomorais@usp.br>' 'linux-iio@vger.kernel.org'
@@ -77222,7 +77222,7 @@ linux/_whatever_driver_specific_
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 aesvPuRfJk2tE6Ro@ashevche-desk.local,iio,8,"['20260420191455.529923-1-marcelomlage@usp.br'
  '20260420191455.529923-2-marcelomlage@usp.br'
  '20260420191455.529923-3-marcelomlage@usp.br'
@@ -77717,7 +77717,7 @@ Exempli gratia: 'rewrite mask macros with help of bits.h APIs'.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 afBpWD4YXew6cVrx@ashevche-desk.local,iio,5,"['20260423223958.100487-1-guilhermeabreu200105@usp.br'
  'aes2tzgfXbuD6ccQ@ashevche-desk.local'
  '20260424113901.0508dbc2@jic23-huawei'
@@ -78201,7 +78201,7 @@ Yes, with proper indentation made.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 afJjH1Mn_ZqKWN7L@ashevche-desk.local,iio,2,"['20260429195214.22374-1-guilhermeabreu200105@usp.br'
  'afJjH1Mn_ZqKWN7L@ashevche-desk.local']",2026-04-29 19:51:05,[PATCH v3] iio: gyro: adxrs290: Use guard(mutex) in lieu of manual lock+unlock,Guilherme Dias <guilhermeabreu200105@usp.br>,"['Guilherme Dias <guilhermeabreu200105@usp.br>'
  'João Paulo Menezes Linaris <jplinaris@usp.br>'
@@ -78433,7 +78433,7 @@ gets better as the split will become more logical.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 afiqYP8PrVpGs0Bq@ashevche-desk.local,iio,4,"['20260503031703.33330-1-joaovictor.fernandes@usp.br'
  'CALoEA-x7kEXYNzGWJ-6dxJzBoShnx+26Y-VhDP4wFz99VsxiWQ@mail.gmail.com'
  'afiqYP8PrVpGs0Bq@ashevche-desk.local'
@@ -79096,7 +79096,7 @@ static void inv_icm42600_sanitize_conf(struct inv_icm42600_sensor_conf *conf,
 > +					    config0_val, sleep_ms);
 >  }
 >  
->  int inv_icm42600_set_temp_conf(struct inv_icm42600_state *st, bool enable,","deduplication,duplicated",yes
+>  int inv_icm42600_set_temp_conf(struct inv_icm42600_state *st, bool enable,","deduplication,duplicated"
 agOMqrKEb02MV358@ashevche-desk.local,iio,2,"['20260512184728.298680-1-raffaelraiel@usp.br'
  'agOMqrKEb02MV358@ashevche-desk.local']",2026-05-12 18:46:43,[PATCH v5] iio: light: vcnl4000: use lock guard(),Raffael Raiel Trindade <raffaelraiel@usp.br>,"['Raffael Raiel Trindade <raffaelraiel@usp.br>'
  'Kim Carvalho <kim.ca@usp.br>' 'linux-iio@vger.kernel.org']","================================================
@@ -79518,7 +79518,7 @@ will do the job.
 
 -- 
 With Best Regards,
-Andy Shevchenko",,no
+Andy Shevchenko",
 b4a1f829-f953-4d2a-a8ac-2e828ef56d4b@usp.br,iio,5,"['20260418205151.172046-1-luizmugnaini@usp.br'
  '20260419124341.465353af@jic23-huawei'
  'aeXc8o94OiDRFy0b@ashevche-desk.local'
@@ -80036,7 +80036,7 @@ On 20/04/2026 04:59, Andy Shevchenko wrote:
 > ?
 >
 > How did you test this, please?
->",duplication,yes
+>",duplication
 e75d7791-7a60-4c4f-b81a-7013fd0068c6@baylibre.com,iio,6,"['20260417165747.507487-1-marcelomlage@usp.br'
  '20260417165747.507487-2-marcelomlage@usp.br'
  '20260417165747.507487-3-marcelomlage@usp.br'
@@ -80477,4 +80477,4 @@ Delete it whilst you are here to avoid future confusion.
 > +#define MCP3422_CONT_SAMPLING	BIT(4)
 >  
 >  #define MCP3422_CHANNEL(config)	(((config) & MCP3422_CHANNEL_MASK) >> 5)
->  #define MCP3422_PGA(config)	((config) & MCP3422_PGA_MASK)",,no
+>  #define MCP3422_PGA(config)	((config) & MCP3422_PGA_MASK)",

@@ -8,25 +8,27 @@ import os
 import re
 import sys
 
+from collections import defaultdict
+
 import pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(HERE)
 BUILD_THREADS_DIR = os.path.join(PROJECT_ROOT, "build_threads_output")
 PRE_FILTER_DIR = os.path.join(PROJECT_ROOT, "pre_filter", "pre_filter_output")
-REVIEWER_DIR = os.path.join(HERE, "reviser1")
-OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review.csv")
-USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp.csv")
 
 sys.path.insert(0, PROJECT_ROOT)
 from pre_filter.pre_filter_threads import COMMON_HELPER_RE, COMMON_HELPER_TERM  # noqa: E402
 from pre_filter.pre_filter_threads import matches as compute_matched_terms  # noqa: E402
 from pre_filter.pre_filter_threads import replace_quotes  # noqa: E402
 
-# One folder per reviewer, all kept in sync when threads are appended so
-# every reviewer gets the same rows to label. --reviewer picks which one
-# the review session writes to.
-REVIEWER_DIRS = [REVIEWER_DIR, os.path.join(HERE, "reviser2")]
+from review_fields import N_REVIEWERS, FIELDS, FIELDS_BY_NAME, KEY
+
+from review_ui import Back, Skip, Quit, COMMANDS_HELP, ask_field, thread_url
+
+SAMPLE_FILE = os.path.join(HERE, "samples.csv")
+USP_SAMPLE_FILE = os.path.join(HERE, "samples_usp.csv")
+REVIEWS_DIR = os.path.join(HERE, "reviser")
 
 N_COMMON_HELPER_PER_LIST = 5
 
@@ -59,29 +61,73 @@ COLUMNS = [
 # (no `matched_terms` column there), so load_usp_threads() computes it itself.
 PRE_FILTER_COLUMNS = COLUMNS + ["matched_terms"]
 
+ANSWER_COLUMNS = KEY + ["field", "answer"]
 
-def use_reviewer(number):
-    """Points the sample files at one reviewer's folder (1-based)."""
-    global REVIEWER_DIR, OUTPUT_FILE, USP_OUTPUT_FILE
 
-    REVIEWER_DIR = REVIEWER_DIRS[number - 1]
-    OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review.csv")
-    USP_OUTPUT_FILE = os.path.join(REVIEWER_DIR, "sample_review_usp.csv")
+def review_file(number):
+    return os.path.join(REVIEWS_DIR, f"review{number}.csv")
+
+
+def load_answers(path):
+    """{(list, thread_id): {field: answer}}, one answer per field."""
+    answers = defaultdict(dict)
+    if os.path.exists(path):
+        df = pd.read_csv(path, dtype=str, keep_default_na=False)
+        for l, t, f, a in zip(df["list"], df["thread_id"], df["field"], df["answer"]):
+            answers[(l, t)][f] = a
+    return answers
+
+
+def save_answers(path, answers):
+    """Rewrites the whole file atomically (temp file + rename), so a Ctrl+C
+    in the middle of a write can't leave a truncated CSV behind."""
+    rows = [
+        {"list": l, "thread_id": t, "field": f, "answer": a}
+        for (l, t), fields in sorted(answers.items())
+        for f, a in fields.items()
+    ]
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    tmp = path + ".tmp"
+    pd.DataFrame(rows, columns=ANSWER_COLUMNS).to_csv(tmp, index=False)
+    os.replace(tmp, path)
+
+
+def drop_orphans(thread_answers):
+    """Removes answers of dependent fields whose parent no longer has the
+    required value. Relies on FIELDS listing the parent before the child."""
+    for field in FIELDS:
+        if field.ask_if is None:
+            continue
+        parent, value = field.ask_if
+        if thread_answers.get(parent) != value:
+            thread_answers.pop(field.name, None)
+
+
+def set_answer(path, answers, key, field, value):
+    answers[key][field.name] = value
+    drop_orphans(answers[key])
+    save_answers(path, answers)
+
+
+def undo_answer(path, answers, key, field):
+    answers[key].pop(field.name, None)
+    drop_orphans(answers[key])
+    save_answers(path, answers)
+
+
+def needs_answer(field, answers):
+    """`answers` are the answers already given to this thread."""
+    if field.name in answers:
+        return False
+    if field.ask_if is None:
+        return True
+    parent, value = field.ask_if
+    return answers.get(parent) == value
 
 
 def matches_usp(row):
     return bool(USP_EMAIL_RE.search(row["from"] or ""))
-
-
-def _usp_sample_keys():
-    """(list, thread_id) keys already drawn into the USP sample, so the
-    main sample doesn't re-pick (and duplicate review effort on) threads
-    that are already covered there."""
-    if not os.path.exists(USP_OUTPUT_FILE):
-        return set()
-
-    usp = pd.read_csv(USP_OUTPUT_FILE, usecols=["list", "thread_id"], dtype=str)
-    return set(zip(usp["list"], usp["thread_id"]))
 
 
 def load_matching_threads():
@@ -97,7 +143,7 @@ def load_matching_threads():
 
     all_matches = pd.concat(frames, ignore_index=True)
 
-    usp_keys = _usp_sample_keys()
+    usp_keys = _sample_keys(USP_SAMPLE_FILE)
     if usp_keys:
         keys = pd.Series(list(zip(all_matches["list"], all_matches["_thread_id"])))
         all_matches = all_matches[~keys.isin(usp_keys).values].reset_index(drop=True)
@@ -149,25 +195,20 @@ def pick_thread_keys(matches, seed, n_threads_per_list=N_THREADS_PER_LIST):
 
 
 def build_sample(seed, usp=False):
-    os.makedirs(REVIEWER_DIR, exist_ok=True)
     matches = load_usp_threads() if usp else load_matching_threads()
-    output_file = USP_OUTPUT_FILE if usp else OUTPUT_FILE
+    output_file = USP_SAMPLE_FILE if usp else SAMPLE_FILE
     n_threads_per_list = None if usp else N_THREADS_PER_LIST
 
     total_threads = matches.shape[0]
     picked_keys, total_emails = pick_thread_keys(matches, seed, n_threads_per_list=n_threads_per_list)
 
-    cap_label = (
-        "no limit" if n_threads_per_list is None
-        else f"{n_threads_per_list} threads/list"
-    )
+    cap_label = "no limit" if n_threads_per_list is None else f"{n_threads_per_list} threads/list"
     print(f"Total candidate threads (all lists): {total_threads}")
     print(f"Sampling {len(picked_keys)} thread(s) ({total_emails} email(s), {cap_label})")
 
     sample = matches.merge(picked_keys, on=["list", "_thread_id"])
     sample = sample.sort_values(["list", "_thread_id"])
     sample = sample.rename(columns={"_thread_id": "thread_id"})
-    sample["is_clone_refactoring"] = ""
 
     sample.to_csv(output_file, index=False)
     print(f"Saved sample to: {output_file}")
@@ -203,12 +244,9 @@ def _sample_keys(sample_file):
 
 
 def add_common_helper_threads(seed, n_per_list=N_COMMON_HELPER_PER_LIST):
-    """Appends unlabelled common-helper threads to every reviewer's main
-    sample, keeping the rows (and labels) already there untouched. They are
-    then picked up by the next `review()` run."""
-    known_keys = _usp_sample_keys()
-    for reviewer_dir in REVIEWER_DIRS:
-        known_keys |= _sample_keys(os.path.join(reviewer_dir, os.path.basename(OUTPUT_FILE)))
+    """Appends unlabelled common-helper threads to the shared main sample.
+    Every reviewer sees them as pending on the next review() run."""
+    known_keys = _sample_keys(SAMPLE_FILE) | _sample_keys(USP_SAMPLE_FILE)
 
     candidates = load_common_helper_threads(known_keys)
     picked_keys, _ = pick_thread_keys(candidates, seed, n_threads_per_list=n_per_list)
@@ -216,17 +254,14 @@ def add_common_helper_threads(seed, n_per_list=N_COMMON_HELPER_PER_LIST):
     picked = candidates.merge(picked_keys, on=["list", "_thread_id"])
     picked = picked.sort_values(["list", "_thread_id"])
     picked = picked.rename(columns={"_thread_id": "thread_id"})
-    picked["is_clone_refactoring"] = ""
 
     print(f"Candidate common-helper threads: {len(candidates)}")
-    print(f"Appending {len(picked)} thread(s) ({n_per_list}/list) to each reviewer sample")
+    print(f"Appending {len(picked)} thread(s) ({n_per_list}/list) to {SAMPLE_FILE}")
 
-    for reviewer_dir in REVIEWER_DIRS:
-        sample_file = os.path.join(reviewer_dir, os.path.basename(OUTPUT_FILE))
-        current = pd.read_csv(sample_file, dtype=str, keep_default_na=False)
-        updated = pd.concat([current, picked[current.columns]], ignore_index=True)
-        updated.to_csv(sample_file, index=False)
-        print(f"  {sample_file}: {len(current)} -> {len(updated)} rows")
+    current = pd.read_csv(SAMPLE_FILE, dtype=str, keep_default_na=False)
+    updated = pd.concat([current, picked[current.columns]], ignore_index=True)
+    updated.to_csv(SAMPLE_FILE, index=False)
+    print(f"  {len(current)} -> {len(updated)} rows")
 
 
 def highlight(text):
@@ -247,10 +282,23 @@ def crop_to_snippets(text, context_chars=SNIPPET_CONTEXT_CHARS):
     if not spans:
         return text
 
-    windows = [
-        [max(0, start - context_chars), min(len(text), end + context_chars)]
-        for start, end in spans
-    ]
+    windows = []
+
+    # Expand snippet boundaries to preserve complete lines
+    for match_start, match_end in spans:
+        start = max(0, match_start - context_chars)
+        end = min(len(text), match_end + context_chars)
+
+        if start > 0:
+            newline = text.rfind("\n", 0, start)
+            start = newline + 1 if newline != -1 else 0
+
+        if end < len(text):
+            newline = text.find("\n", end)
+            end = newline + 1 if newline != -1 else len(text)
+
+        windows.append([start, end])
+
     windows.sort()
 
     merged = [windows[0]]
@@ -262,55 +310,127 @@ def crop_to_snippets(text, context_chars=SNIPPET_CONTEXT_CHARS):
 
     parts = []
     for start, end in merged:
-        prefix = "[...]\n" if start > 0 else ""
-        suffix = "\n[...]" if end < len(text) else ""
+        ITALIC = "\033[3m"
+        RESET = "\033[0m"
+
+        prefix = f"{ITALIC}[...]{RESET}\n" if start > 0 else ""
+        suffix = f"\n{ITALIC}[...]{RESET}" if end < len(text) else ""
         parts.append(prefix + text[start:end] + suffix)
 
     return f"\n\n{'.' * 40}\n\n".join(parts)
 
 
-def review(output_file):
-    df = pd.read_csv(output_file, dtype=str, keep_default_na=False)
+def print_thread(row, position=None):
+    terms = row["matched_terms"].replace(",", ", ") or "none"
 
-    pending = df.index[df["is_clone_refactoring"] == ""]
+    thread_link = (
+        f"\033]8;;{thread_url(row)}\033\\"
+        f"{row['thread_id']}"
+        f"\033]8;;\033\\"
+    )
+
+    BOLD_WHITE = "\033[1;97m"
+    RESET = "\033[0m"
+
+    def field(name, value):
+        return f"{BOLD_WHITE}{name}:{RESET} {value}"
+
+    header = "\n".join([
+        "=" * 100,
+        field("List", row["list"]),
+        field("Thread", thread_link),
+        field("Messages", row["n_messages"]),
+        field("Date", row["date"]),
+        field("Matched terms", terms),
+        *([field("Progress", position)] if position else []),
+        "-" * 100,
+        field("Subject", row["subject"]),
+    ])
+
+    snippets = crop_to_snippets(row["thread_content"])
+    cropped = len(snippets) < len(row["thread_content"])
+    body = highlight(snippets)
+    if cropped:
+        ITALIC = "\033[3m"
+        RESET = "\033[0m"
+
+        header += (
+            f"\n{ITALIC}Showing excerpts around matched terms only; "
+            f"type :open to read the whole thread on lore.kernel.org.{RESET}"
+        )
+
+    print()
+    print(header)
+    print(body)
+    print("=" * 100)
+
+
+def review(sample_file, reviewer, fields):
+    sample = pd.read_csv(sample_file, dtype=str, keep_default_na=False)
+    path = review_file(reviewer)
+    answers = load_answers(path)
+
+    pending = [
+        row for _, row in sample.iterrows()
+        if any(needs_answer(f, answers[(row["list"], row["thread_id"])]) for f in fields)
+    ]
 
     if len(pending) == 0:
         print("Nothing left to review.")
         return
 
-    print(f"{len(pending)} email(s) left to review.")
+    print(f"{len(pending)} thread(s) left to review.")
+    print(COMMANDS_HELP)
 
-    for i in pending:
-        row = df.loc[i]
-        terms = row["matched_terms"].replace(",", ", ") or "none"
+    history = []      # (index in pending, field) answered in this session
+    skipped = set()
+    i = 0
 
-        header = (
-            "=" * 100 + "\n"
-            f"List: {row['list']}  Thread: {row['thread_id']}\n"
-            f"Messages: {row['n_messages']}  Date: {row['date']}\n"
-            f"Matched terms: {terms}\n"
-            + "-" * 100 + "\n"
-            f"Subject: {row['subject']}\n"
-        )
-        snippets = crop_to_snippets(row["thread_content"])
-        cropped = len(snippets) < len(row["thread_content"])
-        body = highlight(snippets)
-        if cropped:
-            header += "(showing excerpt(s) around matched terms only -- full thread hidden)\n"
+    try:
+        while i < len(pending):
+            row = pending[i]
+            key = (row["list"], row["thread_id"])
 
-        print()
-        print(header)
-        print(body)
-        print("=" * 100)
+            if key in skipped:
+                i += 1
+                continue
 
-        answer = ""
-        while answer not in ("y", "n"):
-            answer = input("Is this about clone refactoring? (y/n): ").strip().lower()
+            try:
+                shown = False
+                for field in fields:
+                    if not needs_answer(field, answers[key]):
+                        continue
 
-        df.at[i, "is_clone_refactoring"] = "yes" if answer == "y" else "no"
-        df.to_csv(output_file, index=False)
+                    if not shown:
+                        print_thread(row, position=f"{i + 1}/{len(pending)}")
+                        shown = True
+
+                    value = ask_field(row, field)
+                    set_answer(path, answers, key, field, value)
+                    history.append((i, field))
+            except Skip:
+                skipped.add(key)
+            except Back:
+                if not history:
+                    print("Nothing to undo.")
+                    continue
+
+                i, field = history.pop()
+                key = (pending[i]["list"], pending[i]["thread_id"])
+                skipped.discard(key)
+                undo_answer(path, answers, key, field)
+                continue
+
+            i += 1
+    except (KeyboardInterrupt, EOFError, Quit):
+        print("\nReview interrupted. Answers given so far are saved.")
+        return
 
     print("Review complete.")
+
+
+def has_reviews():
+    return os.path.isdir(REVIEWS_DIR) and bool(os.listdir(REVIEWS_DIR))
 
 
 def main():
@@ -332,40 +452,37 @@ def main():
         action="store_true",
         help=(
             f"Append {N_COMMON_HELPER_PER_LIST} unlabelled threads per list "
-            "matched only by pre_filter's common-helper arm to every "
-            "reviewer's main sample, then exit."
+            "matched only by pre_filter's common-helper arm to the shared main "
+            "sample, then exit."
         ),
     )
     parser.add_argument(
-        "--reviewer", type=int, choices=range(1, len(REVIEWER_DIRS) + 1), default=1,
-        help="Which reviewer's sample files to review (default: 1)",
+        "--reviewer", type=int, choices=range(1, N_REVIEWERS + 1), default=1,
+        help="Which reviewer is answering (default: 1)",
+    )
+    parser.add_argument(
+        "--field", choices=list(FIELDS_BY_NAME),
+        help="Review only this field"
     )
     args = parser.parse_args()
-
-    use_reviewer(args.reviewer)
 
     if args.add_common_helper:
         add_common_helper_threads(args.seed)
         return
 
-    output_file = USP_OUTPUT_FILE if args.usp else OUTPUT_FILE
+    sample_file = USP_SAMPLE_FILE if args.usp else SAMPLE_FILE
+    exists = os.path.exists(sample_file)
 
-    if args.rebuild:
+    if args.rebuild and exists and has_reviews():
+        answer = input("Reviews already exist and a rebuild orphans them. Continue? (y/n) ")
+        if answer.strip().lower() != "y":
+            return
+
+    if args.rebuild or not exists:
         build_sample(args.seed, usp=args.usp)
-    elif not os.path.exists(output_file):
-        build_sample(args.seed, usp=args.usp)
-    else:
-        choice = ""
-        while choice not in ("n", "c"):
-            choice = input(
-                "A sample file already exists. Generate a new sample (n) "
-                "or continue the analysis (c)? "
-            ).strip().lower()
 
-        if choice == "n":
-            build_sample(args.seed, usp=args.usp)
-
-    review(output_file)
+    fields = [FIELDS_BY_NAME[args.field]] if args.field else FIELDS
+    review(sample_file, args.reviewer, fields)
 
 
 if __name__ == "__main__":
