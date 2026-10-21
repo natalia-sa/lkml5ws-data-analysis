@@ -6,12 +6,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from run_pipeline import PROJECT_ROOT, STEPS, run_pipeline, selected_steps, step_command
+from run_pipeline import STEPS, run_pipeline, selected_steps, step_command
 
 
-def test_every_step_script_exists():
+def test_every_step_script_exists(project_root):
     assert list(STEPS) == ["fetch", "build_threads", "classify", "commit", "publish"]
-    assert all(os.path.exists(os.path.join(PROJECT_ROOT, script)) for script in STEPS.values())
+    assert all(os.path.exists(os.path.join(project_root, script)) for script in STEPS.values())
 
 
 def test_selected_steps():
@@ -22,10 +22,10 @@ def test_selected_steps():
 
 
 # The lists go to every step, the source only to fetch.
-def test_step_command():
-    script = os.path.join(PROJECT_ROOT, "fetch/fetch.py")
+def test_step_command(project_root):
+    script = os.path.join(project_root, "fetch/fetch.py")
     assert step_command("fetch", "a,b", "rcpassos") == [sys.executable, script, "--lists", "a,b", "--source", "rcpassos"]
-    assert step_command("commit", source="rcpassos") == [sys.executable, os.path.join(PROJECT_ROOT, STEPS["commit"])]
+    assert step_command("commit", source="rcpassos") == [sys.executable, os.path.join(project_root, STEPS["commit"])]
 
 
 def test_run_pipeline_stops_at_the_step_that_fails():
