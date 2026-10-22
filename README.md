@@ -73,14 +73,20 @@ One row per thread.
 `not_duplication`. The categories are defined in
 [`select_sample/LABELING_CRITERIA.md`](select_sample/LABELING_CRITERIA.md).
 
-Each item of `commit_matches` has four fields:
+Each item of `commit_matches` links one email of the thread to one mainline
+commit (tree at `af32da41b032`, 2026-10-09), not necessarily the patch about
+duplication; `LINK` may also be a reference, such as the patch a fix
+corrects. It has these fields:
 
 | Field | Type | Description |
 |---|---|---|
 | `message_id` | string | Email of the thread linked to the commit. |
 | `commit_hash` | string | Hash of the mainline commit. |
-| `status` | string | `LINK` (the commit's `Link:` trailer cites the email), `EXACT` (same author email and date) or `AMBIGUOUS` (more than one candidate email). |
-| `candidate_message_ids` | list\<string\> | Every candidate email, filled only for `AMBIGUOUS`. |
+| `commit_subject` | string | Subject of the commit. |
+| `commit_date` | timestamp | Author date of the commit, in UTC. |
+| `commit_author` | string | Author name of the commit. |
+| `status` | string | `LINK` (the commit's `Link:` trailer cites the email), `AUTHOR_DATE` (same author email and date), `AMBIGUOUS_LINK` or `AMBIGUOUS_AUTHOR_DATE` (more than one candidate email by that criterion). |
+| `candidate_message_ids` | list\<string\> | Every candidate email, filled only for the `AMBIGUOUS_*` statuses. |
 
 The remaining fields of each message, such as sender and recipients, can be
 retrieved from LKML5Ws through `message_ids`.

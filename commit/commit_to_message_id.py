@@ -41,6 +41,9 @@ MATCHES_COLUMN = "commit_matches"
 MATCHES_TYPE = pa.list_(pa.struct([
     ("message_id", pa.string()),
     ("commit_hash", pa.string()),
+    ("commit_subject", pa.string()),
+    ("commit_date", pa.timestamp("s", tz="UTC")),
+    ("commit_author", pa.string()),
     ("status", pa.string()),
     ("candidate_message_ids", pa.list_(pa.string())),
 ]))
@@ -48,9 +51,13 @@ MATCHES_TYPE = pa.list_(pa.struct([
 
 class Status(Enum):
     LINK = auto()
-    EXACT = auto()
-    AMBIGUOUS = auto()
+    AUTHOR_DATE = auto()
+    AMBIGUOUS_LINK = auto()
+    AMBIGUOUS_AUTHOR_DATE = auto()
     UNMATCHED = auto()
+
+
+AMBIGUOUS = {Status.AMBIGUOUS_LINK, Status.AMBIGUOUS_AUTHOR_DATE}
 
 
 @dataclass
@@ -322,16 +329,16 @@ def resolve_commit(commit: CommitInfo, email_index: EmailIndex) -> tuple[Status,
         return Status.LINK, message_ids
 
     if len(message_ids) > 1:
-        return Status.AMBIGUOUS, message_ids
+        return Status.AMBIGUOUS_LINK, message_ids
 
     # author email + date
     candidates = email_index.find_by_author_date(commit.author_email, commit.date)
 
     if len(candidates) == 1:
-        return Status.EXACT, candidates
+        return Status.AUTHOR_DATE, candidates
 
     if len(candidates) > 1:
-        return Status.AMBIGUOUS, candidates
+        return Status.AMBIGUOUS_AUTHOR_DATE, candidates
 
     return Status.UNMATCHED, []
 
@@ -353,8 +360,11 @@ def match_commits(commits, email_index: EmailIndex, threads_by_message_id: dict[
             matches.setdefault(thread, []).append({
                 "message_id": message_id,
                 "commit_hash": commit.commit_hash,
+                "commit_subject": commit.subject,
+                "commit_date": commit.date,
+                "commit_author": commit.author_name,
                 "status": status.name,
-                "candidate_message_ids": candidates if status == Status.AMBIGUOUS else [],
+                "candidate_message_ids": candidates if status in AMBIGUOUS else [],
             })
 
     return matches, status_counts
@@ -441,12 +451,13 @@ def main() -> None:
 
     print(f"Commits:          {sum(status_counts.values())}")
     for status in Status:
-        print(f"  {status.name + ':':<16}{status_counts[status]}")
+        print(f"  {status.name + ':':<24}{status_counts[status]}")
 
     print()
     print(f"Matches written:  {sum(match_counts.values())}")
-    for status in (Status.LINK, Status.EXACT, Status.AMBIGUOUS):
-        print(f"  {status.name + ':':<16}{match_counts[status]}")
+    for status in Status:
+        if status != Status.UNMATCHED:
+            print(f"  {status.name + ':':<24}{match_counts[status]}")
 
     print(f"Threads matched:  {len(matches)}")
     print(f"Output column:    {MATCHES_COLUMN}")

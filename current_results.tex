@@ -1,0 +1,129 @@
+\chapter{Current results}
+\label{chap:results}
+
+This chapter presents the current results of the participant observation (Goal~2) and of the mining of the kernel mailing lists (Goal~3).
+
+\section{Participant observation}
+\label{sec:results-observation}
+
+In 2026, 17 new deduplication patches were submitted to the AMDGPU and IIO subsystems and followed closely during their review, including one patch submitted by the author of this work, which was accepted. Table~\ref{tab:results-patches} lists these patches, with the subsystem, the similarity threshold used by ArKanjo to find the duplication, the outcome of the review, the refactoring technique applied, named after Fowler's refactoring catalog, and the number of lines added and removed.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \caption{Deduplication patches submitted in 2026. Group 0 corresponds to the patches of the research group, and groups 1 to 12 to the patches of the students. The version in parentheses is the last version of the patch sent to the list.}
+    \label{tab:results-patches}
+    \begin{tabular}{clclll}
+        \hline
+        Group & Subsystem & Threshold & Status & Technique & Lines \\
+        \hline
+        0  & AMD & 100\% & No response   & Extract Method                          & +86/$-$114 \\
+           & IIO & 100\% & Accepted (v1) & Substitute Algorithm                    & +15/$-$32 \\
+           & IIO & 100\% & Accepted (v4) & Substitute Algorithm                    & +71/$-$119 \\
+           & AMD & 90\%  & Accepted (v1) & Substitute Algorithm                    & +1274/$-$2035 \\
+           & AMD & 100\% & Accepted (v3) & Extract Method                          & +41/$-$124 \\
+        1  & AMD & 100\% & Accepted (v2) & Replace Inline Code with Function Call  & +12/$-$61 \\
+        2  & AMD & 100\% & Accepted (v2) & Replace Inline Code with Function Call  & +13/$-$42 \\
+        3  & AMD & 100\% & Rejected (v1) & Extract Method                          & +61/$-$94 \\
+        4  & AMD & 100\% & Accepted (v4) & Extract Method                          & +56/$-$102 \\
+        5  & IIO & 100\% & Accepted (v4) & Substitute Algorithm                    & +29/$-$66 \\
+        6  & IIO & 100\% & Accepted (v4) & Inline Method                           & +42/$-$88 \\
+        7  & AMD & 100\% & Rejected (v1) & Extract Method                          & +131/$-$190 \\
+        8  & AMD & 100\% & No response   & Extract Method                          & +42/$-$75 \\
+        9  & AMD & 100\% & Accepted (v6) & Extract Method                          & +54/$-$80 \\
+        10 & AMD & 100\% & Rejected (v1) & Pull Up Method                          & +47/$-$124 \\
+        11 & IIO & 90\%  & Rejected (v1) & Parameterize Method                     & +62/$-$68 \\
+        12 & IIO & 90\%  & Dropped (v2)  & Parameterize Method                     & +42/$-$60 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Of the 17 patches, 10 were accepted, 4 were rejected, 2 received no response and 1 was dropped by its author. Eleven patches were sent to the AMDGPU subsystem, of which 6 were accepted, and six to the IIO subsystem, of which 4 were accepted. Most accepted patches went through more than one version before being accepted, up to the sixth, which shows that the review often shaped the final form of the deduplication. All patches removed more lines than they added.
+
+The most frequent technique was Extract Method, used in 7 patches, of which 3 were accepted. Substitute Algorithm and Replace Inline Code with Function Call were accepted in all the patches that applied them (four and two patches, respectively), as was the single patch that used Inline Method. In contrast, none of the patches that applied Pull Up Method or Parameterize Method was accepted. Together with the 13 patches of the previous study~\parencite{arcanjo2026repeat}, these patches form a corpus of 30 deduplication patches and their reviews, which will be analyzed together with the threads of the mined dataset in the qualitative coding.
+
+\section{Mining the kernel mailing lists}
+\label{sec:results-mining}
+
+The results presented in this section were obtained with the pipeline described in Chapter~\ref{chap:mining}. The dataset was built in October 2026 from the 206 selected lists of LKML5Ws, and the commits were taken from the mainline repository at commit \texttt{af32da41b032}, from October 9, 2026. Table~\ref{tab:results-overview} summarizes the number of items that remained after each step of the pipeline. Since kernel patches are usually sent to several lists at once, the same thread may appear in more than one list; the table therefore also shows the number of distinct threads.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Number of items remaining after each step of the pipeline.}
+    \label{tab:results-overview}
+    \begin{tabular}{lrr}
+        \hline
+        Metric & Value & Distinct threads \\
+        \hline
+        Emails                                  & 23,782,057 & --      \\
+        Threads                                 & 3,698,875  & --      \\
+        Candidate threads (regex filter)        & 373,528    & 242,909 \\
+        Threads about code duplication (Jev)    & 186,508    & 116,533 \\
+        Threads about code duplication linked to a commit & 33,245 & 19,650 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Validation of the classifier}
+\label{sec:results-validation}
+
+Table~\ref{tab:results-jev} compares the categories assigned by Jev with the labels of the reviewers for the 313 threads of the labeled sample. In the \emph{yes}/\emph{no} decision, Jev recognized 102 of the 107 threads that discuss code duplication (95.3\%) and 163 of the 206 threads that do not (79.1\%), and it failed to answer for two threads. The classifier therefore favors recall: few threads about code duplication are lost, at the cost of 43 false positives, so that about 70\% of the threads it classified as being about code duplication were also labeled \emph{yes} by the reviewers.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Threads of the labeled sample correctly classified by Jev, per category assigned by the reviewers.}
+    \label{tab:results-jev}
+    \begin{tabular}{lrr}
+        \hline
+        Category & Threads & Correctly classified \\
+        \hline
+        Clone refactoring                        &  58 &  55 (94.8\%) \\
+        Preventive reuse                         &  21 &  15 (71.4\%) \\
+        Clone refactoring and preventive reuse   &   7 &   0 (0.0\%)  \\
+        Duplication discussion                   &  21 &  16 (76.2\%) \\
+        Not related                              & 206 & 163 (79.1\%) \\
+        \hline
+        Total                                    & 313 & 249 (79.6\%) \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Among the categories, clone refactoring was the one Jev recognized best, while none of the seven threads that do both clone refactoring and preventive reuse was classified as such. Jev assigned them a single category, usually clone refactoring, which still keeps these threads among the threads about code duplication. Errors between the categories about code duplication do not remove useful threads from the dataset, since the categories were used to guide the classifier, and not as the final analysis of the threads.
+
+\subsection{Threads about code duplication}
+\label{sec:results-threads}
+
+Table~\ref{tab:results-categories} shows the number of candidate threads in each category. About half of the candidate threads were classified as discussing code duplication, the same proportion observed in the labeled sample, in which 49.5\% of the threads matched by the final regex filter were labeled \emph{yes}. Clone refactoring was the most frequent category, followed by duplication discussion and preventive reuse. The combination of clone refactoring and preventive reuse was rare and was also the category with the lowest confidence, in line with the difficulty observed in the labeled sample. Threads about code duplication were also longer than the other candidate threads, with a median of 15 emails against 6.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Candidate threads per category assigned by Jev. A thread sent to several lists is counted once per list in \emph{Threads} and once in \emph{Distinct}.}
+    \label{tab:results-categories}
+    \begin{tabular}{lrrr}
+        \hline
+        Category & Threads & Distinct & Median confidence \\
+        \hline
+        Clone refactoring                       &  71,877 &  46,232 & 0.76 \\
+        Preventive reuse                        &  56,888 &  32,980 & 0.67 \\
+        Clone refactoring and preventive reuse  &   1,098 &     677 & 0.46 \\
+        Duplication discussion                  &  56,645 &  36,644 & 0.84 \\
+        Not related                             & 187,020 & 126,376 & 0.95 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+Figure~\ref{fig:results-per-year} shows the number of distinct threads about code duplication per year. Their number grew steadily with the activity of the mailing lists, from 82 threads in 2000 to 9,924 in 2025; the year 2026 only covers the emails up to May 2026, the most recent ones in LKML5Ws. The share of candidate threads classified as being about code duplication, however, has remained close to 50\% since 2010, which suggests that the growth follows the volume of the lists rather than a change in how often duplication is discussed.
+
+\begin{figure}[htbp]
+    \centering
+    % \includegraphics[width=\textwidth]{figures/duplication_per_year.pdf}
+    \caption{Distinct threads about code duplication per year, by category.}
+    \label{fig:results-per-year}
+\end{figure}
+
+The threads about code duplication are spread over the lists of the dataset. The general list of the kernel, \texttt{lkml}, holds the largest number of them (43,862), followed by \texttt{linux-arm-kernel} (11,075), \texttt{netdev} (9,241) and \texttt{linux-devicetree} (8,582). Among the ten lists with most threads about code duplication, the share of candidate threads classified as such ranged from 44\% in \texttt{lkml} to 67\% in \texttt{kvm}.
+
+\subsection{Linking to commits}
+\label{sec:results-commits}
+
+The linking of threads to commits is still under development, so its results are preliminary. In the current version, 19,650 of the 116,533 distinct threads about code duplication (16.9\%) were linked to at least one mainline commit. A link does not yet mean that the patch about duplication was merged, since a thread may hold several patches, and a \texttt{Link:} trailer may also point to an email that is only cited by the commit, such as the report of the bug it fixes. Separating these cases is the next step of this part of the pipeline.

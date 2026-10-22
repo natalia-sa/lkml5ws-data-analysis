@@ -86,16 +86,16 @@ def test_email_index_ignores_the_same_email_twice():
     index.add(email("p1@ex.com"))
 
     assert index.find_by_author_date("dev@ex.com", DATE) == ["p1@ex.com"]
-    assert resolve_commit(commit(), index) == (Status.EXACT, ["p1@ex.com"])
+    assert resolve_commit(commit(), index) == (Status.AUTHOR_DATE, ["p1@ex.com"])
 
 
 @pytest.mark.parametrize("links, emails, expected", [
     (["https://lore.kernel.org/r/p1@ex.com"], [], (Status.LINK, ["p1@ex.com"])),
     (["https://lore.kernel.org/r/p1@ex.com", "https://lore.kernel.org/r/p2@ex.com"], [],
-     (Status.AMBIGUOUS, ["p1@ex.com", "p2@ex.com"])),
+     (Status.AMBIGUOUS_LINK, ["p1@ex.com", "p2@ex.com"])),
     (["https://lore.kernel.org/r/elsewhere@ex.com"], ["p1@ex.com"], (Status.LINK, ["elsewhere@ex.com"])),
-    (["https://bugzilla.kernel.org/show_bug.cgi?id=1"], ["p1@ex.com"], (Status.EXACT, ["p1@ex.com"])),
-    ([], ["p1@ex.com", "p2@ex.com"], (Status.AMBIGUOUS, ["p1@ex.com", "p2@ex.com"])),
+    (["https://bugzilla.kernel.org/show_bug.cgi?id=1"], ["p1@ex.com"], (Status.AUTHOR_DATE, ["p1@ex.com"])),
+    ([], ["p1@ex.com", "p2@ex.com"], (Status.AMBIGUOUS_AUTHOR_DATE, ["p1@ex.com", "p2@ex.com"])),
     ([], [], (Status.UNMATCHED, [])),
 ])
 def test_resolve_commit(links, emails, expected):
@@ -111,7 +111,7 @@ def test_resolve_commit_across_time_zones():
     index.add(email("p1@ex.com"))
     local = DATE.astimezone(timezone(timedelta(hours=-7)))
 
-    assert resolve_commit(commit(date=local.astimezone(timezone.utc)), index) == (Status.EXACT, ["p1@ex.com"])
+    assert resolve_commit(commit(date=local.astimezone(timezone.utc)), index) == (Status.AUTHOR_DATE, ["p1@ex.com"])
     assert resolve_commit(commit(date=DATE + timedelta(seconds=1)), index) == (Status.UNMATCHED, [])
 
 
@@ -136,15 +136,17 @@ def test_match_commits_and_written_column(tmp_path):
 
     assert pq.read_table(path).column(MATCHES_COLUMN).to_pylist() == [
         [
-            {"message_id": "p1@ex.com", "commit_hash": "a", "status": "EXACT", "candidate_message_ids": []},
-            {"message_id": "r1@ex.com", "commit_hash": "b", "status": "AMBIGUOUS",
+            {"message_id": "p1@ex.com", "commit_hash": "a", "commit_subject": "s", "commit_date": DATE,
+             "commit_author": "Dev", "status": "AUTHOR_DATE", "candidate_message_ids": []},
+            {"message_id": "r1@ex.com", "commit_hash": "b", "commit_subject": "s", "commit_date": DATE,
+             "commit_author": "Dev", "status": "AMBIGUOUS_LINK",
              "candidate_message_ids": ["elsewhere@ex.com", "r1@ex.com"]},
         ],
         None,
         None,
         [],
     ]
-    assert counts[Status.LINK] == 1 and counts[Status.EXACT] == 1 and counts[Status.AMBIGUOUS] == 1
+    assert counts[Status.LINK] == 1 and counts[Status.AUTHOR_DATE] == 1 and counts[Status.AMBIGUOUS_LINK] == 1
 
 
 def test_get_commits_keeps_every_link_trailer(tmp_path):
