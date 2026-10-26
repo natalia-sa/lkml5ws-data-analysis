@@ -6,13 +6,14 @@ fails:
     build_threads  builds and pre-filters the threads (build_threads/build_threads.py)
     classify       classifies the candidates with Jev (classify/jev_classifier/classify_threads.py)
     commit         links the kernel's commits to the emails (commit/commit_to_message_id.py)
-    publish        uploads the output to the Zenodo draft (publish/publish_dataset.py)
+    anonymize      hashes the Message-IDs of the output (anonymize/anonymize.py)
+    publish        uploads the anonymized output to the Zenodo draft (publish/publish_dataset.py)
 
 Every step resumes from what is already done, so the pipeline can be run
 again after a failure, or from the step that failed with --from.
 
 Run:
-    .venv/bin/python run_pipeline.py [--lists a,b] [--from STEP] [--until STEP] [--source zenodo|rcpassos]
+    .venv/bin/python run_pipeline.py [--lists a,b] [--from STEP] [--until STEP] [--source rcpassos|zenodo]
 """
 
 import argparse
@@ -28,6 +29,7 @@ STEPS = {
     "build_threads": "build_threads/build_threads.py",
     "classify": "classify/jev_classifier/classify_threads.py",
     "commit": "commit/commit_to_message_id.py",
+    "anonymize": "anonymize/anonymize.py",
     "publish": "publish/publish_dataset.py",
 }
 
@@ -65,7 +67,7 @@ def main():
                         help="First step to run (default: fetch)")
     parser.add_argument("--until", dest="last", choices=list(STEPS), default="publish",
                         help="Last step to run (default: publish)")
-    parser.add_argument("--source", choices=["zenodo", "rcpassos"],
+    parser.add_argument("--source", choices=["rcpassos", "zenodo"],
                         help="Where fetch downloads the lists from (default: fetch's own)")
     args = parser.parse_args()
 

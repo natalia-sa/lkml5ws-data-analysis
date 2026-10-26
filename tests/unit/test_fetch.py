@@ -1,6 +1,6 @@
 """Unit tests for fetch.py, without network access: fake openers play the
-Zenodo API, serving small synthetic archives in the dataset's layout
-(`list=<name>/list_data.parquet`), and files.rcpassos.me, serving each list's file.
+Zenodo API and files.rcpassos.me (copyparty), serving small synthetic
+archives in the dataset's layout (`list=<name>/list_data.parquet`).
 """
 
 import gzip
@@ -8,6 +8,7 @@ import hashlib
 import io
 import json
 import os
+import shutil
 import tarfile
 
 import pytest
@@ -96,13 +97,12 @@ def env(tmp_path, monkeypatch):
     class Env:
         zenodo = FakeZenodo(record, {f"https://zenodo.test/files/{n}": d for n, d in blobs.items()})
         pipeline = {
-            "zenodo": {"api_url": "https://zenodo.test/api", "record_id": "123", "version": "v1.0.0"},
-            "maintainers": {"first_tag": "v1.0", "last_tag": "v1.2", "exclude": []},
-            "paths": {
-                "raw_dir": str(tmp_path / "raw"),
-                "source_dir": str(tmp_path / "source"),
-                "archive_index": str(tmp_path / "config" / "archive_index.csv"),
+            "zenodo": {
+                "api_url": "https://zenodo.test/api", "record_id": "123", "version": "v1.0.0",
+                "archive_index": str(tmp_path / "config" / "archive_index_zenodo.csv"),
             },
+            "maintainers": {"first_tag": "v1.0", "last_tag": "v1.2", "exclude": []},
+            "paths": {"raw_dir": str(tmp_path / "raw"), "source_dir": str(tmp_path / "source")},
         }
         lists_dir = tmp_path / "source" / "LKML5Ws"
 
@@ -113,7 +113,7 @@ def env(tmp_path, monkeypatch):
         def run(self, allow_list=ALLOW_LIST, only=None):
             self.use_allow_list(allow_list)
             self.zenodo.requests.clear()
-            fetch.fetch(self.pipeline, only, opener=self.zenodo)
+            fetch.fetch(self.pipeline, only, source="zenodo", opener=self.zenodo)
 
         def extracted(self):
             return {
@@ -122,7 +122,7 @@ def env(tmp_path, monkeypatch):
             } if self.lists_dir.exists() else set()
 
         def index(self):
-            return fetch.read_index(self.pipeline["paths"]["archive_index"])
+            return fetch.read_index(self.pipeline["zenodo"]["archive_index"])
 
         def set_md5(self, name, md5):
             for f in self.zenodo.record["files"]:
@@ -273,108 +273,129 @@ def test_index_from_another_version_is_rejected(env):
         env.run()
 
 
-RCPASSOS_URL = "https://rcpassos.test/lists/"
+RCPASSOS_URL = "https://rcpassos.test/LKML5Ws.may/"
 
 
-def parquet_bytes(payload):
-    return fetch.PARQUET_MAGIC + payload + fetch.PARQUET_MAGIC
+class FakeRcpassos(FakeZenodo):
+    """Answers the copyparty listing (`?ls`), which has sizes but no checksum,
+    and serves the files as FakeZenodo."""
 
-
-class FakeRcpassos:
-    """Answers the copyparty listing (`?ls`) and serves each list's parquet,
-    honoring `Range`; `truncate` works as in FakeZenodo."""
-
-    def __init__(self, lists):
-        self.lists = lists
-        self.truncate = {}
-        self.requests = []
-
-    def url(self, name):
-        return f"{RCPASSOS_URL}list%3D{name}/list_data.parquet"
+    def __init__(self, blobs):
+        super().__init__(None, {RCPASSOS_URL + name: data for name, data in blobs.items()})
 
     def __call__(self, request, timeout=None):
-        url = request.full_url
-        byte_range = request.get_header("Range")
-        self.requests.append((url, byte_range))
-
-        if url == RCPASSOS_URL + "?ls":
-            dirs = [{"href": f"list%3D{n}/", "sz": len(d)} for n, d in self.lists.items()]
-            return FakeResponse(json.dumps({"dirs": dirs, "files": []}).encode())
-
-        data, status = next(d for n, d in self.lists.items() if self.url(n) == url), 200
-        if byte_range:
-            data, status = data[int(byte_range.split("=")[1].rstrip("-")):], 206
-        if url in self.truncate:
-            data = data[:self.truncate.pop(url)]
-        return FakeResponse(data, status)
+        if request.full_url == RCPASSOS_URL + "?ls":
+            self.requests.append((request.full_url, None))
+            files = [{"href": url.removeprefix(RCPASSOS_URL), "sz": len(data)} for url, data in self.files.items()]
+            return FakeResponse(json.dumps({"dirs": [], "files": files}).encode())
+        return super().__call__(request, timeout)
 
     def downloads(self):
-        return sorted(url for url, _ in self.requests if not url.endswith("?ls"))
+        return [os.path.basename(url) for url, _ in self.requests if not url.endswith("?ls")]
 
 
 @pytest.fixture
-def rcpassos_env(env):
-    env.rcpassos = FakeRcpassos({name: parquet_bytes(name.encode() * 100) for name in ["alpha", "beta", "gamma", "delta"]})
-    env.pipeline["rcpassos"] = {"url": RCPASSOS_URL.rstrip("/")}
+def rcpassos_env(env, tmp_path):
+    env.rcpassos = FakeRcpassos({
+        os.path.basename(url): data for url, data in env.zenodo.files.items()
+    })
+    env.pipeline["rcpassos"] = {
+        "url": RCPASSOS_URL.rstrip("/"),
+        "archive_index": str(tmp_path / "config" / "archive_index_rcpassos.csv"),
+    }
 
     def run(allow_list=ALLOW_LIST, only=None):
         env.use_allow_list(allow_list)
         env.rcpassos.requests.clear()
-        fetch.fetch(env.pipeline, only, source="rcpassos", opener=env.rcpassos)
+        fetch.fetch(env.pipeline, only, opener=env.rcpassos)
 
     env.run_rcpassos = run
     return env
 
 
-def test_rcpassos_downloads_only_the_allow_list_once(rcpassos_env):
+def test_rcpassos_is_the_default_and_downloads_only_what_is_missing(rcpassos_env):
     rcpassos_env.run_rcpassos()
 
+    assert rcpassos_env.rcpassos.downloads() == list(ARCHIVES)
     assert rcpassos_env.extracted() == {"alpha", "beta", "gamma"}
-    assert rcpassos_env.rcpassos.downloads() == sorted(rcpassos_env.rcpassos.url(n) for n in ALLOW_LIST)
-    path = rcpassos_env.lists_dir / "list=alpha" / "list_data.parquet"
-    assert path.read_bytes() == rcpassos_env.rcpassos.lists["alpha"]
-    assert not os.path.exists(rcpassos_env.pipeline["paths"]["raw_dir"])
+    assert os.listdir(rcpassos_env.pipeline["paths"]["raw_dir"]) == []
+    index = fetch.read_index(rcpassos_env.pipeline["rcpassos"]["archive_index"])
+    assert index["LKML5Ws-anonymized_2.dataset.tar.gz"] == {
+        "id": str(len(rcpassos_env.rcpassos.files[RCPASSOS_URL + "LKML5Ws-anonymized_2.dataset.tar.gz"])),
+        "lists": {"gamma", "delta"},
+    }
 
     rcpassos_env.run_rcpassos()
 
     assert rcpassos_env.rcpassos.downloads() == []
 
-
-def test_rcpassos_skips_lists_extracted_from_zenodo(rcpassos_env):
-    rcpassos_env.run(only=["alpha"])
+    os.remove(rcpassos_env.lists_dir / "list=gamma" / "list_data.parquet")
     rcpassos_env.run_rcpassos()
 
-    assert rcpassos_env.rcpassos.downloads() == sorted(rcpassos_env.rcpassos.url(n) for n in ["beta", "gamma"])
+    assert rcpassos_env.rcpassos.downloads() == ["LKML5Ws-anonymized_2.dataset.tar.gz"]
 
 
-def test_rcpassos_list_missing_is_skipped(rcpassos_env, capsys):
-    del rcpassos_env.rcpassos.lists["gamma"]
+def test_rcpassos_archive_of_another_size_is_deleted(rcpassos_env):
+    url = RCPASSOS_URL + "LKML5Ws-anonymized_1.dataset.tar.gz"
+    listed = rcpassos_env.rcpassos.__call__
 
-    rcpassos_env.run_rcpassos()
+    def serve_bigger(request, timeout=None):
+        response = listed(request, timeout)
+        return FakeResponse(response.read() + b"x") if request.full_url == url else response
 
-    assert rcpassos_env.extracted() == {"alpha", "beta"}
-    assert "Skipped, not on https://rcpassos.test/lists: ['gamma']" in capsys.readouterr().out
+    serve_bigger.requests = []
+    rcpassos_env.rcpassos = serve_bigger
+
+    with pytest.raises(fetch.FetchError, match="size mismatch"):
+        rcpassos_env.run_rcpassos()
+
+    assert os.listdir(rcpassos_env.pipeline["paths"]["raw_dir"]) == []
 
 
-def test_rcpassos_file_that_is_not_parquet_is_deleted(rcpassos_env):
-    rcpassos_env.rcpassos.lists["alpha"] = b"x" * len(rcpassos_env.rcpassos.lists["alpha"])
+def test_rcpassos_corrupt_archive_is_deleted(rcpassos_env):
+    url = RCPASSOS_URL + "LKML5Ws-anonymized_1.dataset.tar.gz"
+    data = bytearray(rcpassos_env.rcpassos.files[url])
+    data[-8] ^= 0xFF  # gzip CRC
+    rcpassos_env.rcpassos.files[url] = bytes(data)
 
-    with pytest.raises(fetch.FetchError, match="not a valid parquet"):
-        rcpassos_env.run_rcpassos(only=["alpha"])
+    with pytest.raises(fetch.FetchError, match="corrupt archive"):
+        rcpassos_env.run_rcpassos()
 
-    assert os.listdir(rcpassos_env.lists_dir / "list=alpha") == []
+    assert os.listdir(rcpassos_env.pipeline["paths"]["raw_dir"]) == []
+    assert rcpassos_env.extracted() == set()
+    assert not os.path.exists(rcpassos_env.pipeline["rcpassos"]["archive_index"])
 
 
 def test_rcpassos_interrupted_download_is_retried_and_resumed(rcpassos_env, monkeypatch):
     monkeypatch.setattr(fetch.time, "sleep", lambda seconds: None)
-    url = rcpassos_env.rcpassos.url("alpha")
+    url = RCPASSOS_URL + "LKML5Ws-anonymized_1.dataset.tar.gz"
     rcpassos_env.rcpassos.truncate[url] = 100
 
     rcpassos_env.run_rcpassos(only=["alpha"])
 
     assert [r for u, r in rcpassos_env.rcpassos.requests if u == url] == [None, "bytes=100-"]
-    path = rcpassos_env.lists_dir / "list=alpha" / "list_data.parquet"
-    assert path.read_bytes() == rcpassos_env.rcpassos.lists["alpha"]
+    assert rcpassos_env.extracted() == {"alpha"}
+
+
+def test_lists_from_another_source_are_not_mixed(rcpassos_env):
+    rcpassos_env.run(only=["alpha"])  # zenodo
+
+    with pytest.raises(fetch.FetchError, match="came from zenodo record 123 v1.0.0"):
+        rcpassos_env.run_rcpassos()
+
+    assert rcpassos_env.rcpassos.downloads() == []
+
+
+def test_lists_of_unknown_source_are_not_mixed(rcpassos_env):
+    (rcpassos_env.lists_dir / "list=alpha").mkdir(parents=True)
+
+    with pytest.raises(fetch.FetchError, match="came from an unknown source"):
+        rcpassos_env.run_rcpassos()
+
+    shutil.rmtree(rcpassos_env.lists_dir)
+    rcpassos_env.run_rcpassos()
+
+    assert rcpassos_env.extracted() == {"alpha", "beta", "gamma"}
 
 
 def test_member_paths_cannot_escape_the_list_folder(tmp_path):
@@ -392,7 +413,8 @@ def test_committed_config_loads():
 
     assert pipeline["zenodo"]["version"] == "v1.0.0"
     assert pipeline["paths"]["raw_dir"] == os.path.join(fetch.PROJECT_ROOT, "data", "raw")
-    assert pipeline["rcpassos"]["url"].startswith("https://")
+    assert pipeline["rcpassos"]["url"] == "https://files.rcpassos.me/public/Academic/Datasets/LKML5Ws.may/"
+    assert pipeline["rcpassos"]["archive_index"] == os.path.join(fetch.PROJECT_ROOT, "config", "archive_index_rcpassos.csv")
     assert (pipeline["maintainers"]["first_tag"], pipeline["maintainers"]["last_tag"]) == ("v2.6.30", "v7.2")
     assert pipeline["maintainers"]["exclude"] == ["dpdk-dev", "linux-patches"]
 
@@ -486,7 +508,7 @@ def test_fetch_uses_the_maintainers_allow_list(env, monkeypatch):
     monkeypatch.setattr(fetch, "maintainers_allow_list", lambda pipeline, opener: calls.append(pipeline) or ["alpha"])
     env.zenodo.requests.clear()
 
-    fetch.fetch(env.pipeline, opener=env.zenodo)
+    fetch.fetch(env.pipeline, source="zenodo", opener=env.zenodo)
 
     assert calls == [env.pipeline]
     assert env.extracted() == {"alpha"}

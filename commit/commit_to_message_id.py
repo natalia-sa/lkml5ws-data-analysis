@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from email.utils import parseaddr, parsedate_to_datetime
 from enum import Enum, auto
+import hashlib
 import os
 import pathlib
 import re
@@ -159,6 +160,16 @@ def duplication_threads(
     ))
 
 
+def without_views(column):
+    """LKML5Ws-anonymized stores text as string_view (also inside client_date's
+    list), which filter cannot take; casts it to large_string."""
+    if pa.types.is_string_view(column.type):
+        return column.cast(pa.large_string())
+    if pa.types.is_large_list(column.type) and pa.types.is_string_view(column.type.value_type):
+        return column.cast(pa.large_list(pa.large_string()))
+    return column
+
+
 def load_patch_emails(input_path, message_ids: set[str]):
     parquet_file = pq.ParquetFile(input_path)
 
@@ -174,6 +185,7 @@ def load_patch_emails(input_path, message_ids: set[str]):
     for batch in parquet_file.iter_batches(
         batch_size=BATCH_SIZE, columns=EMAIL_COLUMNS, use_threads=True
     ):
+        batch = pa.RecordBatch.from_arrays([without_views(c) for c in batch.columns], names=batch.schema.names)
         mask = pc.and_(
             pc.fill_null(batch.column("has_patch_tag"), False),
             pc.fill_null(pc.is_in(pc.cast(batch.column("message_id"), pa.string()), value_set=value_set), False),
@@ -316,11 +328,19 @@ def get_commits(
             subject=subject,
             date=normalize_git_date(date),
             author_name=author_name,
-            author_email=author_email.casefold(),
+            author_email=author_email,
             links=parse_git_trailers(
                 trailers.replace("\x1e", "\n")
             ),
         )
+
+
+def author_keys(author_email: str) -> list[str]:
+    """How the commit's author can appear as the sender of the emails: the
+    address itself (the index ignores case), or its sha1 in LKML5Ws-anonymized,
+    of the address as the email had it (git's, or git's in lower case)."""
+    hashes = (hashlib.sha1(address.encode()).hexdigest() for address in (author_email, author_email.casefold()))
+    return list(dict.fromkeys([author_email, *hashes]))
 
 
 def resolve_commit(commit: CommitInfo, email_index: EmailIndex) -> tuple[Status, list[str]]:
@@ -334,7 +354,11 @@ def resolve_commit(commit: CommitInfo, email_index: EmailIndex) -> tuple[Status,
         return Status.AMBIGUOUS, message_ids
 
     # author email + date
-    candidates = email_index.find_by_author_date(commit.author_email, commit.date)
+    candidates = list(dict.fromkeys(
+        message_id
+        for author in author_keys(commit.author_email)
+        for message_id in email_index.find_by_author_date(author, commit.date)
+    ))
 
     if len(candidates) == 1:
         return Status.EXACT, candidates

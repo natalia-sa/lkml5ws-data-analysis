@@ -2,7 +2,10 @@
 the pre-filter, the one-row-per-thread output and the list selection of `main`.
 """
 
+import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
 import build_threads.build_threads as build_threads
@@ -520,3 +523,29 @@ def test_bot_messages_are_left_out_of_the_thread(tmp_path):
     assert list(row["message_ids"]) == ["1@example.com", "3@example.com"]
     assert not row["is_duplication_candidate"]
     assert "4@example.com" not in thread_ids
+
+
+# In the anonymized LKML5Ws the sender is `sha1(name) <sha1(address)>`, which
+# BOT_SENDER_RE cannot read; config/bot_senders_anonymized.csv lists the bots.
+def test_hashed_bot_senders_are_left_out(tmp_path):
+    bot = sorted(build_threads.BOT_SENDERS)[0]
+    person = "67a119429512091f2f87c2c4edb5ac69e9395921 <28171bb708f3e14760aafcc51229154e5e567728>"
+    df = pd.DataFrame([
+        message("1@example.com", "Add the driver.", sender=person),
+        message("2@example.com", "Duplicate of an earlier report.", "1@example.com", sender=bot),
+    ])
+
+    thread_ids, result = thread_id_by_message_id(df, tmp_path)
+
+    assert list(result.iloc[0]["message_ids"]) == ["1@example.com"]
+    assert build_threads.is_bot(f" {bot} ")
+    assert not build_threads.is_bot(person)
+
+
+# The anonymized LKML5Ws stores `raw_body` as `string_view`, which `take` can't read.
+def test_read_bodies_of_a_string_view_column(tmp_path):
+    path = str(tmp_path / "list_data.parquet")
+    bodies = pa.array(["a", "b", "c"], pa.string()).cast(pa.string_view())
+    pq.write_table(pa.table({"raw_body": bodies}), path)
+
+    assert build_threads.read_bodies(path, np.array([0, 2])) == ["a", "c"]

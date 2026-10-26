@@ -3,7 +3,8 @@
 <output_dir>/list=<name>.parquet, one row per thread, skipping lists already built.
 
 Messages are linked by In-Reply-To/References. Pull requests and bots
-(`BOT_SENDER_RE`) are left out. A thread is a candidate if any message matches
+(`BOT_SENDER_RE`, or `BOT_SENDERS` for the hashed senders of the anonymized
+LKML5Ws) are left out. A thread is a candidate if any message matches
 the pre-filter, and only candidates get `thread_content`.
 
 Run:
@@ -11,6 +12,7 @@ Run:
 """
 
 import argparse
+import csv
 import os
 import re
 import sys
@@ -25,6 +27,7 @@ from tqdm import tqdm
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(HERE)
 CONFIG_FILE = os.path.join(PROJECT_ROOT, "config", "pipeline.yaml")
+BOT_SENDERS_FILE = os.path.join(PROJECT_ROOT, "config", "bot_senders_anonymized.csv")
 
 sys.path.insert(0, PROJECT_ROOT)
 from pre_filter.pre_filter_threads import is_candidate, replace_quotes  # noqa: E402
@@ -282,8 +285,18 @@ def is_pull_request(subject):
     return bool(PULL_TAG_RE.search(subject) or PULL_PREFIX_RE.match(subject))
 
 
+def load_bot_senders(path=BOT_SENDERS_FILE):
+    """Bots of the anonymized LKML5Ws, by their hashed sender (see the file)."""
+    with open(path, encoding="utf-8", newline="") as fh:
+        return frozenset(row["sender"] for row in csv.DictReader(line for line in fh if not line.startswith("#")))
+
+
+BOT_SENDERS = load_bot_senders()
+
+
 def is_bot(sender):
-    return bool(BOT_SENDER_RE.search(_text(sender)))
+    sender = _text(sender)
+    return sender.strip() in BOT_SENDERS or bool(BOT_SENDER_RE.search(sender))
 
 
 def is_left_out(subject, sender):
@@ -354,7 +367,10 @@ def read_bodies(input_path, positions):
     for batch in pq.ParquetFile(input_path).iter_batches(batch_size=BATCH_SIZE, columns=["raw_body"]):
         end = start + batch.num_rows
         lo, hi = np.searchsorted(positions, [start, end])
-        bodies.extend(batch.column(0).take(positions[lo:hi] - start).to_pylist())
+        column = batch.column(0)
+        # `take` has no kernel for `string_view` (the anonymized LKML5Ws).
+        column = column.cast(_view_type_replacement(column.type) or column.type)
+        bodies.extend(column.take(positions[lo:hi] - start).to_pylist())
         start = end
     return bodies
 
