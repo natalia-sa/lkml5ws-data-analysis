@@ -16,6 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(HERE)
 BUILD_THREADS_DIR = os.path.join(PROJECT_ROOT, "build_threads_output")
 PRE_FILTER_DIR = os.path.join(PROJECT_ROOT, "pre_filter", "pre_filter_output")
+LABELED_FILE = os.path.join(HERE, "consolidated", "labeled_sample.csv")
 
 sys.path.insert(0, PROJECT_ROOT)
 from pre_filter.pre_filter_threads import COMMON_HELPER_RE, COMMON_HELPER_TERM  # noqa: E402
@@ -76,6 +77,25 @@ def load_answers(path):
         for l, t, f, a in zip(df["list"], df["thread_id"], df["field"], df["answer"]):
             answers[(l, t)][f] = a
     return answers
+
+
+def load_patch_categories():
+    """Returns {(list, thread_id): category} from the labeled sample."""
+    if not os.path.exists(LABELED_FILE):
+        return {}
+
+    df = pd.read_csv(LABELED_FILE, dtype=str, keep_default_na=False)
+
+    if "category" not in df.columns:
+        return {}
+
+    df = df.drop_duplicates(["list", "thread_id"], keep="last")
+
+    return {
+        (row["list"], row["thread_id"]): row["category"]
+        for _, row in df.iterrows()
+        if row["category"].strip()
+    }
 
 
 def save_answers(path, answers):
@@ -320,7 +340,7 @@ def crop_to_snippets(text, context_chars=SNIPPET_CONTEXT_CHARS):
     return f"\n\n{'.' * 40}\n\n".join(parts)
 
 
-def print_thread(row, position=None):
+def print_thread(row, position=None, patch_category=None):
     terms = row["matched_terms"].replace(",", ", ") or "none"
 
     thread_link = (
@@ -342,6 +362,7 @@ def print_thread(row, position=None):
         field("Messages", row["n_messages"]),
         field("Date", row["date"]),
         field("Matched terms", terms),
+        *([field("Patch category", patch_category)] if patch_category else []),
         *([field("Progress", position)] if position else []),
         "-" * 100,
         field("Subject", row["subject"]),
@@ -369,6 +390,7 @@ def review(sample_file, reviewer, fields):
     sample = pd.read_csv(sample_file, dtype=str, keep_default_na=False)
     path = review_file(reviewer)
     answers = load_answers(path)
+    patch_categories = load_patch_categories()
 
     pending = [
         row for _, row in sample.iterrows()
@@ -401,8 +423,13 @@ def review(sample_file, reviewer, fields):
                     if not needs_answer(field, answers[key]):
                         continue
 
+                    patch_category = None
+
+                    if any(f.name == "refactoring_type" for f in fields):
+                        patch_category = patch_categories.get(key)
+
                     if not shown:
-                        print_thread(row, position=f"{i + 1}/{len(pending)}")
+                        print_thread(row, position=f"{i + 1}/{len(pending)}", patch_category=patch_category)
                         shown = True
 
                     value = ask_field(row, field)
