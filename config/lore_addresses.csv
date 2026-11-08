@@ -86,6 +86,7 @@ intel-wired-lan,intel-wired-lan@osuosl.org
 intel-wired-lan,intel-wired-lan@lists.osuosl.org
 intel-xe,intel-xe@lists.freedesktop.org
 io-uring,io-uring@vger.kernel.org
+ipsec,ipsec@lists.linux.dev
 iwd,iwd@lists.linux.dev
 kbd,kbd@lists.linux.dev
 kdevops,kdevops@lists.linux.dev
@@ -312,6 +313,7 @@ printing-architecture,printing-architecture@lists.linux.dev
 printing-architecture,printing-architecture@lists.linuxfoundation.org
 printing-architecture,printing-architecture@lists.linux-foundation.org
 printing-users,printing-users@lists.linux.dev
+printk,printk@lists.linux.dev
 qemu-arm,qemu-arm@nongnu.org
 qemu-devel,qemu-devel@nongnu.org
 qemu-riscv,qemu-riscv@nongnu.org
@@ -322,6 +324,7 @@ radiotap,radiotap@archiver.kernel.org
 rcu,rcu@vger.kernel.org
 regressions,regressions@lists.linux.dev
 reiserfs-devel,reiserfs-devel@vger.kernel.org
+replication-probe,devnull+replication-probe@kernel.org
 rpdfs-devel,rpdfs-devel@lists.linux.dev
 rust-for-linux,rust-for-linux@vger.kernel.org
 sashiko,sashiko@lists.linux.dev
@@ -359,6 +362,7 @@ u-boot-amlogic,u-boot-amlogic@groups.io
 ultralinux,ultralinux@vger.kernel.org
 util-linux,util-linux@vger.kernel.org
 v9fs,v9fs@lists.linux.dev
+vhost-user,vhost-user@lists.linux.dev
 virtio-comment,virtio-comment@lists.linux.dev
 virtio-dev,virtio-dev@lists.linux.dev
 virtio-fs,virtio-fs@lists.linux.dev

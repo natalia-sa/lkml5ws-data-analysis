@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import hashlib
 import os
 import subprocess
 import sys
@@ -104,6 +105,25 @@ def test_resolve_commit(links, emails, expected):
         index.add(email(message_id))
 
     assert resolve_commit(commit(links), index) == expected
+
+
+def test_resolve_commit_with_the_senders_of_lkml5ws_anonymized(tmp_path):
+    path = str(tmp_path / "list_data.parquet")
+    hashed = hashlib.sha1(b"Dev@Ex.com").hexdigest()
+    pq.write_table(pa.table({
+        "message_id": ["p1@ex.com", "p2@ex.com"],
+        "from": [f"{hashlib.sha1(b'Dev').hexdigest()} <{hashed}>", hashed],
+        "client_date": [["Fri, 01 May 2020 12:00:00 +0200"], ["Fri, 01 May 2020 12:00:01 +0200"]],
+        "has_patch_tag": [True, True],
+    }), path)
+    index = EmailIndex()
+    for patch in load_patch_emails(path, {"p1@ex.com", "p2@ex.com"}):
+        index.add(patch)
+
+    assert resolve_commit(commit(author="Dev@Ex.com"), index) == (Status.EXACT, ["p1@ex.com"])
+    assert resolve_commit(commit(author="Dev@Ex.com", date=DATE + timedelta(seconds=1)), index) == (
+        Status.EXACT, ["p2@ex.com"])
+    assert resolve_commit(commit(author="other@ex.com"), index) == (Status.UNMATCHED, [])
 
 
 def test_resolve_commit_across_time_zones():

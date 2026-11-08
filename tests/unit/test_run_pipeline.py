@@ -10,7 +10,7 @@ from run_pipeline import STEPS, run_pipeline, selected_steps, step_command
 
 
 def test_every_step_script_exists(project_root):
-    assert list(STEPS) == ["fetch", "build_threads", "classify", "commit", "publish"]
+    assert list(STEPS) == ["fetch", "build_threads", "classify", "commit", "anonymize", "publish"]
     assert all(os.path.exists(os.path.join(project_root, script)) for script in STEPS.values())
 
 

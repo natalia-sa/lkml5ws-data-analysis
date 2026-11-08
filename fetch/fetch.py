@@ -6,10 +6,13 @@ Allow-list: lore lists whose address, before the @, is on an `L:` line of a
 MAINTAINERS entry with `F:` in some kernel release of the range in
 config/pipeline.yaml, except `maintainers.exclude`.
 
-Sources: zenodo (archives, md5-checked) or rcpassos (uncompressed lists).
+Sources, both with the dataset's <name>_<n>.dataset.tar.gz archives:
+rcpassos (default; anonymized dataset on files.rcpassos.me, size- and
+gzip-checked) or zenodo (md5-checked). The lists of <source_dir>/LKML5Ws
+must all come from the same source.
 
 Run:
-    .venv/bin/python fetch/fetch.py [--source zenodo|rcpassos] [--lists a,b]
+    .venv/bin/python fetch/fetch.py [--source rcpassos|zenodo] [--lists a,b]
 """
 
 import argparse
@@ -24,6 +27,7 @@ import shutil
 import sys
 import tarfile
 import time
+import zlib
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import unquote
 from urllib.request import Request, urlopen
@@ -39,19 +43,19 @@ ADDRESSES_CSV = os.path.join(CONFIG_DIR, "lore_addresses.csv")
 
 LISTS_DIRNAME = "LKML5Ws"
 LIST_FILE = "list_data.parquet"
+ORIGIN_FILE = ".origin"
 
 ARCHIVE_RE = re.compile(r"_(\d+)\.dataset\.tar\.gz$")
 MEMBER_RE = re.compile(r"^(?:\./)?list=([^/]+)/")
 
-INDEX_COLUMNS = ["archive", "archive_md5", "list"]
+# archive_id: the md5 (zenodo) or the size (rcpassos) of the archive.
+INDEX_COLUMNS = ["archive", "archive_id", "list"]
 
 USER_AGENT = "lkml5ws-fetch/1.0"
 TIMEOUT = 60
 CHUNK_SIZE = 1 << 20
 MAX_RETRIES = 3
 RETRY_DELAY = 30
-
-PARQUET_MAGIC = b"PAR1"
 
 KERNEL_REPO = "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 KERNEL_TAGS_URL = KERNEL_REPO + "/info/refs?service=git-upload-pack"
@@ -78,8 +82,10 @@ def load_config(config_dir=CONFIG_DIR):
     with open(os.path.join(config_dir, "pipeline.yaml"), encoding="utf-8") as fh:
         pipeline = yaml.safe_load(fh)
 
-    for key in ("raw_dir", "source_dir", "archive_index"):
+    for key in ("raw_dir", "source_dir"):
         pipeline["paths"][key] = os.path.join(PROJECT_ROOT, pipeline["paths"][key])
+    for source in SOURCES:
+        pipeline[source]["archive_index"] = os.path.join(PROJECT_ROOT, pipeline[source]["archive_index"])
 
     return pipeline
 
@@ -238,42 +244,30 @@ def get_archives(zenodo, opener=urlopen):
             f"config/pipeline.yaml expects {zenodo['version']}"
         )
 
-    archives = [
-        {
-            "name": f["key"],
-            "size": f["size"],
-            "md5": f["checksum"].removeprefix("md5:"),
-            "url": f["links"]["self"],
-        }
-        for f in record["files"]
-        if ARCHIVE_RE.search(f["key"])
-    ]
-    return sorted(archives, key=lambda a: int(ARCHIVE_RE.search(a["name"]).group(1)))
+    archives = []
+    for f in record["files"]:
+        if ARCHIVE_RE.search(f["key"]):
+            md5 = f["checksum"].removeprefix("md5:")
+            archives.append({"name": f["key"], "size": f["size"], "md5": md5, "id": md5, "url": f["links"]["self"]})
+    return sort_archives(archives)
 
 
-def get_rcpassos_lists(rcpassos, opener=urlopen):
-    """{list: download}, read from the server's JSON listing (copyparty `?ls`).
-    Each list folder holds only list_data.parquet, so its size is the file's."""
+def get_rcpassos_archives(rcpassos, opener=urlopen):
+    """Read from the server's JSON listing (copyparty `?ls`), which has no
+    checksum: the size identifies the archive's version."""
     url = rcpassos["url"].rstrip("/") + "/"
     listing = json.loads(get(url + "?ls", opener))
 
-    lists = {}
-    for folder in listing["dirs"]:
-        name = unquote(folder["href"]).strip("/").removeprefix("list=")
-        lists[name] = {
-            "name": f"list={name}/{LIST_FILE}",
-            "size": folder["sz"],
-            "md5": None,
-            "url": f"{url}{folder['href']}{LIST_FILE}",
-        }
-    return lists
+    archives = []
+    for f in listing["files"]:
+        name = unquote(f["href"])
+        if ARCHIVE_RE.search(name):
+            archives.append({"name": name, "size": f["sz"], "md5": None, "id": str(f["sz"]), "url": url + f["href"]})
+    return sort_archives(archives)
 
 
-def is_parquet(path):
-    with open(path, "rb") as fh:
-        head = fh.read(len(PARQUET_MAGIC))
-        fh.seek(-len(PARQUET_MAGIC), os.SEEK_END)
-        return head == fh.read() == PARQUET_MAGIC
+def sort_archives(archives):
+    return sorted(archives, key=lambda a: int(ARCHIVE_RE.search(a["name"]).group(1)))
 
 
 def file_md5(path):
@@ -286,12 +280,18 @@ def file_md5(path):
     return digest.hexdigest()
 
 
+def is_complete(path, archive):
+    if archive["md5"] is None:
+        return os.path.getsize(path) == archive["size"]
+    return file_md5(path) == archive["md5"]
+
+
 def download(archive, raw_dir, opener=urlopen):
-    """Resumes a <name>.part left by an interrupted run. Without an md5, the
-    file must be a parquet."""
+    """Resumes a <name>.part left by an interrupted run. Without an md5, only
+    the size is checked here; the gzip CRC is checked on extraction."""
     path = os.path.join(raw_dir, archive["name"])
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    if os.path.exists(path) and (archive["md5"] is None or file_md5(path) == archive["md5"]):
+    if os.path.exists(path) and is_complete(path, archive):
         return path
 
     part = path + ".part"
@@ -316,9 +316,13 @@ def download(archive, raw_dir, opener=urlopen):
             raise DownloadInterrupted(f"{archive['name']}: download incomplete")
 
     if archive["md5"] is None:
-        if os.path.getsize(part) != archive["size"] or not is_parquet(part):
+        actual = os.path.getsize(part)
+        if actual != archive["size"]:
             os.remove(part)
-            raise FetchError(f"{archive['name']}: not a valid parquet; the download was deleted")
+            raise FetchError(
+                f"{archive['name']}: size mismatch (expected {archive['size']}, got {actual}); "
+                "the download was deleted"
+            )
     else:
         actual = file_md5(part)
         if actual != archive["md5"]:
@@ -349,13 +353,15 @@ def download_with_retries(archive, raw_dir, opener=urlopen):
 
 def extract_lists(archive_path, wanted, lists_dir):
     """Extracts the `wanted` lists and returns the names of every list in the
-    archive. Files are written as .tmp and renamed, so an existing file is
-    complete."""
+    archive. Files are written as .tmp and renamed only after the whole gzip
+    is read, which checks its CRC (tarfile's `r|gz` stops at the tar's end
+    and never checks it), so an existing file is complete and intact."""
     found = set()
+    extracted = []
 
     with open(archive_path, "rb") as fh, progress(
         f"extract {os.path.basename(archive_path)}", os.path.getsize(archive_path)
-    ) as bar, tarfile.open(fileobj=ProgressReader(fh, bar), mode="r|gz") as tar:
+    ) as bar, gzip.GzipFile(fileobj=ProgressReader(fh, bar)) as gz, tarfile.open(fileobj=gz, mode="r|") as tar:
         for member in tar:
             match = MEMBER_RE.match(member.name)
             if not member.isfile() or not match:
@@ -371,8 +377,13 @@ def extract_lists(archive_path, wanted, lists_dir):
             with tar.extractfile(member) as src, open(dest + ".tmp", "wb") as out:
                 while chunk := src.read(CHUNK_SIZE):
                     out.write(chunk)
-            os.replace(dest + ".tmp", dest)
+            extracted.append(dest)
 
+        while gz.read(CHUNK_SIZE):
+            pass
+
+    for dest in extracted:
+        os.replace(dest + ".tmp", dest)
     return found
 
 
@@ -381,7 +392,7 @@ def read_index(path):
     if os.path.exists(path):
         with open(path, encoding="utf-8", newline="") as fh:
             for row in csv.DictReader(fh):
-                entry = index.setdefault(row["archive"], {"md5": row["archive_md5"], "lists": set()})
+                entry = index.setdefault(row["archive"], {"id": row["archive_id"], "lists": set()})
                 entry["lists"].add(row["list"])
     return index
 
@@ -393,7 +404,7 @@ def write_index(path, index):
         writer.writerow(INDEX_COLUMNS)
         for archive in sorted(index, key=lambda a: int(ARCHIVE_RE.search(a).group(1))):
             for name in sorted(index[archive]["lists"]):
-                writer.writerow([archive, index[archive]["md5"], name])
+                writer.writerow([archive, index[archive]["id"], name])
 
 
 def is_extracted(lists_dir, name):
@@ -413,17 +424,44 @@ def remove_lists_not_allowed(lists_dir, allow_list):
     return removed
 
 
-def fetch_from_zenodo(pipeline, lists_dir, targets, opener):
-    paths = pipeline["paths"]
-    archives = get_archives(pipeline["zenodo"], opener)
+def check_origin(lists_dir, origin):
+    """Lists of different sources (e.g. anonymized and not) must not be mixed,
+    since lists already extracted are not fetched again."""
+    path = os.path.join(lists_dir, ORIGIN_FILE)
+    has_lists = os.path.isdir(lists_dir) and any(e.startswith("list=") for e in os.listdir(lists_dir))
+    current = None
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as fh:
+            current = fh.read().strip()
+    if has_lists and current != origin:
+        raise FetchError(
+            f"the lists in {lists_dir} came from {current or 'an unknown source'}, not {origin}; "
+            "delete that folder to fetch them again"
+        )
+    os.makedirs(lists_dir, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(origin + "\n")
 
-    index = read_index(paths["archive_index"])
+
+def extract_archive(path, archive, todo, lists_dir):
+    try:
+        return extract_lists(path, todo, lists_dir)
+    except (tarfile.TarError, EOFError, zlib.error, gzip.BadGzipFile) as e:
+        os.remove(path)
+        raise FetchError(f"{archive['name']}: corrupt archive ({e}); the download was deleted") from None
+
+
+def fetch_archives(archives, label, index_path, raw_dir, lists_dir, targets, opener):
+    """Downloads the archives with lists of `targets` not extracted yet and
+    extracts those lists. `index_path` records the lists of each archive, so
+    later runs only download the archives they need."""
+    index = read_index(index_path)
     for archive in archives:
         indexed = index.get(archive["name"])
-        if indexed and indexed["md5"] != archive["md5"]:
+        if indexed and indexed["id"] != archive["id"]:
             raise FetchError(
-                f"{paths['archive_index']} is from another dataset version "
-                f"(md5 of {archive['name']} differs); delete it to rebuild it"
+                f"{index_path} is from another dataset version "
+                f"({archive['name']} differs); delete it to rebuild it"
             )
     location = {name: archive for archive, entry in index.items() for name in entry["lists"]}
 
@@ -432,7 +470,7 @@ def fetch_from_zenodo(pipeline, lists_dir, targets, opener):
     if all(a["name"] in index for a in archives):
         missing = sorted(todo - set(location))
         if missing:
-            print(f"Skipped, not in any archive of {pipeline['zenodo']['version']}: {missing}")
+            print(f"Skipped, not in any archive of {label}: {missing}")
             todo -= set(missing)
 
     to_process = [
@@ -447,46 +485,60 @@ def fetch_from_zenodo(pipeline, lists_dir, targets, opener):
     )
 
     for number, archive in enumerate(to_process, start=1):
-        print(
-            f"[{number}/{len(to_process)}] {archive['name']} "
-            f"({archive['size'] / 1e9:.2f} GB, md5:{archive['md5']})"
-        )
-        path = download_with_retries(archive, paths["raw_dir"], opener)
-        found = extract_lists(path, todo, lists_dir)
+        checksum = f", md5:{archive['md5']}" if archive["md5"] else ""
+        print(f"[{number}/{len(to_process)}] {archive['name']} ({archive['size'] / 1e9:.2f} GB{checksum})")
+        path = download_with_retries(archive, raw_dir, opener)
+        found = extract_archive(path, archive, todo, lists_dir)
 
-        index[archive["name"]] = {"md5": archive["md5"], "lists": found}
-        write_index(paths["archive_index"], index)
+        index[archive["name"]] = {"id": archive["id"], "lists": found}
+        write_index(index_path, index)
 
         # Only after extracting and indexing, so a failed run can resume from it.
         os.remove(path)
 
     missing = sorted(name for name in todo if not is_extracted(lists_dir, name))
     if missing:
-        print(f"Skipped, not in any archive of {pipeline['zenodo']['version']}: {missing}")
+        print(f"Skipped, not in any archive of {label}: {missing}")
+
+
+def zenodo_origin(pipeline):
+    return f"zenodo record {pipeline['zenodo']['record_id']} {pipeline['zenodo']['version']}"
+
+
+def rcpassos_origin(pipeline):
+    return pipeline["rcpassos"]["url"].rstrip("/") + "/"
+
+
+def fetch_from_zenodo(pipeline, lists_dir, targets, opener):
+    zenodo = pipeline["zenodo"]
+    archives = get_archives(zenodo, opener)
+    fetch_archives(
+        archives, zenodo["version"], zenodo["archive_index"], pipeline["paths"]["raw_dir"], lists_dir, targets, opener
+    )
 
 
 def fetch_from_rcpassos(pipeline, lists_dir, targets, opener):
-    available = get_rcpassos_lists(pipeline["rcpassos"], opener)
-
-    todo = sorted(name for name in targets if not is_extracted(lists_dir, name))
-    missing = sorted(set(todo) - set(available))
-    if missing:
-        print(f"Skipped, not on {pipeline['rcpassos']['url']}: {missing}")
-        todo = [name for name in todo if name in available]
-
-    total_gb = sum(available[name]["size"] for name in todo) / 1e9
-    print(f"{len(targets)} lists requested, {len(todo)} to download ({total_gb:.2f} GB)")
-
-    for number, name in enumerate(todo, start=1):
-        print(f"[{number}/{len(todo)}] {name} ({available[name]['size'] / 1e9:.2f} GB)")
-        download_with_retries(available[name], lists_dir, opener)
+    rcpassos = pipeline["rcpassos"]
+    archives = get_rcpassos_archives(rcpassos, opener)
+    if not archives:
+        raise FetchError(f"no dataset archive on {rcpassos['url']}")
+    fetch_archives(
+        archives, rcpassos_origin(pipeline), rcpassos["archive_index"], pipeline["paths"]["raw_dir"],
+        lists_dir, targets, opener,
+    )
 
 
-SOURCES = {"zenodo": fetch_from_zenodo, "rcpassos": fetch_from_rcpassos}
+# source: (fetch, origin recorded in <lists_dir>/.origin)
+SOURCES = {
+    "rcpassos": (fetch_from_rcpassos, rcpassos_origin),
+    "zenodo": (fetch_from_zenodo, zenodo_origin),
+}
+DEFAULT_SOURCE = "rcpassos"
 
 
-def fetch(pipeline, only=None, source="zenodo", opener=urlopen):
+def fetch(pipeline, only=None, source=DEFAULT_SOURCE, opener=urlopen):
     lists_dir = os.path.join(pipeline["paths"]["source_dir"], LISTS_DIRNAME)
+    fetch_source, origin = SOURCES[source]
 
     allow_list = maintainers_allow_list(pipeline, opener)
     maintainers = pipeline["maintainers"]
@@ -497,23 +549,25 @@ def fetch(pipeline, only=None, source="zenodo", opener=urlopen):
     if not_allowed:
         raise FetchError(f"not in the allow-list (MAINTAINERS): {not_allowed}")
 
+    check_origin(lists_dir, origin(pipeline))
+
     # Every run (also with --lists): lists out of the allow-list are deleted.
     removed = remove_lists_not_allowed(lists_dir, set(allow_list))
     if removed:
         print(f"Removed {len(removed)} lists no longer in the allow-list: {', '.join(removed)}")
 
-    SOURCES[source](pipeline, lists_dir, targets, opener)
+    fetch_source(pipeline, lists_dir, targets, opener)
 
     print(f"Done: {len(targets)} lists in {lists_dir}")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Download the LKML5Ws lists in the kernel's MAINTAINERS from Zenodo or files.rcpassos.me."
+        description="Download the LKML5Ws lists in the kernel's MAINTAINERS from files.rcpassos.me or Zenodo."
     )
     parser.add_argument(
-        "--source", choices=sorted(SOURCES), default="zenodo",
-        help="zenodo: archives to extract (default); rcpassos: lists already uncompressed",
+        "--source", choices=list(SOURCES), default=DEFAULT_SOURCE,
+        help="rcpassos: anonymized dataset on files.rcpassos.me (default); zenodo: Zenodo record",
     )
     parser.add_argument(
         "--lists", help="Comma-separated subset of the allow-list to fetch (e.g. for tests)"

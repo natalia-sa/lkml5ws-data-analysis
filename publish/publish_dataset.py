@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Packs the pipeline's output into tar archives (<name>_<n>.dataset.tar, plus
-an index of which archive holds each list) and uploads them to an unpublished
+"""Packs the pipeline's anonymized output (<anonymized_dir>, written by
+anonymize/anonymize.py) into tar archives (<name>_<nn>.dataset.tar, numbered
+01, 02..., plus an index of which archive holds each list) and uploads them to
+an unpublished
 Zenodo draft. Publishing is done by hand on Zenodo.
 
 Needs ZENODO_TOKEN in .env and publish.deposition_id in config/pipeline.yaml.
@@ -49,6 +51,22 @@ def load_config(config_file=CONFIG_FILE):
 
 def list_name(path):
     return os.path.basename(path).removeprefix("list=").removesuffix(".parquet")
+
+
+def anonymized_paths(outputs, anonymized_dir):
+    """The anonymized file of each output; stops unless every one exists and
+    is newer than its output, so nothing with the original ids is published."""
+    paths = [os.path.join(anonymized_dir, os.path.basename(path)) for path in outputs]
+    stale = sorted(
+        list_name(output) for output, path in zip(outputs, paths)
+        if not os.path.exists(path) or os.path.getmtime(path) <= os.path.getmtime(output)
+    )
+    if stale:
+        raise SystemExit(
+            f"{len(stale)} of {len(outputs)} lists not anonymized since their last change; "
+            f"run anonymize on them first: {', '.join(stale)}"
+        )
+    return paths
 
 
 def check_lists(paths):
@@ -121,8 +139,10 @@ def build_archives(paths, publish_dir, name, archive_bytes):
 
     os.makedirs(publish_dir, exist_ok=True)
     files, index = {}, []
+    # Zero-padded, so the archives sort lexicographically in order.
+    width = max(2, len(str(len(plan))))
     for number, members in enumerate(tqdm(plan, unit="archive", desc="Packing"), start=1):
-        archive = f"{name}_{number}.dataset.tar"
+        archive = f"{name}_{number:0{width}d}.dataset.tar"
         archive_path = os.path.join(publish_dir, archive)
         md5 = build_archive(archive_path, members)
         files[archive] = (archive_path, md5)
@@ -224,10 +244,11 @@ def main():
         )
 
     lists = args.lists.split(",") if args.lists else None
-    paths = list_paths(os.path.join(PROJECT_ROOT, pipeline["paths"]["output_dir"]), lists)
-    missing = [path for path in paths if not os.path.exists(path)]
+    outputs = list_paths(os.path.join(PROJECT_ROOT, pipeline["paths"]["output_dir"]), lists)
+    missing = [path for path in outputs if not os.path.exists(path)]
     if missing:
         raise SystemExit(f"Not found: {', '.join(missing)}")
+    paths = anonymized_paths(outputs, os.path.join(PROJECT_ROOT, pipeline["paths"]["anonymized_dir"]))
     check_lists(paths)
 
     publish_dir = os.path.join(PROJECT_ROOT, pipeline["paths"]["publish_dir"])

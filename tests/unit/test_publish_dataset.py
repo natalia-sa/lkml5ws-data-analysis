@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from publish.publish_dataset import (  # noqa: E402
     REQUIRED_COLUMNS,
     Draft,
+    anonymized_paths,
     build_archives,
     check_lists,
     plan_archives,
@@ -101,6 +102,31 @@ def test_check_lists_refuses_lists_with_different_columns(tmp_path):
 
 # The archives hold the lists under their file names, and the index says
 # where each one is; packing again gives the same archives.
+def test_anonymized_paths_refuses_lists_not_anonymized_since_their_last_change(tmp_path):
+    output, anonymized = tmp_path / "output", tmp_path / "anonymized"
+    output.mkdir()
+    anonymized.mkdir()
+
+    def write(path, mtime):
+        path.write_bytes(b"")
+        os.utime(path, (mtime, mtime))
+
+    outputs = []
+    for name in "abc":
+        write(output / f"list={name}.parquet", 100)
+        outputs.append(str(output / f"list={name}.parquet"))
+    write(anonymized / "list=a.parquet", 200)
+    write(anonymized / "list=b.parquet", 50)  # b changed after it was anonymized; c never was
+
+    with pytest.raises(SystemExit, match="2 of 3 lists not anonymized.*: b, c"):
+        anonymized_paths(outputs, str(anonymized))
+
+    write(anonymized / "list=b.parquet", 200)
+    write(anonymized / "list=c.parquet", 200)
+
+    assert anonymized_paths(outputs, str(anonymized)) == [str(anonymized / f"list={n}.parquet") for n in "abc"]
+
+
 def test_build_archives(tmp_path):
     lists = tmp_path / "lists"
     lists.mkdir()
@@ -109,16 +135,16 @@ def test_build_archives(tmp_path):
 
     files = build_archives(paths, str(tmp_path / "out"), NAME, limit)
 
-    assert list(files) == ["dataset_1.dataset.tar", "dataset_2.dataset.tar", "dataset.archive_index.csv"]
-    with tarfile.open(files["dataset_1.dataset.tar"][0]) as tar:
+    assert list(files) == ["dataset_01.dataset.tar", "dataset_02.dataset.tar", "dataset.archive_index.csv"]
+    with tarfile.open(files["dataset_01.dataset.tar"][0]) as tar:
         assert tar.getnames() == ["list=a.parquet", "list=b.parquet"]
         assert pq.read_table(tar.extractfile("list=b.parquet")).column("thread_id").to_pylist() == ["b"] * 1000
     with open(files["dataset.archive_index.csv"][0], newline="", encoding="utf-8") as fh:
         assert list(csv.reader(fh)) == [
             ["archive", "archive_md5", "list"],
-            ["dataset_1.dataset.tar", files["dataset_1.dataset.tar"][1], "a"],
-            ["dataset_1.dataset.tar", files["dataset_1.dataset.tar"][1], "b"],
-            ["dataset_2.dataset.tar", files["dataset_2.dataset.tar"][1], "c"],
+            ["dataset_01.dataset.tar", files["dataset_01.dataset.tar"][1], "a"],
+            ["dataset_01.dataset.tar", files["dataset_01.dataset.tar"][1], "b"],
+            ["dataset_02.dataset.tar", files["dataset_02.dataset.tar"][1], "c"],
         ]
     assert build_archives(paths, str(tmp_path / "again"), NAME, limit).keys() == files.keys()
     assert [md5 for _, md5 in build_archives(paths, str(tmp_path / "again"), NAME, limit).values()] == \

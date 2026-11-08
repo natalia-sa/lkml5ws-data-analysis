@@ -15,11 +15,21 @@ kernel.
 | `build_threads` | `build_threads/build_threads.py` | Groups the emails of each list into threads, drops pull requests and bot messages, and flags the threads that match the regex pre-filter (`pre_filter/`). |
 | `classify` | `classify/jev_classifier/classify_threads.py` | Classifies each flagged thread into one category with an LLM. |
 | `commit` | `commit/commit_to_message_id.py` | Links the emails of the threads about duplication to mainline commits. |
-| `publish` | `publish/publish_dataset.py` | Packs the output into tar archives and uploads them to an unpublished Zenodo draft. |
+| `anonymize` | `anonymize/anonymize.py` | Replaces every Message-ID of the output by its SHA1, into `data/anonymized/`. |
+| `publish` | `publish/publish_dataset.py` | Packs the anonymized output into tar archives and uploads them to an unpublished Zenodo draft. |
 
-Every step reads and writes `data/output/list=<name>.parquet`, one file per
-mailing list, adding its own columns. Every step also resumes from what is
+The steps up to `commit` read and write `data/output/list=<name>.parquet`,
+one file per mailing list, adding their own columns. `anonymize` writes a
+copy of each file to `data/anonymized/` with the Message-IDs hashed, and
+`publish` only uploads those copies. Every step also resumes from what is
 already done.
+
+`fetch` downloads, by default, the anonymized LKML5Ws from files.rcpassos.me,
+where names and addresses are already `sha1(<text>)`. `anonymize` uses the
+same hash, `sha1(<id without angle brackets>)`, in `thread_id`,
+`message_ids`, `commit_matches` and in the ids of `thread_content`, so an id
+gets the same hash everywhere. To find the email of a hashed id, or the
+emails a commit's `Link:` cites, compare `sha1(<message-id>)`.
 
 ## Setup
 
@@ -56,7 +66,7 @@ One row per thread.
 
 | Column | Type | Description | Step |
 |---|---|---|---|
-| `thread_id` | string | Thread identifier. | `build_threads` |
+| `thread_id` | string | Thread identifier: `sha1` of the Message-ID of the thread's first message, so a thread posted to several lists gets the same `thread_id` in each list where it starts with the same message. | `anonymize` |
 | `list` | string | Mailing list. | `build_threads` |
 | `n_messages` | int64 | Number of messages in the thread. | `build_threads` |
 | `message_ids` | list\<string\> | Message-ID of each message, in chronological order. | `build_threads` |
@@ -83,7 +93,8 @@ Each item of `commit_matches` has four fields:
 | `candidate_message_ids` | list\<string\> | Every candidate email, filled only for `AMBIGUOUS`. |
 
 The remaining fields of each message, such as sender and recipients, can be
-retrieved from LKML5Ws through `message_ids`.
+retrieved from LKML5Ws through `message_ids`, which hold
+`sha1(<message_id without angle brackets>)` of LKML5Ws's `message_id`.
 
 ## Labeled sample and classifier evaluation
 
@@ -95,8 +106,7 @@ is the classifier used by the pipeline.
 ## Tests
 
 ```bash
-.venv/bin/python -m pytest classify commit/test_match_commits.py publish test_run_pipeline.py
-.venv/bin/python -m pytest build_threads fetch pre_filter
+.venv/bin/python -m pytest tests/unit
 ```
 
 ## Repository layout
@@ -109,7 +119,8 @@ build_threads/      step 2: thread building
 pre_filter/         regex pre-filter used by build_threads
 classify/           step 3: classifiers, shared code and cache backup
 commit/             step 4: link between emails and commits
-publish/            step 5: upload to Zenodo
+anonymize/          step 5: hash of the Message-IDs
+publish/            step 6: upload to Zenodo
 select_sample/      labeled sample, labeling criteria and evaluation notebook
 repositories/linux  kernel repository (Git submodule)
 data/               downloaded lists, output and archives (not versioned)
